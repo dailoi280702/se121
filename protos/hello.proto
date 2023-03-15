@@ -1,0 +1,16 @@
+syntax = "proto3";
+option go_package = "github.com/dailoi280702/se121/go-backend/protos";
+
+package hello;
+
+service Hello {
+    rpc SayHello(HelloRequest) returns (HelloResponse);
+}
+
+message HelloRequest {
+    string message = 1; 
+}
+
+message HelloResponse {
+    string message = 1; 
+}
