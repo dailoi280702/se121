@@ -18,20 +18,17 @@ class HelloServicer(hello_pb2_grpc.HelloServicer):
 
 async def serveGrpc() -> None:
     server = grpc.aio.server()
-    # server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hello_pb2_grpc.add_HelloServicer_to_server(HelloServicer(), server)
     listen_addr = "[::]:50051"
     server.add_insecure_port(listen_addr)
     logging.info("Starting server on %s", listen_addr)
     await server.start()
     await server.wait_for_termination()
-    # server.start()
-    # server.wait_for_termination()
 
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    asyncio.run(serveGrpc())
+    asyncio.get_event_loop().run_until_complete(serveGrpc())
 
 
 if __name__ == "__main__":

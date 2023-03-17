@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+	// "time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	addr    = flag.String("addr", "localhost:50051", "the address to connect to")
+	addr    = flag.String("addr", "python-backend:50051", "the address to connect to")
 	message = flag.String("name", "go", "Name to greet")
 )
 
@@ -30,8 +30,8 @@ func main() {
 	defer conn.Close()
 	c := protos.NewHelloClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*100)
-	defer cancel()
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*100)
+	// defer cancel()
 
 	// router handler
 	r := chi.NewRouter()
@@ -48,9 +48,16 @@ func main() {
 	})
 
 	r.Get("/say-hello", func(w http.ResponseWriter, r *http.Request) {
-		responce, err := c.SayHello(ctx, &protos.HelloRequest{Message: *message})
+		responce, err := c.SayHello(context.Background(), &protos.HelloRequest{Message: *message})
 		if err != nil {
-			log.Fatalf("could not say hello: %v", err)
+			msg := fmt.Sprintf("could not say hello: %v", err)
+			if _, err := w.Write([]byte(msg)); err != nil {
+				log.Fatal(err)
+			}
+
+			log.Panicf("could not say hello: %v", err)
+
+			return
 		}
 
 		msg := fmt.Sprintf("Greeting: %s", responce.GetMessage())

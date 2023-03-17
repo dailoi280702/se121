@@ -10,17 +10,15 @@ services:
       - db
     ports:
       - "8000:8000"
-      - 50051
 
   python-backend:
     build: ./python-backend/
     container_name: python-backend
     networks:
       - grpc
-    ports:
-      - 50051
 
 networks:
   client: {}
-  grpc: {}
+  grpc:
+    name: grpc
   db: {}

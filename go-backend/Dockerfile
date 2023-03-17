@@ -9,6 +9,6 @@ RUN go mod download && go mod verify
 COPY . .
 RUN go build -v -o "go-backend"
 
-EXPOSE 8000
+# EXPOSE 8000
 
 CMD ["./go-backend"]
