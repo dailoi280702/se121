@@ -17,6 +17,17 @@ services:
     networks:
       - grpc
 
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    restart: always
+    volumes:
+      - ./frontend/:/app
+      - /app/node_modules
+      - /app/.next
+
 networks:
   client: {}
   grpc:
