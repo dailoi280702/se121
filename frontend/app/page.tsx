@@ -16,7 +16,8 @@ export default async function Home() {
 
   return (
     <>
-      <div className="text-center bg-slate-800 h-screen text-gray-200">
+      {/* <div className="text-center bg-slate-800 h-screen text-gray-200"> */}
+      <div>
         New project, yayyy!
         <div>{helloString}</div>
       </div>
