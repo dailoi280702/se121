@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="bg-neutral-100 text-neutral-700 h-screen flex">
+        <div className="bg-neutral-100 text-neutral-900 h-screen flex">
           <NavDrawer />
           <div className="flex-grow">
             <Header />

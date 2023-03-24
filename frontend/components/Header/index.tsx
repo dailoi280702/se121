@@ -5,19 +5,36 @@ import {
   UserCircleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
+import { useAtom } from 'jotai'
+import { useRouter } from 'next/navigation'
+import { navDrawerVisisibilyAtom } from '@/components/nav-drawer'
 
-const NavButton = () => {
+const NavButton = ({ onClick }: { onClick: () => void }) => {
   return (
     <button
       className="h-10 w-10 flex items-center justify-center mr-2 rounded-full font-bold
       hover:bg-neutral-700 hover:bg-opacity-[0.08]"
+      onClick={onClick}
     >
       <Bars3Icon className="h-6 w-6 stroke-2" />
     </button>
   )
 }
 
-export const Logo = () => <p className="text-lg font-semibold">CARZ</p>
+export const Logo = () => {
+  const router = useRouter()
+
+  return (
+    <p
+      className="text-lg font-semibold cursor-pointer"
+      onClick={() => {
+        router.push('/')
+      }}
+    >
+      CARZ
+    </p>
+  )
+}
 
 const Search = () => (
   <div className="">
@@ -41,11 +58,20 @@ const Search = () => (
 const User = () => <UserCircleIcon className="h-10 w-10" />
 
 const Header = () => {
+  const [navDrawerVisisibily, setNavDrawerVisiblity] = useAtom(
+    navDrawerVisisibilyAtom
+  )
+  const openDrawer = () => setNavDrawerVisiblity(true)
+
   return (
     <div className="h-16 bg-neutral-50 shadow-neutral-200 shadow flex items-center justify-center">
       <div className="max-w-6xl w-full flex items-center px-4">
-        <NavButton />
-        <Logo />
+        {!navDrawerVisisibily && (
+          <>
+            <NavButton onClick={openDrawer} />
+            <Logo />
+          </>
+        )}
         <div className="flex-grow" />
         <Search />
         <p className="ml-2" />
