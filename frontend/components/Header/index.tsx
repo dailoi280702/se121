@@ -55,7 +55,7 @@ const Search = () => (
   </div>
 )
 
-const User = () => <UserCircleIcon className="h-10 w-10" />
+const User = () => <UserCircleIcon className="h-10 w-10 stroke-1" />
 
 const Header = () => {
   const [navDrawerVisisibily, setNavDrawerVisiblity] = useAtom(

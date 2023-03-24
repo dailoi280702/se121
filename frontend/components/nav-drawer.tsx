@@ -2,7 +2,9 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Logo } from '@/components/Header'
-import { atom, useAtom, useSetAtom } from 'jotai'
+import { atom, PrimitiveAtom, useAtom, useSetAtom, WritableAtom } from 'jotai'
+import { useCallback, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export const navDrawerVisisibilyAtom = atom<boolean>(false)
 
@@ -34,11 +36,26 @@ const DrawerBody = () => {
   return <div>nav body</div>
 }
 
-export default function NavDrawer() {
-  const [navDrawerVisisibily, setNavDrawerVisiblity] = useAtom(
-    navDrawerVisisibilyAtom
+const useCloseShade = (shadeAtom: PrimitiveAtom<any>) => {
+  const setShadeVisibility = useSetAtom(shadeAtom)
+  const closeShade = useCallback(
+    () => setShadeVisibility(false),
+    [setShadeVisibility]
   )
-  const closeDrawer = () => setNavDrawerVisiblity(false)
+  const path = usePathname()
+
+  useEffect(() => {
+    if (window.innerWidth <= 768) {
+      closeShade()
+    }
+  }, [path, closeShade])
+
+  return closeShade
+}
+
+export default function NavDrawer() {
+  const [navDrawerVisisibily] = useAtom(navDrawerVisisibilyAtom)
+  const closeDrawer = useCloseShade(navDrawerVisisibilyAtom)
 
   return (
     <>
@@ -47,8 +64,7 @@ export default function NavDrawer() {
           <Shade onClose={closeDrawer} />
           <div
             className="absolute left-0 top-0 h-full w-56 flex flex-col z-[8] md:static
-            bg-white shadow shadow-neutral-200
-            transition-transform duration-75"
+            bg-neutral-50 shadow shadow-neutral-200"
           >
             <DrawerHeader onClose={closeDrawer} />
             <DrawerBody />
