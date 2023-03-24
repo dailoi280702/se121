@@ -87,7 +87,6 @@ const Header = () => {
   const [navDrawerVisisibily, setNavDrawerVisiblity] = useAtom(
     navDrawerVisisibilyAtom
   )
-  const [isProfileOpen, setProfileOpen] = useState(false)
   const openDrawer = () => setNavDrawerVisiblity(true)
 
   return (

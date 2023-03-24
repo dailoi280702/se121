@@ -19,10 +19,10 @@ export default function ProfileContainer({
           <Shade onClose={onClose} className="z-[8]" />
           <div
             className="absolute right-0 top-0 h-full w-56 flex flex-col z-[8]
-            sm:absolute sm:h-fit sm:top-full sm:rounded-lg
+            sm:absolute sm:h-fit sm:top-full sm:rounded-lg sm:p-4
             bg-neutral-50 shadow shadow-neutral-200"
           >
-            <div className="flex items-center justify-between h-16 w-full pr-4 pl-2">
+            <div className="flex items-center justify-between sm:hidden h-16 w-full pr-4 pl-2">
               <DrawerCloseButton onClose={onClose} />
             </div>
             <ProfileMenu />
