@@ -2,7 +2,7 @@
 
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Logo } from '@/components/Header'
-import { atom, PrimitiveAtom, useAtom, useSetAtom, WritableAtom } from 'jotai'
+import { atom, PrimitiveAtom, useAtom, useSetAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 
@@ -36,7 +36,7 @@ const DrawerBody = () => {
   return <div>nav body</div>
 }
 
-const useCloseShade = (shadeAtom: PrimitiveAtom<any>) => {
+const useCloseShade = (shadeAtom: PrimitiveAtom<boolean>) => {
   const setShadeVisibility = useSetAtom(shadeAtom)
   const closeShade = useCallback(
     () => setShadeVisibility(false),
