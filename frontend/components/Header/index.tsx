@@ -5,9 +5,12 @@ import {
   UserCircleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
-import { useAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { navDrawerVisisibilyAtom } from '@/components/nav-drawer'
+import ProfileContainer, {
+  profileContainerVisisibilyAtom,
+} from '../profile-container'
 
 const NavButton = ({ onClick }: { onClick: () => void }) => {
   return (
@@ -55,13 +58,21 @@ const Search = () => (
   </div>
 )
 
-const User = () => <UserCircleIcon className="h-10 w-10 stroke-1" />
+const User = ({ onClick }: { onClick: () => void }) => (
+  <button onClick={onClick}>
+    <UserCircleIcon className="h-10 w-10 stroke-1" />
+  </button>
+)
 
 const Header = () => {
   const [navDrawerVisisibily, setNavDrawerVisiblity] = useAtom(
     navDrawerVisisibilyAtom
   )
+  const setProfileContainerVisibility = useSetAtom(
+    profileContainerVisisibilyAtom
+  )
   const openDrawer = () => setNavDrawerVisiblity(true)
+  const openProfile = () => setProfileContainerVisibility(true)
 
   return (
     <div className="h-16 bg-neutral-50 shadow-neutral-200 shadow flex items-center justify-center">
@@ -75,7 +86,8 @@ const Header = () => {
         <div className="flex-grow" />
         <Search />
         <p className="ml-2" />
-        <User />
+        <ProfileContainer />
+        <User onClick={openProfile} />
       </div>
     </div>
   )

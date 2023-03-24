@@ -1,21 +1,12 @@
 'use client'
 
+import { atom, useAtom } from 'jotai'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Logo } from '@/components/Header'
-import { atom, PrimitiveAtom, useAtom, useSetAtom } from 'jotai'
-import { useCallback, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import useCloseShade from '@/components/hooks/use-close-shade'
+import { Shade } from '@/components/shade'
 
 export const navDrawerVisisibilyAtom = atom<boolean>(false)
-
-const Shade = ({ onClose }: { onClose: () => void }) => {
-  return (
-    <div
-      className="fixed left-0 top-0 h-full w-full z-[7] md:hidden bg-black/40"
-      onClick={onClose}
-    />
-  )
-}
 
 const DrawerHeader = ({ onClose }: { onClose: () => void }) => {
   return (
@@ -36,23 +27,6 @@ const DrawerBody = () => {
   return <div>nav body</div>
 }
 
-const useCloseShade = (shadeAtom: PrimitiveAtom<boolean>) => {
-  const setShadeVisibility = useSetAtom(shadeAtom)
-  const closeShade = useCallback(
-    () => setShadeVisibility(false),
-    [setShadeVisibility]
-  )
-  const path = usePathname()
-
-  useEffect(() => {
-    if (window.innerWidth <= 768) {
-      closeShade()
-    }
-  }, [path, closeShade])
-
-  return closeShade
-}
-
 export default function NavDrawer() {
   const [navDrawerVisisibily] = useAtom(navDrawerVisisibilyAtom)
   const closeDrawer = useCloseShade(navDrawerVisisibilyAtom)
@@ -61,7 +35,7 @@ export default function NavDrawer() {
     <>
       {navDrawerVisisibily && (
         <>
-          <Shade onClose={closeDrawer} />
+          <Shade onClose={closeDrawer} className="md:hidden" />
           <div
             className="absolute left-0 top-0 h-full w-56 flex flex-col z-[8] md:static
             bg-neutral-50 shadow shadow-neutral-200"
