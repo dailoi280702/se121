@@ -17,10 +17,10 @@ const NavButton = () => {
   )
 }
 
-const Logo = () => <p className="text-lg font-semibold">CARZ</p>
+export const Logo = () => <p className="text-lg font-semibold">CARZ</p>
 
 const Search = () => (
-  <div className=" ">
+  <div className="">
     <form
       className="z-[6] relative flex items-center
       bg-neutral-100 px-4 h-9 rounded-lg
