@@ -1,10 +1,10 @@
 'use client'
 
 import { atom, useAtom } from 'jotai'
-import { XMarkIcon } from '@heroicons/react/24/outline'
 import { Logo } from '@/components/Header'
 import useCloseShade from '@/components/hooks/use-close-shade'
 import { Shade } from '@/components/shade'
+import DrawerCloseButton from './buttons/drawer-close-button'
 
 export const navDrawerVisisibilyAtom = atom<boolean>(false)
 
@@ -12,13 +12,7 @@ const DrawerHeader = ({ onClose }: { onClose: () => void }) => {
   return (
     <div className="flex items-center justify-between h-16 w-full pl-4 pr-2">
       <Logo />
-      <button
-        className="h-10 w-10 flex items-center justify-center rounded-full font-bold
-        hover:bg-neutral-700 hover:bg-opacity-[0.08]"
-        onClick={onClose}
-      >
-        <XMarkIcon className="h-6 w-6 stroke-2" />
-      </button>
+      <DrawerCloseButton onClose={onClose} />
     </div>
   )
 }
