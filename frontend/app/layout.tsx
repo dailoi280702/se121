@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="bg-neutral-50 text-neutral-700 h-screen shadow-neutral-200">
+        <div className="bg-neutral-100 text-neutral-700 h-screen">
           <Header />
           {children}
         </div>

@@ -1,18 +1,18 @@
 const FetchHello = async () => {
   try {
-    const response = await fetch("http://go-backend:8000/say-hello");
-    const data = await response.text();
+    const response = await fetch('http://go-backend:8000/say-hello')
+    const data = await response.text()
 
-    if (!response.ok) return "???/";
+    if (!response.ok) return '???/'
 
-    return data;
+    return data
   } catch {
-    return "error";
+    return 'error'
   }
-};
+}
 
 export default async function Home() {
-  const helloString = await FetchHello();
+  const helloString = await FetchHello()
 
   return (
     <>
@@ -22,5 +22,5 @@ export default async function Home() {
         <div>{helloString}</div>
       </div>
     </>
-  );
+  )
 }
