@@ -8,7 +8,7 @@ export function Shade({
   return (
     <div
       className={
-        className + ' fixed left-0 top-0 h-full w-full z-[7] bg-black/40'
+        'fixed left-0 top-0 h-full w-full z-[7] bg-black/40 ' + className
       }
       onClick={onClose}
     />

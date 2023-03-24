@@ -11,6 +11,7 @@ import { navDrawerVisisibilyAtom } from '@/components/nav-drawer'
 import ProfileContainer, {
   profileContainerVisisibilyAtom,
 } from '../profile-container'
+import { useState } from 'react'
 
 const NavButton = ({ onClick }: { onClick: () => void }) => {
   return (
@@ -58,21 +59,36 @@ const Search = () => (
   </div>
 )
 
-const User = ({ onClick }: { onClick: () => void }) => (
-  <button onClick={onClick}>
-    <UserCircleIcon className="h-10 w-10 stroke-1" />
-  </button>
-)
+const User = () => {
+  const [isMenuOpen, setMenuOpen] = useState(false)
+
+  const closeMenu = () => {
+    setMenuOpen(false)
+    console.log(isMenuOpen)
+  }
+
+  const openMenu = () => {
+    setMenuOpen(true)
+  }
+
+  return (
+    <div className="relative grid-flow-col-dense grid">
+      {isMenuOpen && (
+        <ProfileContainer isOpen={isMenuOpen} onClose={closeMenu} />
+      )}
+      <button onClick={openMenu}>
+        <UserCircleIcon className="h-10 w-10 stroke-1"></UserCircleIcon>
+      </button>
+    </div>
+  )
+}
 
 const Header = () => {
   const [navDrawerVisisibily, setNavDrawerVisiblity] = useAtom(
     navDrawerVisisibilyAtom
   )
-  const setProfileContainerVisibility = useSetAtom(
-    profileContainerVisisibilyAtom
-  )
+  const [isProfileOpen, setProfileOpen] = useState(false)
   const openDrawer = () => setNavDrawerVisiblity(true)
-  const openProfile = () => setProfileContainerVisibility(true)
 
   return (
     <div className="h-16 bg-neutral-50 shadow-neutral-200 shadow flex items-center justify-center">
@@ -86,8 +102,7 @@ const Header = () => {
         <div className="flex-grow" />
         <Search />
         <p className="ml-2" />
-        <ProfileContainer />
-        <User onClick={openProfile} />
+        <User />
       </div>
     </div>
   )
