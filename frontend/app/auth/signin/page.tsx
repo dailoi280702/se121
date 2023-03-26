@@ -1,7 +1,10 @@
 export default async function Page() {
   return (
     <>
-      <div className="bg-blue-50">Sign In page</div>
+      <div className="">
+        Sign In page
+        <p>Content</p>
+      </div>
     </>
   )
 }
