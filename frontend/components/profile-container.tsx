@@ -94,8 +94,8 @@ export default function ProfileContainer() {
         <>
           <Shade onClose={closeProfile} className="z-[8]" />
           <div
-            className="absolute right-0 top-0 h-full w-56 flex flex-col z-[8] space-y-4 px-2
-            sm:h-fit sm:top-full sm:rounded-lg sm:py-4
+            className="fixed right-0 top-0 h-full w-56 flex flex-col z-[8] space-y-4 px-2
+            sm:absolute sm:h-fit sm:top-full sm:rounded-lg sm:py-4
             bg-neutral-50 shadow shadow-neutral-200"
           >
             <div className="flex items-center justify-between sm:hidden h-16 w-full pr-4 pl-2">

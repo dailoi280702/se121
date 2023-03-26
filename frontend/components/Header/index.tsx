@@ -83,7 +83,7 @@ const Header = () => {
   const openDrawer = () => setNavDrawerVisiblity(true)
 
   return (
-    <div className="h-16 bg-neutral-50 shadow-neutral-200 shadow flex items-center justify-center">
+    <div className="sticky top-0 w-full h-16 bg-neutral-50 shadow-neutral-200 shadow flex items-center justify-center">
       <div className="max-w-6xl w-full flex items-center px-4">
         {!navDrawerVisisibily && (
           <>
