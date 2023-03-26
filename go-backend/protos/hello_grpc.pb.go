@@ -8,6 +8,7 @@ package protos
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -51,8 +52,7 @@ type HelloServer interface {
 }
 
 // UnimplementedHelloServer must be embedded to have forward compatible implementations.
-type UnimplementedHelloServer struct {
-}
+type UnimplementedHelloServer struct{}
 
 func (UnimplementedHelloServer) SayHello(context.Context, *HelloRequest) (*HelloResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SayHello not implemented")

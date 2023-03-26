@@ -72,7 +72,7 @@ const User = () => {
   }
 
   return (
-    <div className="relative grid-flow-col-dense grid">
+    <div className="sm:relative grid-flow-col-dense grid">
       {isMenuOpen && (
         <ProfileContainer isOpen={isMenuOpen} onClose={closeMenu} />
       )}
