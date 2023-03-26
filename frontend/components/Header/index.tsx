@@ -5,13 +5,13 @@ import {
   UserCircleIcon,
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
-import { useAtom, useSetAtom } from 'jotai'
+import { atom, useAtom, useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { navDrawerVisisibilyAtom } from '@/components/nav-drawer'
-import ProfileContainer, {
-  profileContainerVisisibilyAtom,
-} from '../profile-container'
 import { useState } from 'react'
+import ProfileContainer from '../profile-container'
+
+export const profileVisisibilyAtom = atom<boolean>(false)
 
 const NavButton = ({ onClick }: { onClick: () => void }) => {
   return (
@@ -60,21 +60,15 @@ const Search = () => (
 )
 
 const User = () => {
-  const [isMenuOpen, setMenuOpen] = useState(false)
-
-  const closeMenu = () => {
-    setMenuOpen(false)
-  }
+  const setProfileVisibility = useSetAtom(profileVisisibilyAtom)
 
   const openMenu = () => {
-    setMenuOpen(true)
+    setProfileVisibility(true)
   }
 
   return (
     <div className="sm:relative grid-flow-col-dense grid">
-      {isMenuOpen && (
-        <ProfileContainer isOpen={isMenuOpen} onClose={closeMenu} />
-      )}
+      <ProfileContainer />
       <button onClick={openMenu}>
         <UserCircleIcon className="h-10 w-10 stroke-1"></UserCircleIcon>
       </button>

@@ -1,6 +1,7 @@
 import Header from '@/components/Header'
 import './globals.css'
 import NavDrawer from '@/components/nav-drawer'
+import ProfileContainer from '@/components/profile-container'
 // import { atom } from 'jotai'
 
 export const metadata = {

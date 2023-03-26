@@ -2,11 +2,17 @@ import { Shade } from '@/components/shade'
 import DrawerCloseButton from './buttons/drawer-close-button'
 import {
   ArrowLeftOnRectangleIcon,
+  Cog6ToothIcon,
   UserCircleIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline'
 import { cloneElement, ReactElement } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAtom } from 'jotai'
+import useCloseShade from './hooks/use-close-shade'
+import { profileVisisibilyAtom } from '@/components/Header'
 
-const LoginButton = ({
+const MenuButton = ({
   text,
   children,
   onClick,
@@ -28,11 +34,31 @@ const LoginButton = ({
 }
 
 const ProfileMenu = () => {
+  const router = useRouter()
+
+  const buttons = [
+    { name: 'My Profile', icon: <UserIcon />, url: '/' },
+    { name: 'Settings', icon: <Cog6ToothIcon />, url: '/' },
+    {
+      name: 'Sign In',
+      icon: <ArrowLeftOnRectangleIcon />,
+      url: '/auth/signin',
+    },
+  ]
+
   return (
     <ul className="flex flex-col space-y-1">
-      <LoginButton text="Sign In" onClick={() => {}}>
-        <ArrowLeftOnRectangleIcon />
-      </LoginButton>
+      {buttons.map((button) => (
+        <MenuButton
+          key={button.name}
+          text={button.name}
+          onClick={() => {
+            router.push(button.url)
+          }}
+        >
+          {button.icon}
+        </MenuButton>
+      ))}
     </ul>
   )
 }
@@ -54,33 +80,30 @@ const Info = () => {
   )
 }
 
-const Devider = ({ className = '' }: { className?: string }) => {
+const Divider = ({ className = '' }: { className?: string }) => {
   return <hr className={'border-neutral-200 border-0 border-t ' + className} />
 }
 
-export default function ProfileContainer({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean
-  onClose: () => void
-}) {
+export default function ProfileContainer() {
+  const [profileVisisibily] = useAtom(profileVisisibilyAtom)
+  const closeProfile = useCloseShade(profileVisisibilyAtom, true)
+
   return (
     <>
-      {isOpen && (
+      {profileVisisibily && (
         <>
-          <Shade onClose={onClose} className="z-[8]" />
+          <Shade onClose={closeProfile} className="z-[8]" />
           <div
             className="absolute right-0 top-0 h-full w-56 flex flex-col z-[8] space-y-4 px-2
             sm:h-fit sm:top-full sm:rounded-lg sm:py-4
             bg-neutral-50 shadow shadow-neutral-200"
           >
             <div className="flex items-center justify-between sm:hidden h-16 w-full pr-4 pl-2">
-              <DrawerCloseButton onClose={onClose} />
+              <DrawerCloseButton onClose={closeProfile} />
             </div>
-            <Devider className="!mt-0 sm:hidden" />
+            <Divider className="!mt-0 sm:hidden" />
             <Info />
-            <Devider />
+            <Divider />
             <ProfileMenu />
           </div>
         </>
