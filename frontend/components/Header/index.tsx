@@ -42,13 +42,13 @@ export const Logo = () => {
 const Search = () => (
   <div className="">
     <form
-      className="z-[6] relative flex items-center
-      bg-neutral-100 px-4 h-9 rounded-lg
+      className="z-[6] relative flex items-center justify-center
+      sm:bg-neutral-100 sm:px-2 h-9 w-9 sm:w-min rounded-lg
       focus-within:ring-2 ring-neutral-600"
     >
       <input
         placeholder="Search"
-        className="bg-transparent outline-none placeholder:text-neutral-600"
+        className="bg-transparent outline-none placeholder:text-neutral-600 hidden sm:inline-block"
       />
       <MagnifyingGlassIcon className="h-5 w-5 ml-1 stroke-2" />
     </form>
