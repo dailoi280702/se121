@@ -4,13 +4,16 @@ import {
   ArrowLeftOnRectangleIcon,
   UserCircleIcon,
 } from '@heroicons/react/24/outline'
+import { cloneElement, ReactElement } from 'react'
 
 const LoginButton = ({
   text,
+  children,
   onClick,
 }: {
-  text?: string
   onClick: () => void
+  text?: string
+  children?: ReactElement
 }) => {
   return (
     <button
@@ -18,7 +21,7 @@ const LoginButton = ({
       text-black-600 hover:bg-neutral-600/[0.08] px-2"
       onClick={onClick}
     >
-      <ArrowLeftOnRectangleIcon className="h-6 w-6 stroke-2" />
+      {children && cloneElement(children, { className: 'h-6 w-6 stroke-2' })}
       {text}
     </button>
   )
@@ -27,7 +30,9 @@ const LoginButton = ({
 const ProfileMenu = () => {
   return (
     <ul className="flex flex-col space-y-1">
-      <LoginButton text="Sign In" onClick={() => {}} />
+      <LoginButton text="Sign In" onClick={() => {}}>
+        <ArrowLeftOnRectangleIcon />
+      </LoginButton>
     </ul>
   )
 }

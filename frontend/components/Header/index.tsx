@@ -64,7 +64,6 @@ const User = () => {
 
   const closeMenu = () => {
     setMenuOpen(false)
-    console.log(isMenuOpen)
   }
 
   const openMenu = () => {
