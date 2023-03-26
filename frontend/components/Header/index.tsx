@@ -8,7 +8,6 @@ import {
 import { atom, useAtom, useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { navDrawerVisisibilyAtom } from '@/components/nav-drawer'
-import { useState } from 'react'
 import ProfileContainer from '../profile-container'
 
 export const profileVisisibilyAtom = atom<boolean>(false)
