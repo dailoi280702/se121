@@ -23,7 +23,7 @@ const MenuButton = ({
 }) => {
   return (
     <button
-      className="flex items-center text-md h-8 rounded-md gap-x-2
+      className="flex items-center text-sm h-8 rounded-md gap-x-2
       text-black-600 hover:bg-neutral-600/[0.08] px-2"
       onClick={onClick}
     >
