@@ -20,7 +20,7 @@ export default function SignInForm() {
     <form className="flex flex-col px-6 space-y-2 text-left text-sm sm:mb-14">
       <Input />
       <Input />
-      <button className="w-full h-10 rounded-md bg-teal-600 text-teal-50 !mt-8">
+      <button className="w-full h-10 rounded-md bg-teal-600 text-teal-50 !mt-8 font-medium">
         Sign in
       </button>
     </form>
