@@ -42,7 +42,7 @@ func main() {
 	r.Use(middleware.URLFormat)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := w.Write([]byte("hello")); err != nil {
+		if _, err := w.Write([]byte("hello with air")); err != nil {
 			log.Fatal(err)
 		}
 	})
