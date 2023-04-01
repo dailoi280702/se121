@@ -25,6 +25,7 @@ func InitRouter(gprcHelloClient protos.HelloClient) *chi.Mux {
 	})
 
 	router.Mount("/say-hello", handlers.NewHelloRouter(gprcHelloClient).Routes())
+	router.Mount("/auth", handlers.NewAuthHandler().Routes())
 
 	return router
 }
