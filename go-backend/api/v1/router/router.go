@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dailoi280702/se121/go_backend/api/handlers"
+	"github.com/dailoi280702/se121/go_backend/api/v1/handlers"
 	"github.com/dailoi280702/se121/go_backend/protos"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"

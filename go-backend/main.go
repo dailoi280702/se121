@@ -5,8 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dailoi280702/se121/go_backend/api/router"
+	api_v1 "github.com/dailoi280702/se121/go_backend/api/v1/router"
 	"github.com/dailoi280702/se121/go_backend/protos"
+	"github.com/go-chi/chi/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -23,6 +24,7 @@ func main() {
 	c := protos.NewHelloClient(conn)
 
 	// routes
-	r := router.InitRouter(c)
-	http.ListenAndServe(":8000", r)
+	router := chi.NewRouter()
+	router.Mount("/v1", api_v1.InitRouter(c))
+	http.ListenAndServe(":8000", router)
 }

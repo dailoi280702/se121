@@ -1,6 +1,6 @@
 const FetchHello = async () => {
   try {
-    const response = await fetch('http://go-backend:8000/say-hello')
+    const response = await fetch('http://go-backend:8000/v1/say-hello')
     const data = await response.text()
 
     if (!response.ok) return '???/'
