@@ -1,16 +1,13 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
+
 	// "time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-
+	"github.com/dailoi280702/se121/go_backend/api/router"
 	"github.com/dailoi280702/se121/go_backend/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -30,41 +27,7 @@ func main() {
 	defer conn.Close()
 	c := protos.NewHelloClient(conn)
 
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*100)
-	// defer cancel()
-
-	// router handler
-	r := chi.NewRouter()
-
-	r.Use(middleware.Logger)
-	r.Use(middleware.CleanPath)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.URLFormat)
-
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := w.Write([]byte("hello with air")); err != nil {
-			log.Fatal(err)
-		}
-	})
-
-	r.Get("/say-hello", func(w http.ResponseWriter, r *http.Request) {
-		responce, err := c.SayHello(context.Background(), &protos.HelloRequest{Message: *message})
-		if err != nil {
-			msg := fmt.Sprintf("could not say hello: %v", err)
-			if _, err := w.Write([]byte(msg)); err != nil {
-				log.Fatal(err)
-			}
-
-			log.Panicf("could not say hello: %v", err)
-
-			return
-		}
-
-		msg := fmt.Sprintf("Greeting: %s", responce.GetMessage())
-		if _, err := w.Write([]byte(msg)); err != nil {
-			log.Fatal(err)
-		}
-	})
-
+	// routes
+	r := router.InitRouter(c)
 	http.ListenAndServe(":8000", r)
 }
