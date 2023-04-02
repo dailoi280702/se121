@@ -10,9 +10,9 @@ type AuthToken struct {
 }
 
 type TokenStore interface {
-	NewToken() string
-	IsExisting(token string) bool
-	IsExpired(token string) bool
-	Refesh(token string) string
-	Remove(token string) string
+	NewToken(lifetime time.Time) (string, error)
+	IsExisting(token string) (bool, error)
+	IsExpired(token string) (bool, error)
+	Refesh(token string, lifetime time.Time) (string, error)
+	Remove(token string) error
 }
