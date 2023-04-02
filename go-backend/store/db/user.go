@@ -1,4 +1,4 @@
-package db
+package db_store
 
 import (
 	"github.com/dailoi280702/se121/go_backend/internal/utils"
