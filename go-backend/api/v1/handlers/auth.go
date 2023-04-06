@@ -29,10 +29,10 @@ func NewAuthHandler() *AuthHandler {
 func (h AuthHandler) Routes() chi.Router {
 	router := chi.NewRouter()
 
-	router.Get("/", h.MustSignedIn(h.refresh))
+	router.Get("/", h.MustBeAuthenticated(h.refresh))
 	router.Post("/", h.signIn)
 	router.Put("/", h.signUp)
-	router.Delete("/", h.MustSignedIn(h.signOut))
+	router.Delete("/", h.MustBeAuthenticated(h.signOut))
 
 	return router
 }
@@ -100,7 +100,7 @@ func mustSendError(err error, w http.ResponseWriter) {
 	}
 }
 
-func (h AuthHandler) MustSignedIn(next http.HandlerFunc) http.HandlerFunc {
+func (h AuthHandler) MustBeAuthenticated(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		dumpToken := "token"
 		existed, err := h.tokenStore.IsExisting(dumpToken)
