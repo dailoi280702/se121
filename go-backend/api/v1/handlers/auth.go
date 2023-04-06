@@ -29,10 +29,10 @@ func NewAuthHandler() *AuthHandler {
 func (h AuthHandler) Routes() chi.Router {
 	router := chi.NewRouter()
 
-	router.Get("/", h.refresh)
+	router.Get("/", h.MustSignedIn(h.refresh))
 	router.Post("/", h.signIn)
 	router.Put("/", h.signUp)
-	router.Delete("/", h.signOut)
+	router.Delete("/", h.MustSignedIn(h.signOut))
 
 	return router
 }
@@ -64,21 +64,11 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
-	// :TODO get token from cookie
+	// // :TODO get token from cookie
 	dumpToken := "token"
 
-	existed, err := h.tokenStore.IsExisting(dumpToken)
-	if err != nil {
-		mustSendError(err, w)
-		return
-	}
-	if !existed {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	// :TODO delete token from cookie
-	err = h.tokenStore.Remove(dumpToken)
+	err := h.tokenStore.Remove(dumpToken)
 	if err != nil {
 		mustSendError(err, w)
 		return
@@ -92,18 +82,8 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	// :TODO get token from cookie
 	dumpToken := "token"
 
-	existed, err := h.tokenStore.IsExisting(dumpToken)
-	if err != nil {
-		mustSendError(err, w)
-		return
-	}
-	if !existed {
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	// :TODO send new token to cookie
-	_, err = h.tokenStore.Refesh(dumpToken, TokenLifetime)
+	_, err := h.tokenStore.Refesh(dumpToken, TokenLifetime)
 	if err != nil {
 		mustSendError(err, w)
 		return
@@ -117,5 +97,23 @@ func mustSendError(err error, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
 	if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
 		log.Panic(err)
+	}
+}
+
+func (h AuthHandler) MustSignedIn(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		dumpToken := "token"
+		existed, err := h.tokenStore.IsExisting(dumpToken)
+		if err != nil {
+			mustSendError(err, w)
+			return
+		}
+
+		if !existed {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	}
 }
