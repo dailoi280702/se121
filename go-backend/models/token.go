@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type AuthToken struct {
 	Token     string
@@ -8,6 +11,14 @@ type AuthToken struct {
 	CreatedAt time.Time
 	ExpiresAt time.Time
 }
+
+func (a *AuthToken) MarshalBinary() ([]byte, error) {
+	return json.Marshal(a)
+}
+
+// func (a *AuthToken) BinaryUnmarshaler(data []byte) error {
+// 	return json.Unmarshal(data, a)
+// }
 
 type TokenStore interface {
 	NewToken(lifetime time.Duration) (string, error)

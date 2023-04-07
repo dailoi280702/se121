@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/dailoi280702/se121/go_backend/models"
+	"github.com/dailoi280702/se121/go_backend/store/cache"
 	"github.com/dailoi280702/se121/go_backend/store/db"
-	memory_store "github.com/dailoi280702/se121/go_backend/store/memory"
 	"github.com/go-chi/chi/v5"
+	"github.com/redis/go-redis/v9"
 )
 
 const TokenLifetime = 24 * 5 * time.Hour
@@ -19,17 +20,18 @@ type AuthHandler struct {
 	tokenStore models.TokenStore
 }
 
-func NewAuthHandler() *AuthHandler {
+func NewAuthHandler(redisClient *redis.Client) *AuthHandler {
 	return &AuthHandler{
 		userStore:  db_store.NewDbUserStore(),
-		tokenStore: memory_store.NewInMemoryTokenStore(),
+		tokenStore: cached_store.NewRedisAuthTokenStore(redisClient),
 	}
 }
 
 func (h AuthHandler) Routes() chi.Router {
 	router := chi.NewRouter()
 
-	router.Get("/", MustBeAuthenticated(h.refresh, h.tokenStore))
+	// router.Get("/", MustBeAuthenticated(h.refresh, h.tokenStore))
+	router.Get("/", h.refresh)
 	router.Post("/", h.signIn)
 	router.Put("/", h.signUp)
 	router.Delete("/", MustBeAuthenticated(h.signOut, h.tokenStore))
@@ -38,6 +40,13 @@ func (h AuthHandler) Routes() chi.Router {
 }
 
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
+	// :TODO delete next line
+	token, _ := h.tokenStore.NewToken(TokenLifetime)
+	if err := json.NewEncoder(w).Encode(token); err != nil {
+		log.Panic(err)
+		return
+	}
+
 	_, err := h.userStore.GetUser("id")
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -80,12 +89,17 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 
 func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	// :TODO get token from cookie
-	dumpToken := "token"
+	dumpToken := "b3814825-f297-45f4-934b-a5d606b96e31"
 
 	// :TODO send new token to cookie
-	_, err := h.tokenStore.Refesh(dumpToken, TokenLifetime)
+	token, err := h.tokenStore.Refesh(dumpToken, TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
+		return
+	}
+
+	if err = json.NewEncoder(w).Encode(token); err != nil {
+		log.Panic(err)
 		return
 	}
 

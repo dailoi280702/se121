@@ -8,9 +8,10 @@ import (
 	"github.com/dailoi280702/se121/go_backend/protos"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/redis/go-redis/v9"
 )
 
-func InitRouter(gprcHelloClient protos.HelloClient) *chi.Mux {
+func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client) *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Use(middleware.Logger)
@@ -25,7 +26,7 @@ func InitRouter(gprcHelloClient protos.HelloClient) *chi.Mux {
 	})
 
 	router.Mount("/say-hello", handlers.NewHelloRouter(gprcHelloClient).Routes())
-	router.Mount("/auth", handlers.NewAuthHandler().Routes())
+	router.Mount("/auth", handlers.NewAuthHandler(redisClient).Routes())
 
 	return router
 }
