@@ -29,10 +29,10 @@ func NewAuthHandler() *AuthHandler {
 func (h AuthHandler) Routes() chi.Router {
 	router := chi.NewRouter()
 
-	router.Get("/", h.MustBeAuthenticated(h.refresh))
+	router.Get("/", MustBeAuthenticated(h.refresh, h.tokenStore))
 	router.Post("/", h.signIn)
 	router.Put("/", h.signUp)
-	router.Delete("/", h.MustBeAuthenticated(h.signOut))
+	router.Delete("/", MustBeAuthenticated(h.signOut, h.tokenStore))
 
 	return router
 }
@@ -70,7 +70,7 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 	// :TODO delete token from cookie
 	err := h.tokenStore.Remove(dumpToken)
 	if err != nil {
-		mustSendError(err, w)
+		MustSendError(err, w)
 		return
 	}
 
@@ -85,35 +85,10 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	// :TODO send new token to cookie
 	_, err := h.tokenStore.Refesh(dumpToken, TokenLifetime)
 	if err != nil {
-		mustSendError(err, w)
+		MustSendError(err, w)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("refeshed"))
-}
-
-func mustSendError(err error, w http.ResponseWriter) {
-	w.WriteHeader(http.StatusInternalServerError)
-	if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
-		log.Panic(err)
-	}
-}
-
-func (h AuthHandler) MustBeAuthenticated(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		dumpToken := "token"
-		existed, err := h.tokenStore.IsExisting(dumpToken)
-		if err != nil {
-			mustSendError(err, w)
-			return
-		}
-
-		if !existed {
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
-
-		next.ServeHTTP(w, r)
-	}
 }
