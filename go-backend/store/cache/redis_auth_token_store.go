@@ -2,8 +2,8 @@ package cached_store
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
-	"log"
 	"time"
 
 	"github.com/dailoi280702/se121/go_backend/models"
@@ -35,10 +35,7 @@ func (s *InMemoryTokenStore) NewToken(lifetime time.Duration) (string, error) {
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(lifetime),
 	}
-	err := s.client.HSet(context.Background(), *existingTokens, []any{key, *token}).Err()
-	if err != nil {
-		log.Print("\nAnother bug here mf\n", err.Error())
-	}
+	err := s.client.HSet(context.Background(), *existingTokens, key, token).Err()
 	return key, err
 }
 
@@ -88,10 +85,6 @@ func (s *InMemoryTokenStore) Remove(token string) error {
 }
 
 func (s *InMemoryTokenStore) Refesh(token string, lifetime time.Duration) (string, error) {
-	// tokenSruct, err := getToken(s.client, *existingTokens, token)
-	// if err != nil {
-	// 	return "", err
-	// }
 	err := s.Remove(token)
 	if err != nil {
 		return "", err
@@ -101,9 +94,10 @@ func (s *InMemoryTokenStore) Refesh(token string, lifetime time.Duration) (strin
 
 func getToken(c *redis.Client, key string, token string) (*models.AuthToken, error) {
 	authToken := &models.AuthToken{}
-	err := c.HGet(context.Background(), *existingTokens, token).Scan(authToken)
+	bytes, err := c.HGet(context.Background(), *existingTokens, token).Bytes()
 	if err != nil {
-		log.Print("\nbug here mf\n", err.Error())
+		return authToken, err
 	}
+	err = json.Unmarshal(bytes, authToken)
 	return authToken, err
 }

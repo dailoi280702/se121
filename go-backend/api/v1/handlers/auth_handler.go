@@ -31,7 +31,7 @@ func (h AuthHandler) Routes() chi.Router {
 	router := chi.NewRouter()
 
 	// router.Get("/", MustBeAuthenticated(h.refresh, h.tokenStore))
-	router.Get("/", h.refresh)
+	router.Get("/", MustBeAuthenticated(h.refresh, h.tokenStore))
 	router.Post("/", h.signIn)
 	router.Put("/", h.signUp)
 	router.Delete("/", MustBeAuthenticated(h.signOut, h.tokenStore))
@@ -89,7 +89,7 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 
 func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	// :TODO get token from cookie
-	dumpToken := "b3814825-f297-45f4-934b-a5d606b96e31"
+	dumpToken := "cbf1905a-b2a6-4983-a524-6278f91e1e16"
 
 	// :TODO send new token to cookie
 	token, err := h.tokenStore.Refesh(dumpToken, TokenLifetime)

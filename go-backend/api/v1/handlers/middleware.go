@@ -20,6 +20,17 @@ func MustBeAuthenticated(next http.HandlerFunc, tokenStore models.TokenStore) ht
 			return
 		}
 
+		expired, err := tokenStore.IsExpired(dumpToken)
+		if err != nil {
+			MustSendError(err, w)
+			return
+		}
+
+		if expired {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	}
 }
