@@ -16,6 +16,7 @@ services:
   python-backend:
     build: ./python-backend/
     container_name: python-backend
+    stop_signal: SIGINT
     networks:
       - grpc
 
