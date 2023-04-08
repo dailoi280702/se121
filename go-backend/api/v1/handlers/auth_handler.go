@@ -82,22 +82,6 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
-	// // :TODO get token from cookie
-	dumpToken := "token"
-
-	// :TODO delete token from cookie
-	err := h.tokenStore.Remove(dumpToken)
-	if err != nil {
-		MustSendError(err, w)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("signed out"))
-}
-
-func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
-	// :TODO get token from cookie
 	c, err := r.Cookie(*cookieAuthToken)
 	if err != nil {
 		log.Println(err)
@@ -105,15 +89,37 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// :TODO send new token to cookie
+	err = h.tokenStore.Remove(c.Value)
+	if err != nil {
+		MustSendError(err, w)
+		return
+	}
+
+	c.Value = ""
+	c.MaxAge = -1
+	http.SetCookie(w, c)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("signed out"))
+}
+
+func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie(*cookieAuthToken)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
+	}
+
 	token, err := h.tokenStore.Refesh(c.Value, TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
 		return
 	}
-	c.Value = token
 
+	c.Value = token
 	http.SetCookie(w, c)
+
+	// :TODO send user infomation
 	if err = json.NewEncoder(w).Encode(token); err != nil {
 		log.Panic(err)
 		return

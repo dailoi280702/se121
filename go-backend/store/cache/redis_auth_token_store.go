@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"log"
 	"time"
 
 	"github.com/dailoi280702/se121/go_backend/models"
@@ -82,7 +81,7 @@ func (s *InMemoryTokenStore) Remove(token string) error {
 		return err
 	}
 
-	return s.client.HSet(context.Background(), *expiredTokens, token, tokenSruct).Err()
+	return s.client.HSet(ctx, *expiredTokens, token, tokenSruct).Err()
 }
 
 func (s *InMemoryTokenStore) Refesh(token string, lifetime time.Duration) (string, error) {
@@ -97,8 +96,6 @@ func getToken(c *redis.Client, key string, token string) (*models.AuthToken, err
 	authToken := &models.AuthToken{}
 	bytes, err := c.HGet(context.Background(), *existingTokens, token).Bytes()
 	if err != nil {
-		log.Println(token)
-		log.Println("debug??????????????")
 		return authToken, err
 	}
 	err = json.Unmarshal(bytes, authToken)
