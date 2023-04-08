@@ -98,15 +98,22 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 
 func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	// :TODO get token from cookie
-	dumpToken := "cbf1905a-b2a6-4983-a524-6278f91e1e16"
+	c, err := r.Cookie(*cookieAuthToken)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, "server error", http.StatusInternalServerError)
+		return
+	}
 
 	// :TODO send new token to cookie
-	token, err := h.tokenStore.Refesh(dumpToken, TokenLifetime)
+	token, err := h.tokenStore.Refesh(c.Value, TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
 		return
 	}
+	c.Value = token
 
+	http.SetCookie(w, c)
 	if err = json.NewEncoder(w).Encode(token); err != nil {
 		log.Panic(err)
 		return

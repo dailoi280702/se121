@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"log"
 	"time"
 
 	"github.com/dailoi280702/se121/go_backend/models"
@@ -55,7 +56,7 @@ func (s *InMemoryTokenStore) IsExpired(token string) (bool, error) {
 			return false, err
 		}
 
-		expired := authToken.ExpiresAt.After(time.Now())
+		expired := authToken.ExpiresAt.Before(time.Now())
 		if expired {
 			if err := s.Remove(token); err != nil {
 				return false, err
@@ -96,6 +97,8 @@ func getToken(c *redis.Client, key string, token string) (*models.AuthToken, err
 	authToken := &models.AuthToken{}
 	bytes, err := c.HGet(context.Background(), *existingTokens, token).Bytes()
 	if err != nil {
+		log.Println(token)
+		log.Println("debug??????????????")
 		return authToken, err
 	}
 	err = json.Unmarshal(bytes, authToken)
