@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"net/http"
 	"time"
@@ -14,6 +15,8 @@ import (
 )
 
 const TokenLifetime = 24 * 5 * time.Hour
+
+var cookieAuthToken = flag.String("cookieAuthToken", "authToken", "name of auth token for cookie")
 
 type AuthHandler struct {
 	userStore  models.UserStore
@@ -30,7 +33,6 @@ func NewAuthHandler(redisClient *redis.Client) *AuthHandler {
 func (h AuthHandler) Routes() chi.Router {
 	router := chi.NewRouter()
 
-	// router.Get("/", MustBeAuthenticated(h.refresh, h.tokenStore))
 	router.Get("/", MustBeAuthenticated(h.refresh, h.tokenStore))
 	router.Post("/", h.signIn)
 	router.Put("/", h.signUp)
@@ -41,13 +43,20 @@ func (h AuthHandler) Routes() chi.Router {
 
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	// :TODO delete next line
-	token, _ := h.tokenStore.NewToken(TokenLifetime)
+	token, err := h.tokenStore.NewToken(TokenLifetime)
+	if err != nil {
+		MustSendError(err, w)
+	}
+	c := http.Cookie{Name: *cookieAuthToken, Value: token}
+	http.SetCookie(w, &c)
+
 	if err := json.NewEncoder(w).Encode(token); err != nil {
 		log.Panic(err)
 		return
 	}
+	return
 
-	_, err := h.userStore.GetUser("id")
+	_, err = h.userStore.GetUser("id")
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
