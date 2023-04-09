@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"regexp"
@@ -46,8 +45,8 @@ func (h AuthHandler) Routes() chi.Router {
 }
 
 type signInForm struct {
-	NameOrEmail string `json:"nameOrEmail,omitempty"`
-	Password    string `json:"password,omitempty"`
+	NameOrEmail string `json:"nameOrEmail"`
+	Password    string `json:"password"`
 }
 
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
@@ -66,8 +65,8 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 
 	valid := true
 	messages := struct {
-		Messages []string   `json:"messages,omitempty"`
-		Details  signInForm `json:"detail,omitempty"`
+		Messages []string   `json:"messages"`
+		Details  signInForm `json:"details"`
 	}{
 		Messages: []string{},
 		Details: signInForm{
@@ -77,7 +76,6 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate input
-	// :TODO check for emptyness
 	if user.NameOrEmail == "" {
 		messages.Details.NameOrEmail = "user name or email cannot be empty"
 		valid = false
@@ -87,7 +85,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		isEmail := emailRegex.MatchString(user.NameOrEmail)
 		isUsername := usernameRegex.MatchString(user.NameOrEmail)
 		if !isEmail && !isUsername {
-			messages.Details.NameOrEmail = "neither user name nor password are not valid"
+			messages.Details.NameOrEmail = "neither user name nor password are valid"
 			valid = false
 		}
 	}
@@ -98,7 +96,10 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 
 	// :TODO verify user
 	if valid {
-		messages.Messages = append(messages.Messages, "name, email or password is not correct")
+		if false {
+			messages.Messages = append(messages.Messages, "name, email or password is not correct")
+			valid = false
+		}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -121,11 +122,10 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &c)
 
 	// :TODO send user information
-	if err := json.NewEncoder(w).Encode(token); err != nil {
+	if err := json.NewEncoder(w).Encode(user); err != nil {
 		log.Panic(err)
 		return
 	}
-	w.Write([]byte(fmt.Sprintf("got:%+v", user)))
 }
 
 func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
