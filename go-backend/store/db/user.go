@@ -11,8 +11,8 @@ func NewDbUserStore() *DbUserStore {
 	return &DbUserStore{}
 }
 
-func (s *DbUserStore) GetUser(id string) (models.User, error) {
-	return models.User{}, utils.UnplementedError
+func (s *DbUserStore) GetUser(id string) (*models.User, error) {
+	return nil, utils.UnplementedError
 }
 
 func (s *DbUserStore) AddUser(user models.User) error {

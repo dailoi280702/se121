@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/dailoi280702/se121/go_backend/internal/utils"
 	"github.com/dailoi280702/se121/go_backend/models"
 	"github.com/dailoi280702/se121/go_backend/store/cache"
 	"github.com/dailoi280702/se121/go_backend/store/db"
@@ -42,11 +45,23 @@ func (h AuthHandler) Routes() chi.Router {
 }
 
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
+	user := models.User{}
+	err := utils.DecodeJSONBody(w, r, &user)
+	if err != nil {
+		var mr *utils.MalformedRequest
+		if errors.As(err, &mr) {
+			http.Error(w, mr.Msg, mr.Status)
+		} else {
+			MustSendError(err, w)
+		}
+		return
+	}
 	// :TODO authenticate user
 
 	token, err := h.tokenStore.NewToken(TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
+		return
 	}
 	c := http.Cookie{Name: *cookieAuthToken, Value: token}
 	http.SetCookie(w, &c)
@@ -56,7 +71,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		log.Panic(err)
 		return
 	}
-	w.Write([]byte("signIn"))
+	w.Write([]byte(fmt.Sprintf("got:%+v", user)))
 }
 
 func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
