@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/dailoi280702/se121/go_backend/internal/utils"
@@ -44,8 +45,14 @@ func (h AuthHandler) Routes() chi.Router {
 	return router
 }
 
+type signInForm struct {
+	NameOrEmail string `json:"nameOrEmail,omitempty"`
+	Password    string `json:"password,omitempty"`
+}
+
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
-	user := models.User{}
+	// get input
+	user := signInForm{}
 	err := utils.DecodeJSONBody(w, r, &user)
 	if err != nil {
 		var mr *utils.MalformedRequest
@@ -56,8 +63,55 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	// :TODO authenticate user
 
+	valid := true
+	messages := struct {
+		Messages []string   `json:"messages,omitempty"`
+		Details  signInForm `json:"detail,omitempty"`
+	}{
+		Messages: []string{},
+		Details: signInForm{
+			"",
+			"",
+		},
+	}
+
+	// validate input
+	// :TODO check for emptyness
+	if user.NameOrEmail == "" {
+		messages.Details.NameOrEmail = "user name or email cannot be empty"
+		valid = false
+	} else {
+		emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+		usernameRegex := regexp.MustCompile("^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$")
+		isEmail := emailRegex.MatchString(user.NameOrEmail)
+		isUsername := usernameRegex.MatchString(user.NameOrEmail)
+		if !isEmail && !isUsername {
+			messages.Details.NameOrEmail = "neither user name nor password are not valid"
+			valid = false
+		}
+	}
+	if user.Password == "" {
+		messages.Details.Password = "password cannot be empty"
+		valid = false
+	}
+
+	// :TODO verify user
+	if valid {
+		messages.Messages = append(messages.Messages, "name, email or password is not correct")
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if !valid {
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(messages); err != nil {
+			log.Panic(err)
+			return
+		}
+		return
+	}
+
+	// generate auth token
 	token, err := h.tokenStore.NewToken(TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
