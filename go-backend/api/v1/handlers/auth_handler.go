@@ -42,7 +42,8 @@ func (h AuthHandler) Routes() chi.Router {
 }
 
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
-	// :TODO delete next line
+	// :TODO authenticate user
+
 	token, err := h.tokenStore.NewToken(TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
@@ -50,25 +51,17 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	c := http.Cookie{Name: *cookieAuthToken, Value: token}
 	http.SetCookie(w, &c)
 
+	// :TODO send user information
 	if err := json.NewEncoder(w).Encode(token); err != nil {
 		log.Panic(err)
 		return
 	}
-	return
-
-	_, err = h.userStore.GetUser("id")
-	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
-			log.Panic(err)
-		}
-		return
-	}
-
 	w.Write([]byte("signIn"))
 }
 
 func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
+	// :TODO register user
+
 	err := h.userStore.AddUser(models.User{})
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -124,7 +117,6 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		log.Panic(err)
 		return
 	}
-
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("refeshed"))
 }
