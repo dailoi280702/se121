@@ -16,15 +16,19 @@ const MenuButton = ({
   text,
   children,
   onClick,
+  className = '',
 }: {
   onClick: () => void
   text?: string
   children?: ReactElement
+  className?: string
 }) => {
   return (
     <button
-      className="flex items-center text-sm h-8 rounded-md gap-x-2
-      text-black-600 hover:bg-neutral-600/[0.08] px-2"
+      className={
+        `flex items-center text-sm h-8 rounded-md gap-x-2
+      text-black-600 hover:bg-neutral-600/[0.08] px-2 ` + className
+      }
       onClick={onClick}
     >
       {children && cloneElement(children, { className: 'h-6 w-6 stroke-2' })}
@@ -43,6 +47,12 @@ const ProfileMenu = () => {
       name: 'Sign In',
       icon: <ArrowLeftOnRectangleIcon />,
       url: '/auth/signin',
+      className: 'bg-blue-600',
+    },
+    {
+      name: 'Register',
+      icon: <ArrowLeftOnRectangleIcon />,
+      url: '/auth/register',
     },
   ]
 
@@ -55,6 +65,7 @@ const ProfileMenu = () => {
           onClick={() => {
             router.push(button.url)
           }}
+          className={button.className}
         >
           {button.icon}
         </MenuButton>
