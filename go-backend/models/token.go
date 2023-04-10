@@ -1,12 +1,23 @@
 package models
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type AuthToken struct {
-	Token     string
-	Admin     bool
-	CreatedAt time.Time
-	ExpiresAt time.Time
+	Token     string    `json:"token"`
+	Admin     bool      `json:"admin"`
+	CreatedAt time.Time `json:"createdAt"`
+	ExpiresAt time.Time `json:"expiresAt"`
+}
+
+func (a *AuthToken) MarshalBinary() ([]byte, error) {
+	return json.Marshal(a)
+}
+
+func (a *AuthToken) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, a)
 }
 
 type TokenStore interface {

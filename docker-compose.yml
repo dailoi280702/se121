@@ -12,10 +12,13 @@ services:
       - "8000:8000"
     volumes:
       - ./go-backend/:/app
+    depends_on:
+      - redis
 
   python-backend:
     build: ./python-backend/
     container_name: python-backend
+    stop_signal: SIGINT
     networks:
       - grpc
 
@@ -32,7 +35,21 @@ services:
     networks:
       - client
 
+  redis:
+    image: "redis:7"
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - db
+
 networks:
   client: {}
   grpc: {}
   db: {}
+
+volumes:
+  redis-data: {}

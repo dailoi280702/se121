@@ -84,7 +84,7 @@ const Info = () => {
         <UserCircleIcon className="stroke-[0.6]" />
       </div>
       <p className="text-ellipsis overflow-hidden hover:break-words">
-        Dang Khoa
+        a very long long ccs
       </p>
     </button>
   )
