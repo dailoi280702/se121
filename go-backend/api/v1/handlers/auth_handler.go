@@ -17,7 +17,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const TokenLifetime = 24 * 5 * time.Hour
+const (
+	TokenLifetime = 24 * 5 * time.Hour
+	UsernameRegex = "^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$"
+	EmailRegex    = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+)
 
 var cookieAuthToken = flag.String("cookieAuthToken", "authToken", "name of auth token for cookie")
 
@@ -128,10 +132,69 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type signUpForm struct {
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	RePassword string `json:"rePassword"`
+}
+
 func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
+	// get input
+	user := signUpForm{}
+	err := utils.DecodeJSONBody(w, r, &user)
+	if err != nil {
+		var mr *utils.MalformedRequest
+		if errors.As(err, &mr) {
+			http.Error(w, mr.Msg, mr.Status)
+		} else {
+			MustSendError(err, w)
+		}
+		return
+	}
+
+	valid := true
+	messages := struct {
+		Messages []string   `json:"messages"`
+		Details  signUpForm `json:"details"`
+	}{
+		Messages: []string{},
+		Details:  signUpForm{"", "", "", ""},
+	}
+
+	// validate input
+	if err := utils.ValidateField("name", user.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
+		messages.Details.Name = err.Error()
+		valid = false
+	}
+	if err := utils.ValidateField("email", user.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
+		messages.Details.Email = err.Error()
+		valid = false
+	}
+	if err := utils.ValidateField("password", user.Password, true, nil); err != nil {
+		messages.Details.Password = err.Error()
+		valid = false
+	}
+	if err := utils.ValidateField("", user.RePassword, true, nil); err != nil {
+		messages.Details.RePassword = "please confirm password"
+		valid = false
+	} else if user.Password != user.RePassword {
+		messages.Details.RePassword = "those password do not match"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if !valid {
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(messages); err != nil {
+			log.Panic(err)
+			return
+		}
+		return
+	}
+
 	// :TODO register user
 
-	err := h.userStore.AddUser(models.User{})
+	err = h.userStore.AddUser(models.User{})
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
