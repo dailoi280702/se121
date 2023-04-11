@@ -4,6 +4,13 @@ services:
   go-backend:
     container_name: go-backend
     build: ./go-backend/
+    environment:
+      - ADDRESS=0.0.0.0:8000
+      - RUST_LOG=debug
+      - PG_DBNAME=postgres
+      - PG_HOST=db
+      - PG_USER=postgres
+      - PG_PASSWORD=mysecretpassword
     networks:
       - client
       - grpc
@@ -46,6 +53,20 @@ services:
     networks:
       - db
 
+  db:
+    container_name: go_db
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - db
+
 networks:
   client: {}
   grpc: {}
@@ -53,3 +74,4 @@ networks:
 
 volumes:
   redis-data: {}
+  pgdata: {}
