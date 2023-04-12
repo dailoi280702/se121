@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -30,9 +31,9 @@ type AuthHandler struct {
 	tokenStore models.TokenStore
 }
 
-func NewAuthHandler(redisClient *redis.Client) *AuthHandler {
+func NewAuthHandler(redisClient *redis.Client, db *sql.DB) *AuthHandler {
 	return &AuthHandler{
-		userStore:  db_store.NewDbUserStore(),
+		userStore:  db_store.NewDbUserStore(db),
 		tokenStore: cached_store.NewRedisAuthTokenStore(redisClient),
 	}
 }
@@ -193,9 +194,34 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// :TODO register user
-
-	err = h.userStore.AddUser(models.User{})
+	err = h.userStore.AddUser(models.User{Name: user.Name, Email: user.Email, Password: user.Password})
 	if err != nil {
+		var ee *db_store.ErrExistedFields
+
+		switch {
+		case errors.As(err, &ee):
+			for _, field := range ee.FieldNames {
+				if field == "username" {
+					valid = false
+					messages.Details.Name = "username is already used"
+				}
+				if field == "email" {
+					valid = false
+					messages.Details.Email = "email is already used"
+				}
+			}
+			if !valid {
+				w.WriteHeader(http.StatusBadRequest)
+				if err := json.NewEncoder(w).Encode(messages); err != nil {
+					log.Panic(err)
+					return
+				}
+				return
+			}
+		default:
+			http.Error(w, "server error", http.StatusInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusUnauthorized)
 		if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
 			log.Panic(err)

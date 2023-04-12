@@ -72,6 +72,6 @@ func main() {
 
 	// routes
 	router := chi.NewRouter()
-	router.Mount("/v1", api_v1.InitRouter(c, redisClient))
+	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db))
 	http.ListenAndServe(":8000", router)
 }
