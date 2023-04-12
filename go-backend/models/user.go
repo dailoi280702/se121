@@ -6,6 +6,8 @@ type User struct {
 	Password string `json:"password,omitempty"`
 	ImageUrl string `json:"imageUrl,omitempty"`
 	Email    string `json:"email,omitempty"`
+	IsAdmin  string `json:"IsAdmin,omitempty"`
+	CreateAt string `json:"createAt,omitempty"`
 }
 
 type UserStore interface {

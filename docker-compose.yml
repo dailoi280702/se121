@@ -5,12 +5,7 @@ services:
     container_name: go-backend
     build: ./go-backend/
     environment:
-      - ADDRESS=0.0.0.0:8000
-      - RUST_LOG=debug
-      - PG_DBNAME=postgres
-      - PG_HOST=db
-      - PG_USER=postgres
-      - PG_PASSWORD=mysecretpassword
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
       - client
       - grpc
@@ -21,6 +16,7 @@ services:
       - ./go-backend/:/app
     depends_on:
       - redis
+      - db
 
   python-backend:
     build: ./python-backend/
@@ -54,7 +50,7 @@ services:
       - db
 
   db:
-    container_name: go_db
+    container_name: db
     image: postgres:15
     environment:
       POSTGRES_PASSWORD: postgres
