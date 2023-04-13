@@ -62,7 +62,7 @@ func (s *DbUserStore) AddUser(user models.User) error {
 
 	err := ErrExistedFields{}
 	if existed.username {
-		err.FieldNames = append(err.FieldNames, "username")
+		err.FieldNames = append(err.FieldNames, "name")
 	}
 	if existed.email {
 		err.FieldNames = append(err.FieldNames, "email")

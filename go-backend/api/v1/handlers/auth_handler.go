@@ -154,37 +154,32 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid := true
 	messages := struct {
-		Messages []string   `json:"messages"`
-		Details  signUpForm `json:"details"`
+		Messages []string          `json:"messages"`
+		Details  map[string]string `json:"details"`
 	}{
 		Messages: []string{},
-		Details:  signUpForm{"", "", "", ""},
+		Details:  map[string]string{},
 	}
 
 	// validate input
 	if err := utils.ValidateField("name", user.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
-		messages.Details.Name = err.Error()
-		valid = false
+		messages.Details["name"] = err.Error()
 	}
 	if err := utils.ValidateField("email", user.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
-		messages.Details.Email = err.Error()
-		valid = false
+		messages.Details["email"] = err.Error()
 	}
 	if err := utils.ValidateField("password", user.Password, true, nil); err != nil {
-		messages.Details.Password = err.Error()
-		valid = false
+		messages.Details["password"] = err.Error()
 	}
 	if err := utils.ValidateField("", user.RePassword, true, nil); err != nil {
-		messages.Details.RePassword = "please confirm password"
-		valid = false
+		messages.Details["rePassword"] = "please confirm password"
 	} else if user.Password != user.RePassword {
-		messages.Details.RePassword = "those password do not match"
+		messages.Details["rePassword"] = "those password do not match"
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if !valid {
+	if len(messages.Details) != 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		if err := json.NewEncoder(w).Encode(messages); err != nil {
 			log.Panic(err)
@@ -193,7 +188,7 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// :TODO register user
+	// register user
 	err = h.userStore.AddUser(models.User{Name: user.Name, Email: user.Email, Password: user.Password})
 	if err != nil {
 		var ee *db_store.ErrExistedFields
@@ -201,16 +196,9 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.As(err, &ee):
 			for _, field := range ee.FieldNames {
-				if field == "username" {
-					valid = false
-					messages.Details.Name = "username is already used"
-				}
-				if field == "email" {
-					valid = false
-					messages.Details.Email = "email is already used"
-				}
+				messages.Details[field] = field + " is already used"
 			}
-			if !valid {
+			if len(messages.Details) != 0 {
 				w.WriteHeader(http.StatusBadRequest)
 				if err := json.NewEncoder(w).Encode(messages); err != nil {
 					log.Panic(err)
