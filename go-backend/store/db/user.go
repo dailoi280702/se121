@@ -36,39 +36,29 @@ func (s *DbUserStore) GetUser(id string) (*models.User, error) {
 }
 
 func (s *DbUserStore) AddUser(user models.User) error {
-	existed := struct {
-		username bool
-		email    bool
-	}{false, false}
-	if err := s.db.QueryRow(isUsernameExistedSql, user.Name).Scan(&existed.username); err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			existed.username = false
-		default:
-			log.Printf("\nerror checking username: %+v: %s\n", user, err)
-			return err
-		}
-	}
-	if err := s.db.QueryRow(isEmailExistedSql, user.Email).Scan(&existed.email); err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			existed.username = false
-		default:
-			log.Printf("\nerror checking email: %+v: %s\n", user, err)
-			return err
-		}
-	}
-	log.Println(existed.username)
+	ee := ErrExistedFields{}
 
-	err := ErrExistedFields{}
-	if existed.username {
-		err.FieldNames = append(err.FieldNames, "name")
+	isNameExisted, err := ExistInDB(s.db, isUsernameExistedSql, user.Name)
+	if err != nil {
+		return err
 	}
-	if existed.email {
-		err.FieldNames = append(err.FieldNames, "email")
+	if isNameExisted {
+		ee.FieldNames = append(ee.FieldNames, "name")
 	}
-	if len(err.FieldNames) > 0 {
-		return &err
+
+	if user.Email != "" {
+		isEmailExisted, err := ExistInDB(s.db, isEmailExistedSql, user.Email)
+		if err != nil {
+			return err
+		}
+		if isEmailExisted {
+			ee.FieldNames = append(ee.FieldNames, "email")
+		}
+	}
+	log.Printf("\n%+v\n", user)
+	log.Printf("\n%+v\n", ee)
+	if len(ee.FieldNames) > 0 {
+		return &ee
 	}
 
 	if err := s.db.QueryRow(addUserSql, user.Name, user.Email, user.Password).Err(); err != nil {
