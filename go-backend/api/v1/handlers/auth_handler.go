@@ -54,6 +54,7 @@ type signInForm struct {
 	Password    string `json:"password"`
 }
 
+// :TODO handle already authenticated request
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	// get input
 	user := signInForm{}
@@ -99,11 +100,18 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		valid = false
 	}
 
-	// :TODO verify user
+	// verify user
 	if valid {
-		if false {
-			messages.Messages = append(messages.Messages, "name, email or password is not correct")
-			valid = false
+		err = h.userStore.VerifyUser(user.NameOrEmail, user.Password)
+		if err != nil {
+			switch {
+			case errors.Is(err, db_store.ErrIncorrectNameEmailOrPassword):
+				messages.Messages = append(messages.Messages, err.Error())
+				valid = false
+			default:
+				MustSendError(err, w)
+				return
+			}
 		}
 	}
 

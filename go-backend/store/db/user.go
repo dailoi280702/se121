@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	UserNameExistedErr = errors.New("this username is already used")
-	EmailExistedErr    = errors.New("this email is already used")
+	UserNameExistedErr              = errors.New("this username is already used")
+	EmailExistedErr                 = errors.New("this email is already used")
+	ErrIncorrectNameEmailOrPassword = errors.New("user name, email or password is not correct")
 )
 
 type ErrExistedFields struct {
@@ -80,6 +81,17 @@ func (s *DbUserStore) GetUserByEmailOrName(name string, email string) (models.Us
 	return models.User{}, utils.UnplementedError
 }
 
+func (s *DbUserStore) VerifyUser(nameOrEmail string, password string) error {
+	verified, err := ExistInDB(s.db, verifyUserQuery, nameOrEmail, password)
+	if err != nil {
+		return err
+	}
+	if !verified {
+		return ErrIncorrectNameEmailOrPassword
+	}
+	return nil
+}
+
 const addUserSql = `
     INSERT INTO users (name, email, password)
     VALUES ($1, $2, $3)
@@ -91,4 +103,8 @@ const isUsernameExistedSql = `
 
 const isEmailExistedSql = `
     SELECT true FROM users WHERE email = $1
+    `
+
+const verifyUserQuery = `
+    SELECT true FROM users WHERE (name = $1 OR email = $1) AND password = $2
     `
