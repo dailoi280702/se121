@@ -90,7 +90,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		isEmail := emailRegex.MatchString(user.NameOrEmail)
 		isUsername := usernameRegex.MatchString(user.NameOrEmail)
 		if !isEmail && !isUsername {
-			messages.Details.NameOrEmail = "neither user name nor password are valid"
+			messages.Details.NameOrEmail = "neither user name is password are valid"
 			valid = false
 		}
 	}
