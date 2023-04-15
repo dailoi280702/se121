@@ -32,6 +32,7 @@ func MustBeAuthenticated(next http.HandlerFunc, tokenStore models.TokenStore) ht
 		}
 
 		if !existed {
+			log.Println(c.Value)
 			http.Error(w, "token not found", http.StatusUnauthorized)
 			// w.WriteHeader(http.StatusUnauthorized)
 			return

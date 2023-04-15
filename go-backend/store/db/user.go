@@ -33,7 +33,15 @@ func NewDbUserStore(db *sql.DB) *DbUserStore {
 }
 
 func (s *DbUserStore) GetUser(id string) (*models.User, error) {
-	return nil, utils.UnplementedError
+	user, err := GetObjectFromDB[models.User](s.db, getUserByIdQuery, id)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, ErrIncorrectNameEmailOrPassword
+	}
+	user.Password = ""
+	return user, nil
 }
 
 func (s *DbUserStore) AddUser(user models.User) error {
@@ -108,4 +116,8 @@ const isEmailExistedSql = `
 
 const verifyUserQuery = `
     SELECT * FROM users WHERE (name = $1 OR email = $1) AND password = $2
+    `
+
+const getUserByIdQuery = `
+    SELECT * FROM users WHERE id = $1
     `

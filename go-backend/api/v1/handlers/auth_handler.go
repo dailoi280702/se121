@@ -128,7 +128,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate auth token
-	token, err := h.tokenStore.NewToken(TokenLifetime)
+	token, err := h.tokenStore.NewToken(data.Id, data.IsAdmin, TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
 		return
@@ -136,7 +136,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	c := http.Cookie{Name: *cookieAuthToken, Value: token}
 	http.SetCookie(w, &c)
 
-	// :TODO send user information
+	// send user information
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Panic(err)
 		return
@@ -252,6 +252,7 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
+	// get token
 	c, err := r.Cookie(*cookieAuthToken)
 	if err != nil {
 		log.Println(err)
@@ -259,6 +260,7 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// refresh token
 	token, err := h.tokenStore.Refesh(c.Value, TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
@@ -268,11 +270,23 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	c.Value = token
 	http.SetCookie(w, c)
 
-	// :TODO send user infomation
-	if err = json.NewEncoder(w).Encode(token); err != nil {
+	// get and send user data
+	// :TODO handle user that was deleted
+	tokenData, err := h.tokenStore.GetExistingToken(token)
+	if err != nil {
+		MustSendError(err, w)
+		return
+	}
+
+	user, err := h.userStore.GetUser(tokenData.UserId)
+	if err != nil {
+		MustSendError(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(user); err != nil {
 		log.Panic(err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("refeshed"))
 }

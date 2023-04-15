@@ -1,16 +1,12 @@
 package handlers
 
 import (
-	// "encoding/json"
-	// "log"
+	"fmt"
+	"log"
 	"net/http"
 )
 
 func MustSendError(err error, w http.ResponseWriter) {
-	// w.WriteHeader(http.StatusInternalServerError)
-	//
-	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
-	// 	log.Panic(err)
-	// }
+	log.Printf("\nBitch, you got an err: %s\n", err.Error())
+	http.Error(w, fmt.Sprintf("server errror: %s", err.Error()), http.StatusInternalServerError)
 }
