@@ -50,9 +50,9 @@ const ProfileMenu = () => {
       className: 'bg-blue-600',
     },
     {
-      name: 'Register',
+      name: 'Sign up',
       icon: <ArrowLeftOnRectangleIcon />,
-      url: '/auth/register',
+      url: '/auth/signup',
     },
   ]
 
