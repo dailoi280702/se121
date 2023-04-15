@@ -89,6 +89,7 @@ func (s *DbUserStore) VerifyUser(nameOrEmail string, password string) (*models.U
 	if user == nil {
 		return nil, ErrIncorrectNameEmailOrPassword
 	}
+	user.Password = ""
 	return user, nil
 }
 
