@@ -31,6 +31,7 @@ type AuthHandler struct {
 	tokenStore models.TokenStore
 }
 
+// :TODO serialize password
 func NewAuthHandler(redisClient *redis.Client, db *sql.DB) *AuthHandler {
 	return &AuthHandler{
 		userStore:  db_store.NewDbUserStore(db),
@@ -101,8 +102,9 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// verify user
+	var data *models.User
 	if valid {
-		err = h.userStore.VerifyUser(user.NameOrEmail, user.Password)
+		data, err = h.userStore.VerifyUser(user.NameOrEmail, user.Password)
 		if err != nil {
 			switch {
 			case errors.Is(err, db_store.ErrIncorrectNameEmailOrPassword):
@@ -135,7 +137,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &c)
 
 	// :TODO send user information
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Panic(err)
 		return
 	}

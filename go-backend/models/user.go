@@ -16,5 +16,5 @@ type UserStore interface {
 	AddUser(user User) error
 	UpdateUser(user User) error
 	DeleteUser(user User) error
-	VerifyUser(nameOrEmail string, password string) error
+	VerifyUser(nameOrEmail string, password string) (*User, error)
 }

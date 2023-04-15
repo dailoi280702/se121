@@ -81,15 +81,15 @@ func (s *DbUserStore) GetUserByEmailOrName(name string, email string) (models.Us
 	return models.User{}, utils.UnplementedError
 }
 
-func (s *DbUserStore) VerifyUser(nameOrEmail string, password string) error {
-	verified, err := ExistInDB(s.db, verifyUserQuery, nameOrEmail, password)
+func (s *DbUserStore) VerifyUser(nameOrEmail string, password string) (*models.User, error) {
+	user, err := GetObjectFromDB[models.User](s.db, verifyUserQuery, nameOrEmail, password)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if !verified {
-		return ErrIncorrectNameEmailOrPassword
+	if user == nil {
+		return nil, ErrIncorrectNameEmailOrPassword
 	}
-	return nil
+	return user, nil
 }
 
 const addUserSql = `
@@ -106,5 +106,5 @@ const isEmailExistedSql = `
     `
 
 const verifyUserQuery = `
-    SELECT true FROM users WHERE (name = $1 OR email = $1) AND password = $2
+    SELECT * FROM users WHERE (name = $1 OR email = $1) AND password = $2
     `
