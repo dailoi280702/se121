@@ -96,7 +96,7 @@ const ProfileMenu = () => {
       {buttons.map(
         (button) =>
           (!button.displayCondition ||
-            button.displayCondition.authenticated == Boolean(user)) && (
+            button.displayCondition.authenticated == !user) && (
             <MenuButton
               key={button.name}
               text={button.name}
