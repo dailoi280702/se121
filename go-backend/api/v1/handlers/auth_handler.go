@@ -133,7 +133,15 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		MustSendError(err, w)
 		return
 	}
-	c := http.Cookie{Name: *cookieAuthToken, Value: token}
+	c := http.Cookie{
+		Name:     *cookieAuthToken,
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+		Expires:  time.Now().Add(TokenLifetime),
+	}
 	http.SetCookie(w, &c)
 
 	// send user information
@@ -246,6 +254,7 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 
 	c.Value = ""
 	c.MaxAge = -1
+	c.Path = "/"
 	http.SetCookie(w, c)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("signed out"))
@@ -268,6 +277,7 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.Value = token
+	c.Path = "/"
 	http.SetCookie(w, c)
 
 	// get and send user data
