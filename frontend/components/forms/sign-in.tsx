@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
 
 const Input = ({
@@ -61,7 +62,13 @@ const useForm = <T,>(callback: any, initialstate: T) => {
   }
 }
 
-export default function SignInForm() {
+interface Props {
+  callbackUrl?: string
+}
+
+export default function SignInForm({ callbackUrl = '/' }: Props) {
+  const router = useRouter()
+
   const initialstate = {
     nameOrEmail: '',
     password: '',
@@ -96,8 +103,7 @@ export default function SignInForm() {
       return
     }
 
-    window.alert("let's go")
-    // :TODO redirect user
+    router.push(callbackUrl)
   }
 
   const { onChange, onSubmit, values, setValues } = useForm(

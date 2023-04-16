@@ -2,15 +2,17 @@ import { Shade } from '@/components/shade'
 import DrawerCloseButton from './buttons/drawer-close-button'
 import {
   ArrowLeftOnRectangleIcon,
+  ArrowRightOnRectangleIcon,
   Cog6ToothIcon,
   UserCircleIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
-import { cloneElement, ReactElement } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAtom } from 'jotai'
+import { cloneElement, ReactElement, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useAtom, useAtomValue } from 'jotai'
 import useCloseShade from './hooks/use-close-shade'
 import { profileVisisibilyAtom } from '@/components/Header'
+import { UserAtom } from './providers/user-provider'
 
 const MenuButton = ({
   text,
@@ -39,42 +41,81 @@ const MenuButton = ({
 
 const ProfileMenu = () => {
   const router = useRouter()
+  const pathName = usePathname()
+  const user = useAtomValue(UserAtom)
 
   const buttons = [
-    { name: 'My Profile', icon: <UserIcon />, url: '/' },
-    { name: 'Settings', icon: <Cog6ToothIcon />, url: '/' },
+    {
+      name: 'My Profile',
+      icon: <UserIcon />,
+      url: '/',
+    },
+    {
+      name: 'Settings',
+      icon: <Cog6ToothIcon />,
+      url: '/',
+    },
     {
       name: 'Sign In',
       icon: <ArrowLeftOnRectangleIcon />,
-      url: '/auth/signin',
-      className: 'bg-blue-600',
+      url: '/auth/signin/',
+      onClick: () => router.push('auth/signin/' + encodeURIComponent(pathName)),
+      className: ' hover:bg-teal-600 hover:text-teal-50',
+      displayCondition: { authenticated: false },
     },
     {
-      name: 'Register',
+      name: 'Sign Up',
       icon: <ArrowLeftOnRectangleIcon />,
       url: '/auth/register',
+      displayCondition: { authenticated: false },
+    },
+    {
+      name: 'Sign Out',
+      icon: <ArrowRightOnRectangleIcon />,
+      url: '/',
+      onClick: () => signOut(),
+      displayCondition: { authenticated: true },
     },
   ]
 
+  const signOut = async () => {
+    const response = await fetch('http://localhost:8000/v1/auth', {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+
+    if (!response.ok) {
+      window.alert(await response.text())
+    }
+
+    router.refresh()
+  }
+
   return (
     <ul className="flex flex-col space-y-1">
-      {buttons.map((button) => (
-        <MenuButton
-          key={button.name}
-          text={button.name}
-          onClick={() => {
-            router.push(button.url)
-          }}
-          className={button.className}
-        >
-          {button.icon}
-        </MenuButton>
-      ))}
+      {buttons.map(
+        (button) =>
+          (!button.displayCondition ||
+            button.displayCondition.authenticated == Boolean(user)) && (
+            <MenuButton
+              key={button.name}
+              text={button.name}
+              onClick={() => {
+                button.onClick ? button.onClick() : router.push(button.url)
+              }}
+              className={button.className}
+            >
+              {button.icon}
+            </MenuButton>
+          )
+      )}
     </ul>
   )
 }
 
 const Info = () => {
+  const user = useAtomValue(UserAtom)
+
   return (
     <button
       className="rounded-md
@@ -84,7 +125,7 @@ const Info = () => {
         <UserCircleIcon className="stroke-[0.6]" />
       </div>
       <p className="text-ellipsis overflow-hidden hover:break-words">
-        a very long long ccs
+        {user ? user.name : 'guest'}
       </p>
     </button>
   )
