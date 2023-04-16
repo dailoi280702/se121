@@ -1,7 +1,9 @@
 'use client'
 
+import { useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
+import { UserAtom } from '../providers/user-provider'
 
 const Input = ({
   name,
@@ -68,6 +70,7 @@ interface Props {
 
 export default function SignInForm({ callbackUrl = '/' }: Props) {
   const router = useRouter()
+  const setUser = useSetAtom(UserAtom)
 
   const initialstate = {
     nameOrEmail: '',
@@ -103,6 +106,8 @@ export default function SignInForm({ callbackUrl = '/' }: Props) {
       return
     }
 
+    const user = await response.json()
+    setUser(user)
     router.push(callbackUrl)
   }
 

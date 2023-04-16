@@ -42,7 +42,7 @@ const MenuButton = ({
 const ProfileMenu = () => {
   const router = useRouter()
   const pathName = usePathname()
-  const user = useAtomValue(UserAtom)
+  const [user, setUser] = useAtom(UserAtom)
 
   const buttons = [
     {
@@ -88,7 +88,8 @@ const ProfileMenu = () => {
       window.alert(await response.text())
     }
 
-    router.refresh()
+    window.location.reload()
+    setUser(null)
   }
 
   return (
@@ -96,7 +97,7 @@ const ProfileMenu = () => {
       {buttons.map(
         (button) =>
           (!button.displayCondition ||
-            button.displayCondition.authenticated == !user) && (
+            button.displayCondition.authenticated == !!user) && (
             <MenuButton
               key={button.name}
               text={button.name}
