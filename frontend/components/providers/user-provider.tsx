@@ -1,5 +1,6 @@
 'use client'
 
+import { atom, useAtom, useSetAtom } from 'jotai'
 import { useEffect } from 'react'
 
 interface Props {
@@ -14,27 +15,37 @@ const FetchUser = async () => {
     })
 
     if (!response.ok) {
-      const data = await response.text()
-      return String(data)
+      return null
     }
 
     const data = await response.json()
-    return String(data)
+    return data
   } catch (err) {
-    return String(err)
+    return null
   }
 }
 
+export type User = {
+  id: string
+  name: string
+  email?: string
+  createAt: Date
+  isAdmin?: boolean
+} | null
+
+export const UserAtom = atom<User>(null)
+
 export default function UserProvider({ children }: Props) {
-  // const user = await FetchUser()
+  const setUser = useSetAtom(UserAtom)
+
   useEffect(() => {
     const fetchUser = async () => {
       const data = await FetchUser()
-      window.alert(String(data))
+      setUser(data as User)
     }
 
     fetchUser()
-  }, [])
+  }, [setUser])
 
   return <div>{children}</div>
 }
