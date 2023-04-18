@@ -3,9 +3,7 @@
 import { useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
-import ReactHtmlParser from 'react-html-parser'
 import { UserAtom } from '../providers/user-provider'
-
 
 export const Input = ({
   name,
@@ -45,7 +43,7 @@ export const Input = ({
         }}
       />
       <h4 className="text-xs text-red-600">
-        {ReactHtmlParser(errorMessage ? errorMessage : '\u2000')}
+        {errorMessage ? errorMessage : '\u2000'}
       </h4>
     </div>
   )

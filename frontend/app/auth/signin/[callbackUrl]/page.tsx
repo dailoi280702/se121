@@ -7,7 +7,9 @@ export default function Page({ params }: { params: { callbackUrl: string } }) {
     <LayoutWithCredential
       option="required"
       toBeDisplayed={false}
-      callbackUrl={params.callbackUrl == '' ? '/' : params.callbackUrl}
+      callbackUrl={
+        params.callbackUrl == '' ? '/' : decodeURIComponent(params.callbackUrl)
+      }
     >
       <SignInForm callbackUrl={decodeURIComponent(params.callbackUrl)} />
     </LayoutWithCredential>
