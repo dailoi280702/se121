@@ -6,8 +6,7 @@ import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
 import ReactHtmlParser from 'react-html-parser'
 import { UserAtom } from '../providers/user-provider'
 
-
-export const Input = ({
+const Input = ({
   name,
   label,
   errorMessage,
@@ -15,7 +14,6 @@ export const Input = ({
   required,
   type,
   onChange,
-  onBlur,
 }: {
   name?: string
   label?: string
@@ -23,7 +21,6 @@ export const Input = ({
   placeHolder?: string
   required?: boolean
   type?: HTMLInputTypeAttribute
-  onBlur?: () => void
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void
 }) => {
   return (
@@ -40,18 +37,15 @@ export const Input = ({
         required={required}
         type={type}
         onChange={onChange}
-        onBlur={() => {
-          if (onBlur) onBlur()
-        }}
       />
       <h4 className="text-xs text-red-600">
-        {ReactHtmlParser(errorMessage ? errorMessage : '\u2000')}
+        {errorMessage ? errorMessage : '\u2000'}
       </h4>
     </div>
   )
 }
 
-export const useForm = <T,>(callback: any, initialstate: T) => {
+const useForm = <T,>(callback: any, initialstate: T) => {
   const [values, setValues] = useState(initialstate)
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
