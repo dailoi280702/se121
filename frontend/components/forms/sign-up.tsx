@@ -1,11 +1,18 @@
 'use client'
+import { useRouter } from 'next/navigation'
 import { useForm, Input } from './sign-in'
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/
 const REGISTER_URL = '/register'
 
-export default function RegisterForm() {
+interface Props {
+  callbackUrl?: string
+}
+
+export default function RegisterForm({ callbackUrl = '/' }: Props) {
+  const router = useRouter()
+
   const validInputFields = () => {
     if (values.name == '') return false
     return true
@@ -23,6 +30,8 @@ export default function RegisterForm() {
       rePassword: values.rePassword.trim(),
     }
 
+    console.log(formData)
+
     const response = await fetch('http://localhost:8000/v1/auth', {
       method: 'PUT',
       headers: {
@@ -37,8 +46,7 @@ export default function RegisterForm() {
       return
     }
 
-    window.alert("let's go")
-    // :TODO redirect user
+    router.push(callbackUrl)
   }
   const initialstate = {
     name: '',
@@ -132,12 +140,16 @@ export default function RegisterForm() {
         label="Enter your password"
         placeHolder="Password ..."
         errorMessage={values.details.password}
+        onChange={onChange}
+        onBlur={() => onFocusOut('password', values.email)}
       />
       <Input
         name="rePassword"
         label="Reenter your password"
         placeHolder="Reenter password ..."
         errorMessage={values.details.rePassword}
+        onChange={onChange}
+        onBlur={() => onFocusOut('rePassword', values.email)}
       />
       <button
         className="w-full h-10 rounded-md bg-teal-600 text-teal-50 !mt-8 font-medium"

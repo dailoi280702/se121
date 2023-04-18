@@ -66,7 +66,8 @@ const ProfileMenu = () => {
     {
       name: 'Sign Up',
       icon: <ArrowLeftOnRectangleIcon />,
-      url: '/auth/register',
+      url: '/auth/singup/%2f',
+      onClick: () => router.push('auth/signup/' + encodeURIComponent(pathName)),
       displayCondition: { authenticated: false },
     },
     {
