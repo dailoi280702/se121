@@ -88,9 +88,6 @@ export default function SignInForm({ callbackUrl = '/' }: Props) {
   }
 
   const signInCallBack = async () => {
-    console.log(values.nameOrEmail)
-    console.log(values.password)
-
     const formData = {
       nameOrEmail: values.nameOrEmail.trim(),
       password: values.password.trim(),

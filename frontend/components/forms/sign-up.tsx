@@ -15,7 +15,11 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
 
   const validInputFields = () => {
     if (values.name == '') return false
-    return true
+
+    // check if there are no error message in value.details
+    return Object.values(values.details).every(
+      (errorMessage) => errorMessage == ''
+    )
   }
 
   const signupCallback = async () => {
@@ -29,8 +33,6 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
       password: values.password.trim(),
       rePassword: values.rePassword.trim(),
     }
-
-    console.log(formData)
 
     const response = await fetch('http://localhost:8000/v1/auth', {
       method: 'PUT',
