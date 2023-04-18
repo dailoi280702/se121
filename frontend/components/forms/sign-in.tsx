@@ -42,9 +42,12 @@ export const Input = ({
           if (onBlur) onBlur()
         }}
       />
-      <h4 className="text-xs text-red-600">
-        {errorMessage ? errorMessage : '\u2000'}
-      </h4>
+      <div
+        className="text-xs text-red-600"
+        dangerouslySetInnerHTML={{
+          __html: errorMessage ? errorMessage : '\u2000',
+        }}
+      />
     </div>
   )
 }
