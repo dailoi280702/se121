@@ -1,8 +1,9 @@
 'use client'
 
 import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
+import ReactHtmlParser from 'react-html-parser'
 
-const Input = ({
+export const Input = ({
   name,
   label,
   errorMessage,
@@ -10,6 +11,7 @@ const Input = ({
   required,
   type,
   onChange,
+  onBlur,
 }: {
   name?: string
   label?: string
@@ -17,6 +19,7 @@ const Input = ({
   placeHolder?: string
   required?: boolean
   type?: HTMLInputTypeAttribute
+  onBlur?: () => void
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void
 }) => {
   return (
@@ -33,15 +36,18 @@ const Input = ({
         required={required}
         type={type}
         onChange={onChange}
+        onBlur={() => {
+          if (onBlur) onBlur()
+        }}
       />
       <h4 className="text-xs text-red-600">
-        {errorMessage ? errorMessage : '\u2000'}
+        {ReactHtmlParser(errorMessage ? errorMessage : '\u2000')}
       </h4>
     </div>
   )
 }
 
-const useForm = <T,>(callback: any, initialstate: T) => {
+export const useForm = <T,>(callback: any, initialstate: T) => {
   const [values, setValues] = useState(initialstate)
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {
