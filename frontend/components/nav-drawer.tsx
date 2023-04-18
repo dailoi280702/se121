@@ -32,7 +32,7 @@ export default function NavDrawer() {
           <Shade onClose={closeDrawer} className="md:hidden" />
           <div
             className="absolute left-0 top-0 h-full w-56 flex flex-col z-[8] md:static
-            bg-neutral-50 shadow shadow-neutral-200"
+            bg-neutral-50 shadow shadow-neutral-400"
           >
             <DrawerHeader onClose={closeDrawer} />
             <DrawerBody />

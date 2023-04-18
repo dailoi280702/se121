@@ -1,11 +1,18 @@
 package models
 
+import (
+	// "database/sql"
+	"time"
+)
+
 type User struct {
-	Id       string `json:"id,omitempty"`
-	Name     string `json:"name"`
-	Password string `json:"password,omitempty"`
-	ImageUrl string `json:"imageUrl,omitempty"`
-	Email    string `json:"email,omitempty"`
+	Id       string    `json:"id,omitempty"`
+	Name     string    `json:"name"`
+	Email    string    `json:"email,omitempty"`
+	ImageUrl string    `json:"imageUrl,omitempty"`
+	CreateAt time.Time `json:"createAt,omitempty"`
+	IsAdmin  bool      `json:"isAdmin,omitempty"`
+	Password string    `json:"password,omitempty"`
 }
 
 type UserStore interface {
@@ -14,4 +21,5 @@ type UserStore interface {
 	AddUser(user User) error
 	UpdateUser(user User) error
 	DeleteUser(user User) error
+	VerifyUser(nameOrEmail string, password string) (*User, error)
 }

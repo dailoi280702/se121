@@ -1,6 +1,7 @@
 import Header from '@/components/Header'
 import './globals.css'
 import NavDrawer from '@/components/nav-drawer'
+import UserProvider from '@/components/providers/user-provider'
 
 export const metadata = {
   title: 'Carz',
@@ -19,7 +20,7 @@ export default function RootLayout({
           <NavDrawer />
           <div className="flex-grow h-full">
             <Header />
-            {children}
+            <UserProvider>{children}</UserProvider>
           </div>
         </div>
       </body>
