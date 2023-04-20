@@ -18,6 +18,19 @@ services:
       - redis
       - db
 
+  user-service:
+    container_name: user-service
+    build: ./user-service/
+    environment:
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
+    networks:
+      - grpc
+      - db
+    volumes:
+      - ./user-service/:/app
+    depends_on:
+      - db
+
   python-backend:
     build: ./python-backend/
     container_name: python-backend
