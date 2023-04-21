@@ -10,6 +10,7 @@ import (
 
 	api_v1 "github.com/dailoi280702/se121/go_backend/api/v1/router"
 	"github.com/dailoi280702/se121/go_backend/protos"
+	"github.com/dailoi280702/se121/user_service/userpb"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
