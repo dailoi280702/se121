@@ -7,7 +7,7 @@ service UserService {
     rpc GetUser(GetUserReq) returns (GetUserRes);
     rpc VerifyUser(VerifyUserReq) returns (VerifyUserRes);
     rpc GetUsers(GetUsersReq) returns (stream User);
-    rpc CreateUser(CreateUserReq) returns (CreateUserRes);
+    rpc CreateUser(CreateUserReq) returns (stream CreateUserRes);
     rpc UpdateUser(User) returns (UpdateUserRes);
 }
 
@@ -50,8 +50,7 @@ message CreateUserReq {
 }
 
 message CreateUserRes {
-    optional User user = 1;
-    map<string, Error> errors = 2;
+    map<string, string> errors = 1;
 }
 
 message UpdateUserRes {

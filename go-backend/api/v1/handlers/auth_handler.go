@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
+	"io"
 	"log"
 	"net/http"
 	"regexp"
@@ -14,10 +15,12 @@ import (
 	"github.com/dailoi280702/se121/go_backend/internal/service/user"
 	"github.com/dailoi280702/se121/go_backend/internal/utils"
 	"github.com/dailoi280702/se121/go_backend/models"
-	"github.com/dailoi280702/se121/go_backend/store/cache"
-	"github.com/dailoi280702/se121/go_backend/store/db"
+	cached_store "github.com/dailoi280702/se121/go_backend/store/cache"
+	db_store "github.com/dailoi280702/se121/go_backend/store/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -164,8 +167,8 @@ type signUpForm struct {
 
 func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 	// get input
-	user := signUpForm{}
-	err := utils.DecodeJSONBody(w, r, &user)
+	input := signUpForm{}
+	err := utils.DecodeJSONBody(w, r, &input)
 	if err != nil {
 		var mr *utils.MalformedRequest
 		if errors.As(err, &mr) {
@@ -185,18 +188,18 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate input
-	if err := utils.ValidateField("name", user.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
+	if err := utils.ValidateField("name", input.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
 		messages.Details["name"] = err.Error()
 	}
-	if err := utils.ValidateField("email", user.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
+	if err := utils.ValidateField("email", input.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
 		messages.Details["email"] = err.Error()
 	}
-	if err := utils.ValidateField("password", user.Password, true, nil); err != nil {
+	if err := utils.ValidateField("password", input.Password, true, nil); err != nil {
 		messages.Details["password"] = err.Error()
 	}
-	if err := utils.ValidateField("", user.RePassword, true, nil); err != nil {
+	if err := utils.ValidateField("", input.RePassword, true, nil); err != nil {
 		messages.Details["rePassword"] = "please confirm password"
-	} else if user.Password != user.RePassword {
+	} else if input.Password != input.RePassword {
 		messages.Details["rePassword"] = "those password do not match"
 	}
 
@@ -211,35 +214,43 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// register user
-	err = h.userStore.AddUser(models.User{Name: user.Name, Email: user.Email, Password: user.Password})
+	stream, err := h.userService.CreateUser(context.Background(), &user.CreateUserReq{
+		Name:     input.Name,
+		Email:    input.Email,
+		Password: input.Email,
+	})
 	if err != nil {
-		var ee *db_store.ErrExistedFields
-
-		switch {
-		case errors.As(err, &ee):
-			for _, field := range ee.FieldNames {
-				messages.Details[field] = field + " is already used"
-			}
-			if len(messages.Details) != 0 {
+		MustSendError(err, w)
+	}
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		code := status.Code(err)
+		if err != nil {
+			switch code {
+			case codes.InvalidArgument:
 				w.WriteHeader(http.StatusBadRequest)
-				if err := json.NewEncoder(w).Encode(messages); err != nil {
-					log.Panic(err)
-					return
-				}
+			case codes.AlreadyExists:
+				w.WriteHeader(http.StatusConflict)
+			case codes.Internal:
+				http.Error(w, "service unabailable", http.StatusServiceUnavailable)
+				return
+			default:
+				MustSendError(err, w)
 				return
 			}
-		default:
-			http.Error(w, "server error", http.StatusInternalServerError)
+			if err := json.NewEncoder(w).Encode(messages); err != nil {
+				log.Panic(err)
+			}
 			return
 		}
-		w.WriteHeader(http.StatusUnauthorized)
-		if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
-			log.Panic(err)
-		}
-		return
+
+		messages.Details = req.GetErrors()
 	}
 
-	w.Write([]byte("signUp"))
+	log.Println(w.Write([]byte("ok")))
 }
 
 func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
@@ -260,8 +271,8 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 	c.MaxAge = -1
 	c.Path = "/"
 	http.SetCookie(w, c)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("signed out"))
+
+	log.Panic(w.Write([]byte("signed out")))
 }
 
 func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {

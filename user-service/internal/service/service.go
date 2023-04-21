@@ -10,11 +10,11 @@ import (
 var UnplementedError = errors.New("method unimplemented yet")
 
 type ValidationErrors struct {
-	errors map[string]string
+	Messages map[string]string
 }
 
 func (e *ValidationErrors) Error() string {
-	return fmt.Sprintf("%v", e.errors)
+	return fmt.Sprintf("%v", e.Messages)
 }
 
 type Service struct {

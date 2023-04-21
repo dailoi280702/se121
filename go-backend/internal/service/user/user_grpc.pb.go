@@ -25,7 +25,7 @@ type UserServiceClient interface {
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRes, error)
 	VerifyUser(ctx context.Context, in *VerifyUserReq, opts ...grpc.CallOption) (*VerifyUserRes, error)
 	GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (UserService_GetUsersClient, error)
-	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*CreateUserRes, error)
+	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (UserService_CreateUserClient, error)
 	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UpdateUserRes, error)
 }
 
@@ -87,13 +87,36 @@ func (x *userServiceGetUsersClient) Recv() (*User, error) {
 	return m, nil
 }
 
-func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*CreateUserRes, error) {
-	out := new(CreateUserRes)
-	err := c.cc.Invoke(ctx, "/user.UserService/CreateUser", in, out, opts...)
+func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (UserService_CreateUserClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[1], "/user.UserService/CreateUser", opts...)
 	if err != nil {
 		return nil, err
 	}
-	return out, nil
+	x := &userServiceCreateUserClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type UserService_CreateUserClient interface {
+	Recv() (*CreateUserRes, error)
+	grpc.ClientStream
+}
+
+type userServiceCreateUserClient struct {
+	grpc.ClientStream
+}
+
+func (x *userServiceCreateUserClient) Recv() (*CreateUserRes, error) {
+	m := new(CreateUserRes)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 func (c *userServiceClient) UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UpdateUserRes, error) {
@@ -112,7 +135,7 @@ type UserServiceServer interface {
 	GetUser(context.Context, *GetUserReq) (*GetUserRes, error)
 	VerifyUser(context.Context, *VerifyUserReq) (*VerifyUserRes, error)
 	GetUsers(*GetUsersReq, UserService_GetUsersServer) error
-	CreateUser(context.Context, *CreateUserReq) (*CreateUserRes, error)
+	CreateUser(*CreateUserReq, UserService_CreateUserServer) error
 	UpdateUser(context.Context, *User) (*UpdateUserRes, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
@@ -130,8 +153,8 @@ func (UnimplementedUserServiceServer) VerifyUser(context.Context, *VerifyUserReq
 func (UnimplementedUserServiceServer) GetUsers(*GetUsersReq, UserService_GetUsersServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
-func (UnimplementedUserServiceServer) CreateUser(context.Context, *CreateUserReq) (*CreateUserRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+func (UnimplementedUserServiceServer) CreateUser(*CreateUserReq, UserService_CreateUserServer) error {
+	return status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *User) (*UpdateUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
@@ -206,22 +229,25 @@ func (x *userServiceGetUsersServer) Send(m *User) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateUserReq)
-	if err := dec(in); err != nil {
-		return nil, err
+func _UserService_CreateUser_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(CreateUserReq)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
 	}
-	if interceptor == nil {
-		return srv.(UserServiceServer).CreateUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/user.UserService/CreateUser",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(UserServiceServer).CreateUser(ctx, req.(*CreateUserReq))
-	}
-	return interceptor(ctx, in, info, handler)
+	return srv.(UserServiceServer).CreateUser(m, &userServiceCreateUserServer{stream})
+}
+
+type UserService_CreateUserServer interface {
+	Send(*CreateUserRes) error
+	grpc.ServerStream
+}
+
+type userServiceCreateUserServer struct {
+	grpc.ServerStream
+}
+
+func (x *userServiceCreateUserServer) Send(m *CreateUserRes) error {
+	return x.ServerStream.SendMsg(m)
 }
 
 func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -258,10 +284,6 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_VerifyUser_Handler,
 		},
 		{
-			MethodName: "CreateUser",
-			Handler:    _UserService_CreateUser_Handler,
-		},
-		{
 			MethodName: "UpdateUser",
 			Handler:    _UserService_UpdateUser_Handler,
 		},
@@ -270,6 +292,11 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "GetUsers",
 			Handler:       _UserService_GetUsers_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "CreateUser",
+			Handler:       _UserService_CreateUser_Handler,
 			ServerStreams: true,
 		},
 	},

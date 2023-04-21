@@ -31,14 +31,14 @@ func (s *Service) GetUser(id string) (*User, error) {
 }
 
 func (s *Service) AddUser(user User) error {
-	errs := ValidationErrors{errors: make(map[string]string)}
+	errs := ValidationErrors{Messages: make(map[string]string)}
 
 	isNameExisted, err := ExistInDB(s.DB, isUsernameExistedSql, user.Name)
 	if err != nil {
 		return err
 	}
 	if isNameExisted {
-		errs.errors["name"] = "Username already in used"
+		errs.Messages["name"] = "Username already in used"
 	}
 
 	if user.Email != "" {
@@ -47,10 +47,10 @@ func (s *Service) AddUser(user User) error {
 			return err
 		}
 		if isEmailExisted {
-			errs.errors["email"] = "Username already in used"
+			errs.Messages["email"] = "email already in used"
 		}
 	}
-	if len(errs.errors) > 0 {
+	if len(errs.Messages) > 0 {
 		return &errs
 	}
 

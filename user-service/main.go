@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -35,14 +36,12 @@ type userServer struct {
 func (s *userServer) GetUser(c context.Context, req *user.GetUserReq) (*user.GetUserRes, error) {
 	u, err := s.service.GetUser(req.GetId())
 	if err != nil {
-		return nil, status.Error(codes.Internal, fmt.Sprintf("Service err while creatting user %s", err.Error()))
+		return nil, status.Error(codes.Internal, fmt.Sprintf("Service err while getting user %s", err.Error()))
 	}
 
 	if u == nil {
 		return nil, status.Errorf(codes.NotFound, "User not found")
 	}
-
-	log.Println("HOOODFf FOISDLKFJLSKDJFLDS JFLKDSJFLDJS FKLJDF I'AM THE BESTTTTTTTTTTTTTTT")
 
 	return &user.GetUserRes{User: &user.User{
 		Id:       u.Id,
@@ -62,8 +61,29 @@ func (s *userServer) GetUsers(*user.GetUsersReq, user.UserService_GetUsersServer
 	return status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
 
-func (s *userServer) CreateUser(context.Context, *user.CreateUserReq) (*user.CreateUserRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
+func (s *userServer) CreateUser(req *user.CreateUserReq, stream user.UserService_CreateUserServer) error {
+	err := s.service.AddUser(service.User{
+		Name:     req.GetName(),
+		Email:    req.GetEmail(),
+		Password: req.GetPassword(),
+	})
+	if err != nil {
+		var validationErrors *service.ValidationErrors
+
+		switch {
+		case errors.As(err, &validationErrors):
+			if len(validationErrors.Messages) > 0 {
+				if err := stream.Send(&user.CreateUserRes{Errors: validationErrors.Messages}); err != nil {
+					return status.Error(codes.Internal, "user service error: cannot send data while creatting user")
+				}
+				return status.Error(codes.AlreadyExists, "user existed")
+			}
+		default:
+			return status.Error(codes.Internal, fmt.Sprintf("Service err while creatting user %s", err.Error()))
+		}
+	}
+
+	return nil
 }
 
 func (s *userServer) UpdateUser(context.Context, *user.User) (*user.UpdateUserRes, error) {
