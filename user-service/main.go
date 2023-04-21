@@ -49,7 +49,7 @@ func (s *userServer) GetUser(c context.Context, req *user.GetUserReq) (*user.Get
 		Name:     u.Name,
 		Email:    &u.Email,
 		ImageUrl: &u.ImageUrl,
-		CreateAt: u.CreateAt.Unix(),
+		CreateAt: u.CreateAt.UnixMilli(),
 		IsAdmin:  u.IsAdmin,
 	}}, nil
 }

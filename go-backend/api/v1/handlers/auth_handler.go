@@ -298,18 +298,18 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	u, err := h.userService.GetUser(context.Background(), &user.GetUserReq{Id: tokenData.UserId})
+	res, err := h.userService.GetUser(context.Background(), &user.GetUserReq{Id: tokenData.UserId})
 	if err != nil {
 		MustSendError(err, w)
 		return
 	}
-	if u == nil {
+	if res.User == nil {
 		http.Error(w, "no user found", http.StatusUnauthorized)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(u); err != nil {
+	if err := json.NewEncoder(w).Encode(res.User); err != nil {
 		log.Panic(err)
 		return
 	}

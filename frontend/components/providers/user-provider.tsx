@@ -40,8 +40,11 @@ export default function UserProvider({ children }: Props) {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const data = await FetchUser()
-      setUser(data as User)
+      const user = (await FetchUser()) as User
+      if (user) {
+        user.createAt = new Date(user.createAt)
+      }
+      setUser(user)
     }
 
     fetchUser()
