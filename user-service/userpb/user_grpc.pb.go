@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: user.proto
 
-package userpb
+package user
 
 import (
 	context "context"
@@ -39,7 +39,7 @@ func NewUserServiceClient(cc grpc.ClientConnInterface) UserServiceClient {
 
 func (c *userServiceClient) GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRes, error) {
 	out := new(GetUserRes)
-	err := c.cc.Invoke(ctx, "/userpb.UserService/GetUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/user.UserService/GetUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (c *userServiceClient) GetUser(ctx context.Context, in *GetUserReq, opts ..
 
 func (c *userServiceClient) VerifyUser(ctx context.Context, in *VerifyUserReq, opts ...grpc.CallOption) (*VerifyUserRes, error) {
 	out := new(VerifyUserRes)
-	err := c.cc.Invoke(ctx, "/userpb.UserService/VerifyUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/user.UserService/VerifyUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (c *userServiceClient) VerifyUser(ctx context.Context, in *VerifyUserReq, o
 }
 
 func (c *userServiceClient) GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (UserService_GetUsersClient, error) {
-	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], "/userpb.UserService/GetUsers", opts...)
+	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], "/user.UserService/GetUsers", opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +89,7 @@ func (x *userServiceGetUsersClient) Recv() (*User, error) {
 
 func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (*CreateUserRes, error) {
 	out := new(CreateUserRes)
-	err := c.cc.Invoke(ctx, "/userpb.UserService/CreateUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/user.UserService/CreateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (c *userServiceClient) CreateUser(ctx context.Context, in *CreateUserReq, o
 
 func (c *userServiceClient) UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UpdateUserRes, error) {
 	out := new(UpdateUserRes)
-	err := c.cc.Invoke(ctx, "/userpb.UserService/UpdateUser", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/user.UserService/UpdateUser", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func _UserService_GetUser_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/userpb.UserService/GetUser",
+		FullMethod: "/user.UserService/GetUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).GetUser(ctx, req.(*GetUserReq))
@@ -177,7 +177,7 @@ func _UserService_VerifyUser_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/userpb.UserService/VerifyUser",
+		FullMethod: "/user.UserService/VerifyUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).VerifyUser(ctx, req.(*VerifyUserReq))
@@ -216,7 +216,7 @@ func _UserService_CreateUser_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/userpb.UserService/CreateUser",
+		FullMethod: "/user.UserService/CreateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).CreateUser(ctx, req.(*CreateUserReq))
@@ -234,7 +234,7 @@ func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec f
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/userpb.UserService/UpdateUser",
+		FullMethod: "/user.UserService/UpdateUser",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(UserServiceServer).UpdateUser(ctx, req.(*User))
@@ -246,7 +246,7 @@ func _UserService_UpdateUser_Handler(srv interface{}, ctx context.Context, dec f
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var UserService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "userpb.UserService",
+	ServiceName: "user.UserService",
 	HandlerType: (*UserServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

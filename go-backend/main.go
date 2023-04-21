@@ -9,8 +9,8 @@ import (
 	"os"
 
 	api_v1 "github.com/dailoi280702/se121/go_backend/api/v1/router"
+	"github.com/dailoi280702/se121/go_backend/internal/service/user"
 	"github.com/dailoi280702/se121/go_backend/protos"
-	"github.com/dailoi280702/se121/user_service/userpb"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -22,9 +22,19 @@ import (
 )
 
 var (
-	addr      = flag.String("addr", "python-backend:50051", "the address to connect to")
-	redisAddr = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
+	addr            = flag.String("addr", "python-backend:50051", "the address to connect to")
+	userServicePort = flag.String("userServicePort", "user-service:50051", "the address to connect to")
+	redisAddr       = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
+
+func NewUserService() user.UserServiceClient {
+	conn, err := grpc.Dial(*userServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect user service: %v", err)
+	}
+
+	return user.NewUserServiceClient(conn)
+}
 
 func main() {
 	// grpc
@@ -34,6 +44,8 @@ func main() {
 	}
 	defer conn.Close()
 	c := protos.NewHelloClient(conn)
+
+	userService := NewUserService()
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -73,6 +85,6 @@ func main() {
 
 	// routes
 	router := chi.NewRouter()
-	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db))
-	http.ListenAndServe(":8000", router)
+	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db, userService))
+	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }

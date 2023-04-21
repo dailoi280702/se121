@@ -1,7 +1,7 @@
 syntax = "proto3";
-option go_package = "github.com/dailoi280702/se121/use_service/userpb";
+option go_package = "github.com/dailoi280702/se121/use_service/user";
 
-package userpb;
+package user;
 
 service UserService {
     rpc GetUser(GetUserReq) returns (GetUserRes);

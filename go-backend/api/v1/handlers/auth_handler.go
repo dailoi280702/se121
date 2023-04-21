@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -10,6 +11,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/dailoi280702/se121/go_backend/internal/service/user"
 	"github.com/dailoi280702/se121/go_backend/internal/utils"
 	"github.com/dailoi280702/se121/go_backend/models"
 	"github.com/dailoi280702/se121/go_backend/store/cache"
@@ -27,15 +29,17 @@ const (
 var cookieAuthToken = flag.String("cookieAuthToken", "authToken", "name of auth token for cookie")
 
 type AuthHandler struct {
-	userStore  models.UserStore
-	tokenStore models.TokenStore
+	userStore   models.UserStore
+	tokenStore  models.TokenStore
+	userService user.UserServiceClient
 }
 
 // :TODO serialize password
-func NewAuthHandler(redisClient *redis.Client, db *sql.DB) *AuthHandler {
+func NewAuthHandler(redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient) *AuthHandler {
 	return &AuthHandler{
-		userStore:  db_store.NewDbUserStore(db),
-		tokenStore: cached_store.NewRedisAuthTokenStore(redisClient),
+		userStore:   db_store.NewDbUserStore(db),
+		tokenStore:  cached_store.NewRedisAuthTokenStore(redisClient),
+		userService: userService,
 	}
 }
 
@@ -288,14 +292,24 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userStore.GetUser(tokenData.UserId)
+	// user, err := h.userStore.GetUser(tokenData.UserId)
+	// if err != nil {
+	// 	MustSendError(err, w)
+	// 	return
+	// }
+
+	u, err := h.userService.GetUser(context.Background(), &user.GetUserReq{Id: tokenData.UserId})
 	if err != nil {
 		MustSendError(err, w)
 		return
 	}
+	if u == nil {
+		http.Error(w, "no user found", http.StatusUnauthorized)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	if err := json.NewEncoder(w).Encode(u); err != nil {
 		log.Panic(err)
 		return
 	}

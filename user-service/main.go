@@ -21,51 +21,52 @@ import (
 )
 
 var (
-	tls        = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
-	certFile   = flag.String("cert_file", "", "The TLS cert file")
-	keyFile    = flag.String("key_file", "", "The TLS key file")
-	jsonDBFile = flag.String("json_db_file", "", "A json file containing a list of features")
-	port       = flag.Int("port", 50051, "The server port")
+	tls      = flag.Bool("tls", false, "Connection uses TLS if true, else plain TCP")
+	certFile = flag.String("cert_file", "", "The TLS cert file")
+	keyFile  = flag.String("key_file", "", "The TLS key file")
+	port     = flag.Int("port", 50051, "The server port")
 )
 
 type userServer struct {
 	service *service.Service
-	userpb.UnimplementedUserServiceServer
+	user.UnimplementedUserServiceServer
 }
 
-func (s *userServer) GetUser(c context.Context, req *userpb.GetUserReq) (*userpb.GetUserRes, error) {
-	user, err := s.service.GetUser(req.GetId())
+func (s *userServer) GetUser(c context.Context, req *user.GetUserReq) (*user.GetUserRes, error) {
+	u, err := s.service.GetUser(req.GetId())
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("Service err while creatting user %s", err.Error()))
 	}
 
-	if user == nil {
+	if u == nil {
 		return nil, status.Errorf(codes.NotFound, "User not found")
 	}
 
-	return &userpb.GetUserRes{User: &userpb.User{
-		Id:       user.Id,
-		Name:     user.Name,
-		Email:    &user.Email,
-		ImageUrl: &user.ImageUrl,
-		CreateAt: user.CreateAt.Unix(),
-		IsAdmin:  user.IsAdmin,
+	log.Println("HOOODFf FOISDLKFJLSKDJFLDS JFLKDSJFLDJS FKLJDF I'AM THE BESTTTTTTTTTTTTTTT")
+
+	return &user.GetUserRes{User: &user.User{
+		Id:       u.Id,
+		Name:     u.Name,
+		Email:    &u.Email,
+		ImageUrl: &u.ImageUrl,
+		CreateAt: u.CreateAt.Unix(),
+		IsAdmin:  u.IsAdmin,
 	}}, nil
 }
 
-func (s *userServer) VerifyUser(context.Context, *userpb.VerifyUserReq) (*userpb.VerifyUserRes, error) {
+func (s *userServer) VerifyUser(context.Context, *user.VerifyUserReq) (*user.VerifyUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyUser not implemented")
 }
 
-func (s *userServer) GetUsers(*userpb.GetUsersReq, userpb.UserService_GetUsersServer) error {
+func (s *userServer) GetUsers(*user.GetUsersReq, user.UserService_GetUsersServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
 
-func (s *userServer) CreateUser(context.Context, *userpb.CreateUserReq) (*userpb.CreateUserRes, error) {
+func (s *userServer) CreateUser(context.Context, *user.CreateUserReq) (*user.CreateUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
 
-func (s *userServer) UpdateUser(context.Context, *userpb.User) (*userpb.UpdateUserRes, error) {
+func (s *userServer) UpdateUser(context.Context, *user.User) (*user.UpdateUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 
@@ -76,7 +77,7 @@ func newServer(service *service.Service) *userServer {
 
 func main() {
 	flag.Parse()
-	lis, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf("[::]:%d", *port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
@@ -101,6 +102,6 @@ func main() {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
 	defer db.Close()
-	userpb.RegisterUserServiceServer(grpcServer, newServer(&service.Service{DB: db}))
-	grpcServer.Serve(lis)
+	user.RegisterUserServiceServer(grpcServer, newServer(&service.Service{DB: db}))
+	log.Fatalf("Error serving user service: %v", grpcServer.Serve(lis))
 }
