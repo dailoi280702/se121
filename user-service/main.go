@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"github.com/dailoi280702/se121/user_service/userpb"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
@@ -25,6 +28,7 @@ var (
 )
 
 type userServer struct {
+	db *sql.DB
 	userpb.UnimplementedUserServiceServer
 }
 
@@ -48,8 +52,8 @@ func (s *userServer) UpdateUser(context.Context, *userpb.User) (*userpb.UpdateUs
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 
-func newServer() *userServer {
-	s := &userServer{}
+func newServer(db *sql.DB) *userServer {
+	s := &userServer{db: db}
 	return s
 }
 
@@ -74,6 +78,12 @@ func main() {
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
 	grpcServer := grpc.NewServer(opts...)
-	userpb.RegisterUserServiceServer(grpcServer, newServer())
+
+	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		log.Fatalf("failed to connect to db: %v", err)
+	}
+	defer db.Close()
+	userpb.RegisterUserServiceServer(grpcServer, newServer(db))
 	grpcServer.Serve(lis)
 }
