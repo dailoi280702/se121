@@ -227,8 +227,8 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 		if err == io.EOF {
 			break
 		}
-		code := status.Code(err)
 		if err != nil {
+			code := status.Code(err)
 			switch code {
 			case codes.InvalidArgument:
 				w.WriteHeader(http.StatusBadRequest)
@@ -291,10 +291,6 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Value = token
-	c.Path = "/"
-	http.SetCookie(w, c)
-
 	// get and send user data
 	// :TODO handle user that was deleted
 	tokenData, err := h.tokenStore.GetExistingToken(token)
@@ -303,25 +299,26 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// user, err := h.userStore.GetUser(tokenData.UserId)
-	// if err != nil {
-	// 	MustSendError(err, w)
-	// 	return
-	// }
-
 	res, err := h.userService.GetUser(context.Background(), &user.GetUserReq{Id: tokenData.UserId})
 	if err != nil {
-		MustSendError(err, w)
-		return
-	}
-	if res.User == nil {
-		http.Error(w, "no user found", http.StatusUnauthorized)
+		code := status.Code(err)
+		switch code {
+		case codes.NotFound:
+			http.Error(w, "no user found", http.StatusNoContent)
+		case codes.Internal:
+			http.Error(w, "service unabailable", http.StatusServiceUnavailable)
+		default:
+			MustSendError(err, w)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res.User); err != nil {
 		log.Panic(err)
-		return
 	}
+
+	c.Value = token
+	c.Path = "/"
+	http.SetCookie(w, c)
 }
