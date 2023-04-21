@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	GetUser(ctx context.Context, in *GetUserReq, opts ...grpc.CallOption) (*GetUserRes, error)
-	VerifyUser(ctx context.Context, in *VerifyUserReq, opts ...grpc.CallOption) (*VerifyUserRes, error)
+	VerifyUser(ctx context.Context, in *VerifyUserReq, opts ...grpc.CallOption) (*User, error)
 	GetUsers(ctx context.Context, in *GetUsersReq, opts ...grpc.CallOption) (UserService_GetUsersClient, error)
 	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (UserService_CreateUserClient, error)
 	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UpdateUserRes, error)
@@ -46,8 +46,8 @@ func (c *userServiceClient) GetUser(ctx context.Context, in *GetUserReq, opts ..
 	return out, nil
 }
 
-func (c *userServiceClient) VerifyUser(ctx context.Context, in *VerifyUserReq, opts ...grpc.CallOption) (*VerifyUserRes, error) {
-	out := new(VerifyUserRes)
+func (c *userServiceClient) VerifyUser(ctx context.Context, in *VerifyUserReq, opts ...grpc.CallOption) (*User, error) {
+	out := new(User)
 	err := c.cc.Invoke(ctx, "/user.UserService/VerifyUser", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -133,7 +133,7 @@ func (c *userServiceClient) UpdateUser(ctx context.Context, in *User, opts ...gr
 // for forward compatibility
 type UserServiceServer interface {
 	GetUser(context.Context, *GetUserReq) (*GetUserRes, error)
-	VerifyUser(context.Context, *VerifyUserReq) (*VerifyUserRes, error)
+	VerifyUser(context.Context, *VerifyUserReq) (*User, error)
 	GetUsers(*GetUsersReq, UserService_GetUsersServer) error
 	CreateUser(*CreateUserReq, UserService_CreateUserServer) error
 	UpdateUser(context.Context, *User) (*UpdateUserRes, error)
@@ -147,7 +147,7 @@ type UnimplementedUserServiceServer struct {
 func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserReq) (*GetUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedUserServiceServer) VerifyUser(context.Context, *VerifyUserReq) (*VerifyUserRes, error) {
+func (UnimplementedUserServiceServer) VerifyUser(context.Context, *VerifyUserReq) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyUser not implemented")
 }
 func (UnimplementedUserServiceServer) GetUsers(*GetUsersReq, UserService_GetUsersServer) error {

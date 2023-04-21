@@ -5,7 +5,7 @@ package user;
 
 service UserService {
     rpc GetUser(GetUserReq) returns (GetUserRes);
-    rpc VerifyUser(VerifyUserReq) returns (VerifyUserRes);
+    rpc VerifyUser(VerifyUserReq) returns (User);
     rpc GetUsers(GetUsersReq) returns (stream User);
     rpc CreateUser(CreateUserReq) returns (stream CreateUserRes);
     rpc UpdateUser(User) returns (UpdateUserRes);
@@ -57,13 +57,7 @@ message UpdateUserRes {
     map<string, Error> errors = 1;
 }
 
-message VerifyUserReq{
-    string name = 1;
-    string email = 2;
-    string passord = 3;
-}
-
-message VerifyUserRes{
-    bool ok = 1;
-    map<string, Error> errors = 2;
+message VerifyUserReq {
+    string nameOrEmail = 1;
+    string passord = 2;
 }

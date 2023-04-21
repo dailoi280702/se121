@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/dailoi280702/se121/user_service/internal/service"
 	"github.com/dailoi280702/se121/user_service/userpb"
@@ -53,8 +54,32 @@ func (s *userServer) GetUser(c context.Context, req *user.GetUserReq) (*user.Get
 	}}, nil
 }
 
-func (s *userServer) VerifyUser(context.Context, *user.VerifyUserReq) (*user.VerifyUserRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method VerifyUser not implemented")
+func (s *userServer) VerifyUser(ctx context.Context, req *user.VerifyUserReq) (*user.User, error) {
+	name := strings.TrimSpace(req.GetNameOrEmail())
+	password := strings.TrimSpace(req.GetPassord())
+
+	if name == "" || password == "" {
+		return nil, status.Error(codes.InvalidArgument, "inputs cannot be empty")
+	}
+
+	u, err := s.service.VerifyUser(name, password)
+	if err != nil {
+		switch {
+		case errors.Is(err, service.ErrIncorrectNameEmailOrPassword):
+			return nil, status.Error(codes.NotFound, "user name, email or password is not correct")
+		default:
+			return nil, status.Error(codes.Internal, "user service error: cannot verify user")
+		}
+	}
+
+	return &user.User{
+		Id:       u.Id,
+		Name:     u.Name,
+		Email:    &u.Email,
+		ImageUrl: &u.ImageUrl,
+		CreateAt: u.CreateAt.UnixMilli(),
+		IsAdmin:  u.IsAdmin,
+	}, nil
 }
 
 func (s *userServer) GetUsers(*user.GetUsersReq, user.UserService_GetUsersServer) error {

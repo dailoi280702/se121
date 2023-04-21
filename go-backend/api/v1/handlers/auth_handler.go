@@ -65,8 +65,8 @@ type signInForm struct {
 // :TODO handle already authenticated request
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	// get input
-	user := signInForm{}
-	err := utils.DecodeJSONBody(w, r, &user)
+	input := signInForm{}
+	err := utils.DecodeJSONBody(w, r, &input)
 	if err != nil {
 		var mr *utils.MalformedRequest
 		if errors.As(err, &mr) {
@@ -90,33 +90,41 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate input
-	if user.NameOrEmail == "" {
+	if input.NameOrEmail == "" {
 		messages.Details.NameOrEmail = "user name or email cannot be empty"
 		valid = false
 	} else {
 		emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 		usernameRegex := regexp.MustCompile("^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$")
-		isEmail := emailRegex.MatchString(user.NameOrEmail)
-		isUsername := usernameRegex.MatchString(user.NameOrEmail)
+		isEmail := emailRegex.MatchString(input.NameOrEmail)
+		isUsername := usernameRegex.MatchString(input.NameOrEmail)
 		if !isEmail && !isUsername {
 			messages.Details.NameOrEmail = "neither user name is password are valid"
 			valid = false
 		}
 	}
-	if user.Password == "" {
+	if input.Password == "" {
 		messages.Details.Password = "password cannot be empty"
 		valid = false
 	}
 
 	// verify user
-	var data *models.User
+	var data *user.User
 	if valid {
-		data, err = h.userStore.VerifyUser(user.NameOrEmail, user.Password)
+		data, err = h.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
+			NameOrEmail: input.NameOrEmail,
+			Passord:     input.Password,
+		})
 		if err != nil {
-			switch {
-			case errors.Is(err, db_store.ErrIncorrectNameEmailOrPassword):
-				messages.Messages = append(messages.Messages, err.Error())
+			code := status.Code(err)
+			s, _ := status.FromError(err)
+			switch code {
+			case codes.NotFound:
+				messages.Messages = append(messages.Messages, s.Message())
 				valid = false
+			case codes.Internal:
+				http.Error(w, "service unabailable", http.StatusServiceUnavailable)
+				return
 			default:
 				MustSendError(err, w)
 				return
@@ -126,7 +134,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	if !valid {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusUnauthorized)
 		if err := json.NewEncoder(w).Encode(messages); err != nil {
 			log.Panic(err)
 			return
