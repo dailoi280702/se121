@@ -26,9 +26,6 @@ func (s *Service) GetUser(id string) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-	if user == nil {
-		return nil, ErrIncorrectNameEmailOrPassword
-	}
 	user.Password = ""
 	return user, nil
 }

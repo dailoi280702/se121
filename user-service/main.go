@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/dailoi280702/se121/user_service/internal/service"
 	"github.com/dailoi280702/se121/user_service/userpb"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
@@ -28,12 +29,28 @@ var (
 )
 
 type userServer struct {
-	db *sql.DB
+	service *service.Service
 	userpb.UnimplementedUserServiceServer
 }
 
-func (s *userServer) GetUser(context.Context, *userpb.GetUserReq) (*userpb.GetUserRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
+func (s *userServer) GetUser(c context.Context, req *userpb.GetUserReq) (*userpb.GetUserRes, error) {
+	user, err := s.service.GetUser(req.GetId())
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("Service err while creatting user %s", err.Error()))
+	}
+
+	if user == nil {
+		return nil, status.Errorf(codes.NotFound, "User not found")
+	}
+
+	return &userpb.GetUserRes{User: &userpb.User{
+		Id:       user.Id,
+		Name:     user.Name,
+		Email:    &user.Email,
+		ImageUrl: &user.ImageUrl,
+		CreateAt: user.CreateAt.Unix(),
+		IsAdmin:  user.IsAdmin,
+	}}, nil
 }
 
 func (s *userServer) VerifyUser(context.Context, *userpb.VerifyUserReq) (*userpb.VerifyUserRes, error) {
@@ -52,8 +69,8 @@ func (s *userServer) UpdateUser(context.Context, *userpb.User) (*userpb.UpdateUs
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }
 
-func newServer(db *sql.DB) *userServer {
-	s := &userServer{db: db}
+func newServer(service *service.Service) *userServer {
+	s := &userServer{service: service}
 	return s
 }
 
@@ -84,6 +101,6 @@ func main() {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
 	defer db.Close()
-	userpb.RegisterUserServiceServer(grpcServer, newServer(db))
+	userpb.RegisterUserServiceServer(grpcServer, newServer(&service.Service{DB: db}))
 	grpcServer.Serve(lis)
 }
