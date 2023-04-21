@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"flag"
@@ -27,13 +28,13 @@ var (
 	redisAddr       = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
-func NewUserService() user.UserServiceClient {
-	conn, err := grpc.Dial(*userServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+func NewUserService(ctx context.Context) (*grpc.ClientConn, user.UserServiceClient) {
+	conn, err := grpc.DialContext(ctx, *userServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("failed to connect user service: %v", err)
 	}
 
-	return user.NewUserServiceClient(conn)
+	return conn, user.NewUserServiceClient(conn)
 }
 
 func main() {
@@ -45,7 +46,8 @@ func main() {
 	defer conn.Close()
 	c := protos.NewHelloClient(conn)
 
-	userService := NewUserService()
+	userServiceConn, userService := NewUserService(context.Background())
+	defer userServiceConn.Close()
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
