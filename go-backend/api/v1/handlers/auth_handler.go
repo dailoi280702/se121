@@ -243,7 +243,7 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 			case codes.AlreadyExists:
 				w.WriteHeader(http.StatusConflict)
 			case codes.Internal:
-				http.Error(w, "service unabailable", http.StatusServiceUnavailable)
+				http.Error(w, "service unavailable", http.StatusServiceUnavailable)
 				return
 			default:
 				MustSendError(err, w)

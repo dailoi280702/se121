@@ -1,0 +1,44 @@
+syntax = "proto3";
+option go_package = "github.com/dailoi280702/se121/auth_service/user";
+package auth;
+
+service AuthService {
+    rpc SignIn(SignInReq) returns (SignInRes);
+    rpc SignUp(SignUpReq) returns (SignUpRes);
+    rpc ReFresh(string) returns (string);
+    rpc SignOut(string) returns (Empty);
+}
+
+message Empty {}
+
+message User {
+    string id = 1;
+    string name = 2;
+    optional string email = 3;
+    optional string imageUrl = 4;
+    int64 createAt = 5;
+    bool isAdmin = 6;
+    optional string password = 7;
+}
+
+message SignInReq {
+    string nameOrEmail = 1;
+    string password = 2;
+
+message SignInRes {
+    optional User user;
+    repeated string messages;
+    map<string, string> details;
+}
+
+message SignUpReq {
+    string name = 1;
+    string email = 2;
+    string password = 3;
+    string rePasssword = 4; 
+}
+
+message SignUpRes {
+    repeated string messages;
+    map<string, string> details;
+}
