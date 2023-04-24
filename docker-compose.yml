@@ -4,6 +4,8 @@ services:
   go-backend:
     container_name: go-backend
     build: ./go-backend/
+    environment:
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
       - client
       - grpc
@@ -14,6 +16,7 @@ services:
       - ./go-backend/:/app
     depends_on:
       - redis
+      - db
 
   python-backend:
     build: ./python-backend/
@@ -46,6 +49,20 @@ services:
     networks:
       - db
 
+  db:
+    container_name: db
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - db
+
 networks:
   client: {}
   grpc: {}
@@ -53,3 +70,4 @@ networks:
 
 volumes:
   redis-data: {}
+  pgdata: {}

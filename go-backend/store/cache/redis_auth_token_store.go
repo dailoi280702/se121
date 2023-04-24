@@ -27,11 +27,12 @@ func NewRedisAuthTokenStore(client *redis.Client) *InMemoryTokenStore {
 	}
 }
 
-func (s *InMemoryTokenStore) NewToken(lifetime time.Duration) (string, error) {
+func (s *InMemoryTokenStore) NewToken(userId string, isAdmin bool, lifetime time.Duration) (string, error) {
 	key := uuid.NewString()
 	token := &models.AuthToken{
 		Token:     key,
-		Admin:     false,
+		UserId:    userId,
+		Admin:     isAdmin,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(lifetime),
 	}
@@ -85,11 +86,19 @@ func (s *InMemoryTokenStore) Remove(token string) error {
 }
 
 func (s *InMemoryTokenStore) Refesh(token string, lifetime time.Duration) (string, error) {
-	err := s.Remove(token)
+	tokenSruct, err := getToken(s.client, *existingTokens, token)
 	if err != nil {
 		return "", err
 	}
-	return s.NewToken(lifetime)
+	err = s.Remove(token)
+	if err != nil {
+		return "", err
+	}
+	return s.NewToken(tokenSruct.UserId, tokenSruct.Admin, lifetime)
+}
+
+func (s *InMemoryTokenStore) GetExistingToken(token string) (*models.AuthToken, error) {
+	return getToken(s.client, *existingTokens, token)
 }
 
 func getToken(c *redis.Client, key string, token string) (*models.AuthToken, error) {

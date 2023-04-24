@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -17,7 +18,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const TokenLifetime = 24 * 5 * time.Hour
+const (
+	TokenLifetime = 24 * 5 * time.Hour
+	UsernameRegex = "^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$"
+	EmailRegex    = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+)
 
 var cookieAuthToken = flag.String("cookieAuthToken", "authToken", "name of auth token for cookie")
 
@@ -26,9 +31,10 @@ type AuthHandler struct {
 	tokenStore models.TokenStore
 }
 
-func NewAuthHandler(redisClient *redis.Client) *AuthHandler {
+// :TODO serialize password
+func NewAuthHandler(redisClient *redis.Client, db *sql.DB) *AuthHandler {
 	return &AuthHandler{
-		userStore:  db_store.NewDbUserStore(),
+		userStore:  db_store.NewDbUserStore(db),
 		tokenStore: cached_store.NewRedisAuthTokenStore(redisClient),
 	}
 }
@@ -49,6 +55,7 @@ type signInForm struct {
 	Password    string `json:"password"`
 }
 
+// :TODO handle already authenticated request
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	// get input
 	user := signInForm{}
@@ -85,7 +92,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		isEmail := emailRegex.MatchString(user.NameOrEmail)
 		isUsername := usernameRegex.MatchString(user.NameOrEmail)
 		if !isEmail && !isUsername {
-			messages.Details.NameOrEmail = "neither user name nor password are valid"
+			messages.Details.NameOrEmail = "neither user name is password are valid"
 			valid = false
 		}
 	}
@@ -94,11 +101,19 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		valid = false
 	}
 
-	// :TODO verify user
+	// verify user
+	var data *models.User
 	if valid {
-		if false {
-			messages.Messages = append(messages.Messages, "name, email or password is not correct")
-			valid = false
+		data, err = h.userStore.VerifyUser(user.NameOrEmail, user.Password)
+		if err != nil {
+			switch {
+			case errors.Is(err, db_store.ErrIncorrectNameEmailOrPassword):
+				messages.Messages = append(messages.Messages, err.Error())
+				valid = false
+			default:
+				MustSendError(err, w)
+				return
+			}
 		}
 	}
 
@@ -113,26 +128,106 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate auth token
-	token, err := h.tokenStore.NewToken(TokenLifetime)
+	token, err := h.tokenStore.NewToken(data.Id, data.IsAdmin, TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
 		return
 	}
-	c := http.Cookie{Name: *cookieAuthToken, Value: token}
+	c := http.Cookie{
+		Name:     *cookieAuthToken,
+		Value:    token,
+		Path:     "/",
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		Secure:   true,
+		Expires:  time.Now().Add(TokenLifetime),
+	}
 	http.SetCookie(w, &c)
 
-	// :TODO send user information
-	if err := json.NewEncoder(w).Encode(user); err != nil {
+	// send user information
+	if err := json.NewEncoder(w).Encode(data); err != nil {
 		log.Panic(err)
 		return
 	}
 }
 
-func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
-	// :TODO register user
+type signUpForm struct {
+	Name       string `json:"name"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	RePassword string `json:"rePassword"`
+}
 
-	err := h.userStore.AddUser(models.User{})
+func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
+	// get input
+	user := signUpForm{}
+	err := utils.DecodeJSONBody(w, r, &user)
 	if err != nil {
+		var mr *utils.MalformedRequest
+		if errors.As(err, &mr) {
+			http.Error(w, mr.Msg, mr.Status)
+		} else {
+			MustSendError(err, w)
+		}
+		return
+	}
+
+	messages := struct {
+		Messages []string          `json:"messages"`
+		Details  map[string]string `json:"details"`
+	}{
+		Messages: []string{},
+		Details:  map[string]string{},
+	}
+
+	// validate input
+	if err := utils.ValidateField("name", user.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
+		messages.Details["name"] = err.Error()
+	}
+	if err := utils.ValidateField("email", user.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
+		messages.Details["email"] = err.Error()
+	}
+	if err := utils.ValidateField("password", user.Password, true, nil); err != nil {
+		messages.Details["password"] = err.Error()
+	}
+	if err := utils.ValidateField("", user.RePassword, true, nil); err != nil {
+		messages.Details["rePassword"] = "please confirm password"
+	} else if user.Password != user.RePassword {
+		messages.Details["rePassword"] = "those password do not match"
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if len(messages.Details) != 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(messages); err != nil {
+			log.Panic(err)
+			return
+		}
+		return
+	}
+
+	// register user
+	err = h.userStore.AddUser(models.User{Name: user.Name, Email: user.Email, Password: user.Password})
+	if err != nil {
+		var ee *db_store.ErrExistedFields
+
+		switch {
+		case errors.As(err, &ee):
+			for _, field := range ee.FieldNames {
+				messages.Details[field] = field + " is already used"
+			}
+			if len(messages.Details) != 0 {
+				w.WriteHeader(http.StatusBadRequest)
+				if err := json.NewEncoder(w).Encode(messages); err != nil {
+					log.Panic(err)
+					return
+				}
+				return
+			}
+		default:
+			http.Error(w, "server error", http.StatusInternalServerError)
+			return
+		}
 		w.WriteHeader(http.StatusUnauthorized)
 		if err := json.NewEncoder(w).Encode(err.Error()); err != nil {
 			log.Panic(err)
@@ -159,12 +254,14 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 
 	c.Value = ""
 	c.MaxAge = -1
+	c.Path = "/"
 	http.SetCookie(w, c)
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("signed out"))
 }
 
 func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
+	// get token
 	c, err := r.Cookie(*cookieAuthToken)
 	if err != nil {
 		log.Println(err)
@@ -172,6 +269,7 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// refresh token
 	token, err := h.tokenStore.Refesh(c.Value, TokenLifetime)
 	if err != nil {
 		MustSendError(err, w)
@@ -179,13 +277,26 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.Value = token
+	c.Path = "/"
 	http.SetCookie(w, c)
 
-	// :TODO send user infomation
-	if err = json.NewEncoder(w).Encode(token); err != nil {
+	// get and send user data
+	// :TODO handle user that was deleted
+	tokenData, err := h.tokenStore.GetExistingToken(token)
+	if err != nil {
+		MustSendError(err, w)
+		return
+	}
+
+	user, err := h.userStore.GetUser(tokenData.UserId)
+	if err != nil {
+		MustSendError(err, w)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(user); err != nil {
 		log.Panic(err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("refeshed"))
 }
