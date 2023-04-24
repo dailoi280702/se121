@@ -3,10 +3,13 @@
 import { useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
-import ReactHtmlParser from 'react-html-parser'
 import { UserAtom } from '../providers/user-provider'
 
+<<<<<<< HEAD
 const Input = ({
+=======
+export const Input = ({
+>>>>>>> dev
   name,
   label,
   errorMessage,
@@ -38,9 +41,18 @@ const Input = ({
         type={type}
         onChange={onChange}
       />
+<<<<<<< HEAD
       <h4 className="text-xs text-red-600">
         {errorMessage ? errorMessage : '\u2000'}
       </h4>
+=======
+      <div
+        className="text-xs text-red-600"
+        dangerouslySetInnerHTML={{
+          __html: errorMessage ? errorMessage : '\u2000',
+        }}
+      />
+>>>>>>> dev
     </div>
   )
 }
@@ -84,9 +96,6 @@ export default function SignInForm({ callbackUrl = '/' }: Props) {
   }
 
   const signInCallBack = async () => {
-    console.log(values.nameOrEmail)
-    console.log(values.password)
-
     const formData = {
       nameOrEmail: values.nameOrEmail.trim(),
       password: values.password.trim(),

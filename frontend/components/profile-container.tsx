@@ -7,7 +7,7 @@ import {
   UserCircleIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
-import { cloneElement, ReactElement, useEffect } from 'react'
+import { cloneElement, ReactElement } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAtom, useAtomValue } from 'jotai'
 import useCloseShade from './hooks/use-close-shade'
@@ -66,7 +66,8 @@ const ProfileMenu = () => {
     {
       name: 'Sign Up',
       icon: <ArrowLeftOnRectangleIcon />,
-      url: '/auth/register',
+      url: '/auth/singup/%2f',
+      onClick: () => router.push('auth/signup/' + encodeURIComponent(pathName)),
       displayCondition: { authenticated: false },
     },
     {

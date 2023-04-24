@@ -1,14 +1,35 @@
 'use client'
+<<<<<<< HEAD
+=======
+import { useRouter } from 'next/navigation'
+>>>>>>> dev
 import { useForm, Input } from './sign-in'
 
 const USER_REGEX = /^[A-z][A-z0-9-_]{3,23}$/
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/
 const REGISTER_URL = '/register'
 
+<<<<<<< HEAD
 export default function RegisterForm() {
   const validInputFields = () => {
     if (values.name == '') return false
     return true
+=======
+interface Props {
+  callbackUrl?: string
+}
+
+export default function RegisterForm({ callbackUrl = '/' }: Props) {
+  const router = useRouter()
+
+  const validInputFields = () => {
+    if (values.name == '') return false
+
+    // check if there are no error message in value.details
+    return Object.values(values.details).every(
+      (errorMessage) => errorMessage == ''
+    )
+>>>>>>> dev
   }
 
   const signupCallback = async () => {
@@ -37,8 +58,12 @@ export default function RegisterForm() {
       return
     }
 
+<<<<<<< HEAD
     window.alert("let's go")
     // :TODO redirect user
+=======
+    router.push(callbackUrl)
+>>>>>>> dev
   }
   const initialstate = {
     name: '',
@@ -132,12 +157,22 @@ export default function RegisterForm() {
         label="Enter your password"
         placeHolder="Password ..."
         errorMessage={values.details.password}
+<<<<<<< HEAD
+=======
+        onChange={onChange}
+        onBlur={() => onFocusOut('password', values.email)}
+>>>>>>> dev
       />
       <Input
         name="rePassword"
         label="Reenter your password"
         placeHolder="Reenter password ..."
         errorMessage={values.details.rePassword}
+<<<<<<< HEAD
+=======
+        onChange={onChange}
+        onBlur={() => onFocusOut('rePassword', values.email)}
+>>>>>>> dev
       />
       <button
         className="w-full h-10 rounded-md bg-teal-600 text-teal-50 !mt-8 font-medium"
