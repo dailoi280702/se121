@@ -107,12 +107,6 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := req.GetUser()
-	if err := json.NewEncoder(w).Encode(user); err != nil {
-		MustSendError(err, w)
-		return
-	}
-
 	token := req.GetToken()
 	c := http.Cookie{
 		Name:     *cookieAuthToken,
@@ -124,6 +118,12 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(TokenLifetime),
 	}
 	http.SetCookie(w, &c)
+
+	user := req.GetUser()
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		MustSendError(err, w)
+		return
+	}
 }
 
 type signUpForm struct {
