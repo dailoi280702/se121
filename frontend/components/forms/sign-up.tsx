@@ -50,6 +50,7 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
 
     router.push(callbackUrl)
   }
+
   const initialstate = {
     name: '',
     email: '',
@@ -63,6 +64,7 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
       rePassword: '',
     },
   }
+
   const { onChange, onSubmit, values, setValues } = useForm(
     signupCallback,
     initialstate
@@ -75,13 +77,9 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
         {
           conditions: [
             {
-              value: '',
+              value: /^[A-z][A-z0-9-_]{3,23}$/,
               message:
                 '4 to 24 characters. <br />Must begin with a letter.<br />Letters, numbers, underscores, hyphens allowed.',
-            },
-            {
-              value: 'khoa',
-              message: 'khoacc',
             },
           ],
         },
@@ -91,68 +89,112 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
         {
           conditions: [
             {
-              value: '',
-              message: 'cc',
+              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+              message: 'Email invalid',
+            },
+          ],
+        },
+      ],
+      [
+        'password',
+        {
+          conditions: [
+            {
+              value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/,
+              message:
+                '8 to 24 characters.<br />Must include uppercase and lowercase letters, a number and a special character.<br />Allowed special characters.',
+            },
+          ],
+        },
+      ],
+      [
+        'rePassword',
+        {
+          conditions: [
+            {
+              value: values.password == values.rePassword,
+              message: 'Password does not match',
             },
           ],
         },
       ],
     ])
 
-    var message = undefined
-    if (actions.get(field)) {
+    let message: string | undefined = undefined
+
+    if (actions.has(field)) {
       actions.get(field)?.conditions.forEach((condition) => {
-        if (value == condition.value) {
-          message = condition.message
+        if (typeof condition.value === 'boolean') {
+          if (!condition.value) {
+            message = condition.message
+          }
+        } else {
+          if (!condition.value.test(value)) {
+            message = condition.message
+          }
         }
       })
     }
+
     setValues({
       ...values,
       details: {
         ...values.details,
-        [field]: message ? message : '',
+        [field]: message || '',
       },
     })
   }
+
+  const inputFields = [
+    {
+      name: 'name',
+      label: 'Enter your username',
+      placeHolder: 'Username ...',
+      errorMessage: values.details.name,
+      value: values.name,
+    },
+    {
+      name: 'email',
+      label: 'Enter your email',
+      placeHolder: 'Email ...',
+      errorMessage: values.details.email,
+      value: values.email,
+    },
+    {
+      name: 'password',
+      label: 'Enter your password',
+      placeHolder: 'Password ...',
+      errorMessage: values.details.password,
+      value: values.password,
+      type: 'password',
+    },
+    {
+      name: 'rePassword',
+      label: 'Reenter your password',
+      placeHolder: 'Reenter password ...',
+      errorMessage: values.details.rePassword,
+      value: values.rePassword,
+      type: 'password',
+    },
+  ]
 
   return (
     <form
       className="flex flex-col px-6 space-y-2 text-left text-sm sm:mb-14"
       onSubmit={onSubmit}
     >
-      <Input
-        name="name"
-        label="Enter your username"
-        placeHolder="Username ..."
-        errorMessage={values.details.name}
-        onChange={onChange}
-        onBlur={() => onFocusOut('name', values.name)}
-      />
-      <Input
-        name="email"
-        label="Enter your email"
-        placeHolder="Email ..."
-        errorMessage={values.details.email}
-        onChange={onChange}
-        onBlur={() => onFocusOut('email', values.email)}
-      />
-      <Input
-        name="password"
-        label="Enter your password"
-        placeHolder="Password ..."
-        errorMessage={values.details.password}
-        onChange={onChange}
-        onBlur={() => onFocusOut('password', values.email)}
-      />
-      <Input
-        name="rePassword"
-        label="Reenter your password"
-        placeHolder="Reenter password ..."
-        errorMessage={values.details.rePassword}
-        onChange={onChange}
-        onBlur={() => onFocusOut('rePassword', values.email)}
-      />
+      {inputFields.map((input) => (
+        <Input
+          key={input.name}
+          name={input.name}
+          label={input.label}
+          placeHolder={input.placeHolder}
+          errorMessage={input.errorMessage}
+          onChange={onChange}
+          onBlur={() => onFocusOut(input.name, input.value)}
+          type={input.type}
+        />
+      ))}
       <button
         className="w-full h-10 rounded-md bg-teal-600 text-teal-50 !mt-8 font-medium"
         type="submit"
