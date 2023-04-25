@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/dailoi280702/se121/go_backend/internal/service/auth"
 	"github.com/dailoi280702/se121/go_backend/internal/service/user"
 	"github.com/dailoi280702/se121/go_backend/internal/utils"
 	"github.com/dailoi280702/se121/go_backend/models"
@@ -35,14 +36,16 @@ type AuthHandler struct {
 	userStore   models.UserStore
 	tokenStore  models.TokenStore
 	userService user.UserServiceClient
+	authService auth.AuthServiceClient
 }
 
 // :TODO serialize password
-func NewAuthHandler(redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient) *AuthHandler {
+func NewAuthHandler(redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient, authService auth.AuthServiceClient) *AuthHandler {
 	return &AuthHandler{
 		userStore:   db_store.NewDbUserStore(db),
 		tokenStore:  cached_store.NewRedisAuthTokenStore(redisClient),
 		userService: userService,
+		authService: authService,
 	}
 }
 
@@ -90,22 +93,45 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// validate input
-	if input.NameOrEmail == "" {
-		messages.Details.NameOrEmail = "user name or email cannot be empty"
-		valid = false
-	} else {
-		emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-		usernameRegex := regexp.MustCompile("^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$")
-		isEmail := emailRegex.MatchString(input.NameOrEmail)
-		isUsername := usernameRegex.MatchString(input.NameOrEmail)
-		if !isEmail && !isUsername {
-			messages.Details.NameOrEmail = "neither user name is password are valid"
-			valid = false
+	// if input.NameOrEmail == "" {
+	// 	messages.Details.NameOrEmail = "user name or email cannot be empty"
+	// 	valid = false
+	// } else {
+	// 	emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	// 	usernameRegex := regexp.MustCompile("^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$")
+	// 	isEmail := emailRegex.MatchString(input.NameOrEmail)
+	// 	isUsername := usernameRegex.MatchString(input.NameOrEmail)
+	// 	if !isEmail && !isUsername {
+	// 		messages.Details.NameOrEmail = "neither user name is password are valid"
+	// 		valid = false
+	// 	}
+	// }
+	// if input.Password == "" {
+	// 	messages.Details.Password = "password cannot be empty"
+	// 	valid = false
+	// }
+
+	_, err = h.authService.SignIn(context.Background(), &auth.SignInReq{
+		NameOrEmail: input.NameOrEmail,
+		Password:    input.Password,
+	})
+
+	if err != nil {
+		code := status.Code(err)
+		s, _ := status.FromError(err)
+		switch code {
+		case codes.InvalidArgument:
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(s.Message()))
+			// if err := json.NewEncoder(w).Encode(messages); err != nil {
+			// 	log.Panic(err)
+			// 	return
+			// }
+		default:
+			MustSendError(err, w)
 		}
-	}
-	if input.Password == "" {
-		messages.Details.Password = "password cannot be empty"
-		valid = false
+		return
 	}
 
 	// verify user

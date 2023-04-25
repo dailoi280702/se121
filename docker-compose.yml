@@ -31,6 +31,14 @@ services:
     depends_on:
       - db
 
+  auth-service:
+    container_name: auth-service
+    build: ./auth-service/
+    networks:
+      - db
+    volumes:
+      - ./auth-service/:/app
+
   python-backend:
     build: ./python-backend/
     container_name: python-backend

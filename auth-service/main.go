@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
 	"net"
+	"regexp"
 
 	"github.com/dailoi280702/se121/auth_service/internal/service"
 	"github.com/dailoi280702/se121/auth_service/internal/service/auth"
@@ -32,7 +34,47 @@ type AuthServiceServer struct {
 	auth.UnimplementedAuthServiceServer
 }
 
-func (s *AuthServiceServer) SignIn(context.Context, *auth.SignInReq) (*auth.SignInRes, error) {
+func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*auth.User, error) {
+	details := make(map[string]string)
+	nameOrEmail := req.GetNameOrEmail()
+	password := req.GetPassword()
+
+	// validate input
+	if nameOrEmail == "" {
+		details["nameOrEmail"] = "user name or email cannot be empty"
+	} else {
+		emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+		usernameRegex := regexp.MustCompile("^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$")
+		isEmail := emailRegex.MatchString(nameOrEmail)
+		isUsername := usernameRegex.MatchString(nameOrEmail)
+		if !isEmail && !isUsername {
+			details["nameOrEmail"] = "neither user name is password are valid"
+		}
+	}
+	if password == "" {
+		details["password"] = "password cannot be empty"
+	}
+
+	if len(details) != 0 {
+		data, err := json.Marshal(details)
+		if err != nil {
+			return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err: %v", err))
+		}
+		return nil, status.Error(codes.InvalidArgument, string(data))
+	}
+
+	// // verify user
+	// var data *user.User
+	// if len(details) == 0 {
+	// 	data, err := s.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
+	// 		NameOrEmail: nameOrEmail,
+	// 		Passord:     password,
+	// 	})
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
+
 	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
 }
 

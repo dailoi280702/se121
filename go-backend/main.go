@@ -10,6 +10,7 @@ import (
 	"os"
 
 	api_v1 "github.com/dailoi280702/se121/go_backend/api/v1/router"
+	"github.com/dailoi280702/se121/go_backend/internal/service/auth"
 	"github.com/dailoi280702/se121/go_backend/internal/service/user"
 	"github.com/dailoi280702/se121/go_backend/protos"
 	"github.com/go-chi/chi/v5"
@@ -24,7 +25,8 @@ import (
 
 var (
 	addr            = flag.String("addr", "python-backend:50051", "the address to connect to")
-	userServicePort = flag.String("userServicePort", "user-service:50051", "the address to connect to")
+	userServicePort = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
+	authServicePort = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
 	redisAddr       = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
@@ -37,17 +39,28 @@ func NewUserService(ctx context.Context) (*grpc.ClientConn, user.UserServiceClie
 	return conn, user.NewUserServiceClient(conn)
 }
 
+func NewAuthService(ctx context.Context) (*grpc.ClientConn, auth.AuthServiceClient) {
+	conn, err := grpc.DialContext(ctx, *authServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect auth service: %v", err)
+	}
+
+	return conn, auth.NewAuthServiceClient(conn)
+}
+
 func main() {
 	// grpc
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("failed to connect grpc: %v", err)
 	}
-	defer conn.Close()
 	c := protos.NewHelloClient(conn)
 
-	userServiceConn, userService := NewUserService(context.Background())
-	defer userServiceConn.Close()
+	ctx := context.Background()
+
+	userServiceConn, userService := NewUserService(ctx)
+
+	authServiceConn, authService := NewAuthService(ctx)
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -60,7 +73,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
-	defer db.Close()
+
+	defer func() {
+		db.Close()
+		conn.Close()
+		userServiceConn.Close()
+		authServiceConn.Close()
+	}()
 
 	// database migratetion
 	m, err := migrate.New(
@@ -87,6 +106,6 @@ func main() {
 
 	// routes
 	router := chi.NewRouter()
-	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db, userService))
+	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db, userService, authService))
 	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }
