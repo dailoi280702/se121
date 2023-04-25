@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"regexp"
+	"time"
 
 	"github.com/dailoi280702/se121/auth_service/internal/service"
 	"github.com/dailoi280702/se121/auth_service/internal/service/auth"
@@ -23,9 +24,11 @@ var (
 	serverPort         = flag.Int("server port", 50051, "The server port")
 	serverNetwork      = flag.String("server network", "[::]:", "The server network")
 	userServicePort    = flag.Int("user service port", 50051, "The user service port")
-	userServiceNetwork = flag.String("user service network", "user-service", "The user service network")
+	userServiceNetwork = flag.String("user service network", "user-service:", "The user service network")
 	redisAddr          = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
+
+const TokenLifetime = 24 * 5 * time.Hour
 
 type AuthServiceServer struct {
 	service     *service.Service
@@ -34,7 +37,7 @@ type AuthServiceServer struct {
 	auth.UnimplementedAuthServiceServer
 }
 
-func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*auth.User, error) {
+func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*auth.SignInRes, error) {
 	details := make(map[string]string)
 	nameOrEmail := req.GetNameOrEmail()
 	password := req.GetPassword()
@@ -63,19 +66,40 @@ func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*a
 		return nil, status.Error(codes.InvalidArgument, string(data))
 	}
 
-	// // verify user
-	// var data *user.User
-	// if len(details) == 0 {
-	// 	data, err := s.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
-	// 		NameOrEmail: nameOrEmail,
-	// 		Passord:     password,
-	// 	})
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
+	// VerifyUser
+	data, err := s.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
+		NameOrEmail: nameOrEmail,
+		Passord:     password,
+	})
+	if err != nil {
+		code := status.Code(err)
+		s, _ := status.FromError(err)
+		switch code {
+		case codes.NotFound:
+			messages := []string{}
+			data, err := json.Marshal(append(messages, s.Message()))
+			if err != nil {
+				return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err: %v", err))
+			}
+			return nil, status.Error(code, string(data))
+		}
+		return nil, err
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
+	// genrate token
+	token, err := s.service.NewToken(data.Id, data.IsAdmin, TokenLifetime)
+	if err != nil {
+		return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err while creating new auth token: %v", err))
+	}
+
+	return &auth.SignInRes{User: &auth.User{
+		Id:       data.Id,
+		Name:     data.Name,
+		Email:    data.Email,
+		ImageUrl: data.ImageUrl,
+		CreateAt: data.CreateAt,
+		IsAdmin:  data.IsAdmin,
+	}, Token: token}, nil
 }
 
 func (s *AuthServiceServer) SignUp(context.Context, *auth.SignUpReq) (*auth.SignUpRes, error) {

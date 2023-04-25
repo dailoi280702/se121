@@ -67,6 +67,7 @@ type signInForm struct {
 
 // :TODO handle already authenticated request
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	// get input
 	input := signInForm{}
 	err := utils.DecodeJSONBody(w, r, &input)
@@ -80,17 +81,16 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid := true
-	messages := struct {
-		Messages []string   `json:"messages"`
-		Details  signInForm `json:"details"`
-	}{
-		Messages: []string{},
-		Details: signInForm{
-			"",
-			"",
-		},
-	}
+	// valid := true
+	// messages := struct {
+	// 	Messages []string   `json:"messages"`
+	// 	Details  signInForm `json:"details"`
+	// }{
+	// 	Messages: []string{},
+	// 	Details: signInForm{
+	// 		"",
+	// 	},
+	// }
 
 	// validate input
 	// if input.NameOrEmail == "" {
@@ -111,69 +111,75 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	// 	valid = false
 	// }
 
-	_, err = h.authService.SignIn(context.Background(), &auth.SignInReq{
+	req, err := h.authService.SignIn(context.Background(), &auth.SignInReq{
 		NameOrEmail: input.NameOrEmail,
 		Password:    input.Password,
 	})
-
 	if err != nil {
 		code := status.Code(err)
 		s, _ := status.FromError(err)
 		switch code {
 		case codes.InvalidArgument:
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(s.Message()))
-			// if err := json.NewEncoder(w).Encode(messages); err != nil {
-			// 	log.Panic(err)
-			// 	return
-			// }
+		case codes.NotFound:
+			w.WriteHeader(http.StatusUnauthorized)
+		case codes.Unavailable:
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
 		default:
+			MustSendError(err, w)
+			return
+		}
+		_, err = w.Write([]byte(s.Message()))
+		if err != nil {
 			MustSendError(err, w)
 		}
 		return
 	}
 
 	// verify user
-	var data *user.User
-	if valid {
-		data, err = h.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
-			NameOrEmail: input.NameOrEmail,
-			Passord:     input.Password,
-		})
-		if err != nil {
-			code := status.Code(err)
-			s, _ := status.FromError(err)
-			switch code {
-			case codes.NotFound:
-				messages.Messages = append(messages.Messages, s.Message())
-				valid = false
-			case codes.Internal:
-				http.Error(w, "service unabailable", http.StatusServiceUnavailable)
-				return
-			default:
-				MustSendError(err, w)
-				return
-			}
-		}
-	}
+	// var user *user.User
+	// if valid {
+	// 	user, err = h.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
+	// 		NameOrEmail: input.NameOrEmail,
+	// 		Passord:     input.Password,
+	// 	})
+	// 	if err != nil {
+	// 		code := status.Code(err)
+	// 		s, _ := status.FromError(err)
+	// 		switch code {
+	// 		case codes.NotFound:
+	// 			messages.Messages = append(messages.Messages, s.Message())
+	// 			valid = false
+	// 		case codes.Internal:
+	// 			http.Error(w, "service unabailable", http.StatusServiceUnavailable)
+	// 			return
+	// 		default:
+	// 			MustSendError(err, w)
+	// 			return
+	// 		}
+	// 	}
+	// }
+	//
+	// w.Header().Set("Content-Type", "application/json")
+	// if !valid {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	if err := json.NewEncoder(w).Encode(messages); err != nil {
+	// 		log.Panic(err)
+	// 		return
+	// 	}
+	// 	return
+	// }
+	//
 
-	w.Header().Set("Content-Type", "application/json")
-	if !valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		if err := json.NewEncoder(w).Encode(messages); err != nil {
-			log.Panic(err)
-			return
-		}
+	// send user information
+	user := req.GetUser()
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		log.Panic(err)
 		return
 	}
 
-	// generate auth token
-	token, err := h.tokenStore.NewToken(data.Id, data.IsAdmin, TokenLifetime)
-	if err != nil {
-		MustSendError(err, w)
-		return
-	}
+	token := req.GetToken()
 	c := http.Cookie{
 		Name:     *cookieAuthToken,
 		Value:    token,
@@ -184,12 +190,6 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(TokenLifetime),
 	}
 	http.SetCookie(w, &c)
-
-	// send user information
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		log.Panic(err)
-		return
-	}
 }
 
 type signUpForm struct {

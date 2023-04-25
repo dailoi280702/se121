@@ -23,6 +23,14 @@ type AuthToken struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 }
 
+func (a *AuthToken) MarshalBinary() ([]byte, error) {
+	return json.Marshal(a)
+}
+
+func (a *AuthToken) UnmarshalBinary(data []byte) error {
+	return json.Unmarshal(data, a)
+}
+
 func (s *Service) NewToken(userId string, isAdmin bool, lifetime time.Duration) (string, error) {
 	key := uuid.NewString()
 	token := &AuthToken{
@@ -73,7 +81,7 @@ func (s *Service) Remove(token string) error {
 	}
 
 	ctx := context.Background()
-	s.rdb.HDel(ctx, *existingTokens, token).Err()
+	err = s.rdb.HDel(ctx, *existingTokens, token).Err()
 	if err != nil {
 		return err
 	}

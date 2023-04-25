@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AuthServiceClient interface {
-	SignIn(ctx context.Context, in *SignInReq, opts ...grpc.CallOption) (*User, error)
+	SignIn(ctx context.Context, in *SignInReq, opts ...grpc.CallOption) (*SignInRes, error)
 	SignUp(ctx context.Context, in *SignUpReq, opts ...grpc.CallOption) (*SignUpRes, error)
 	Refresh(ctx context.Context, in *RefreshReq, opts ...grpc.CallOption) (*RefreshRes, error)
 	SignOut(ctx context.Context, in *SignOutReq, opts ...grpc.CallOption) (*Empty, error)
@@ -36,8 +36,8 @@ func NewAuthServiceClient(cc grpc.ClientConnInterface) AuthServiceClient {
 	return &authServiceClient{cc}
 }
 
-func (c *authServiceClient) SignIn(ctx context.Context, in *SignInReq, opts ...grpc.CallOption) (*User, error) {
-	out := new(User)
+func (c *authServiceClient) SignIn(ctx context.Context, in *SignInReq, opts ...grpc.CallOption) (*SignInRes, error) {
+	out := new(SignInRes)
 	err := c.cc.Invoke(ctx, "/auth.AuthService/SignIn", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func (c *authServiceClient) SignOut(ctx context.Context, in *SignOutReq, opts ..
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility
 type AuthServiceServer interface {
-	SignIn(context.Context, *SignInReq) (*User, error)
+	SignIn(context.Context, *SignInReq) (*SignInRes, error)
 	SignUp(context.Context, *SignUpReq) (*SignUpRes, error)
 	Refresh(context.Context, *RefreshReq) (*RefreshRes, error)
 	SignOut(context.Context, *SignOutReq) (*Empty, error)
@@ -87,7 +87,7 @@ type AuthServiceServer interface {
 type UnimplementedAuthServiceServer struct {
 }
 
-func (UnimplementedAuthServiceServer) SignIn(context.Context, *SignInReq) (*User, error) {
+func (UnimplementedAuthServiceServer) SignIn(context.Context, *SignInReq) (*SignInRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignIn not implemented")
 }
 func (UnimplementedAuthServiceServer) SignUp(context.Context, *SignUpReq) (*SignUpRes, error) {
