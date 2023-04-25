@@ -38,28 +38,31 @@ type AuthServiceServer struct {
 }
 
 func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*auth.SignInRes, error) {
-	details := make(map[string]string)
 	nameOrEmail := req.GetNameOrEmail()
 	password := req.GetPassword()
+	errorsRes := struct {
+		Messages []string          `json:"messages"`
+		Details  map[string]string `json:"details"`
+	}{[]string{}, map[string]string{}}
 
 	// validate input
 	if nameOrEmail == "" {
-		details["nameOrEmail"] = "user name or email cannot be empty"
+		errorsRes.Details["nameOrEmail"] = "user name or email cannot be empty"
 	} else {
 		emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 		usernameRegex := regexp.MustCompile("^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$")
 		isEmail := emailRegex.MatchString(nameOrEmail)
 		isUsername := usernameRegex.MatchString(nameOrEmail)
 		if !isEmail && !isUsername {
-			details["nameOrEmail"] = "neither user name is password are valid"
+			errorsRes.Details["nameOrEmail"] = "neither user name is password are valid"
 		}
 	}
 	if password == "" {
-		details["password"] = "password cannot be empty"
+		errorsRes.Details["password"] = "password cannot be empty"
 	}
 
-	if len(details) != 0 {
-		data, err := json.Marshal(details)
+	if len(errorsRes.Details) != 0 {
+		data, err := json.Marshal(errorsRes)
 		if err != nil {
 			return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err: %v", err))
 		}
@@ -76,8 +79,8 @@ func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*a
 		s, _ := status.FromError(err)
 		switch code {
 		case codes.NotFound:
-			messages := []string{}
-			data, err := json.Marshal(append(messages, s.Message()))
+			errorsRes.Messages = append(errorsRes.Messages, s.Message())
+			data, err := json.Marshal(errorsRes)
 			if err != nil {
 				return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err: %v", err))
 			}
