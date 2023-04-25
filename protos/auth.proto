@@ -1,12 +1,12 @@
 syntax = "proto3";
-option go_package = "github.com/dailoi280702/se121/auth_service/user";
+option go_package = "github.com/dailoi280702/se121/auth_service/auth";
 package auth;
 
 service AuthService {
     rpc SignIn(SignInReq) returns (SignInRes);
     rpc SignUp(SignUpReq) returns (SignUpRes);
-    rpc ReFresh(string) returns (string);
-    rpc SignOut(string) returns (Empty);
+    rpc Refresh(RefreshReq) returns (RefreshRes);
+    rpc SignOut(SignOutReq) returns (Empty);
 }
 
 message Empty {}
@@ -24,11 +24,12 @@ message User {
 message SignInReq {
     string nameOrEmail = 1;
     string password = 2;
+}
 
 message SignInRes {
-    optional User user;
-    repeated string messages;
-    map<string, string> details;
+    optional User user = 1;
+    repeated string messages = 2;
+    map<string, string> details = 3;
 }
 
 message SignUpReq {
@@ -39,6 +40,18 @@ message SignUpReq {
 }
 
 message SignUpRes {
-    repeated string messages;
-    map<string, string> details;
+    repeated string messages = 1;
+    map<string, string> details = 2;
+}
+
+message RefreshReq {
+    string token = 1;
+}
+
+message RefreshRes {
+    string token = 1;
+}
+
+message SignOutReq {
+    string token = 1;
 }
