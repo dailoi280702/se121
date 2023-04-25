@@ -7,3 +7,9 @@ import (
 type Service struct {
 	rdb *redis.Client
 }
+
+func NewService(rdb *redis.Client) *Service {
+	return &Service{
+		rdb: rdb,
+	}
+}
