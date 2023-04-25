@@ -81,36 +81,6 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// valid := true
-	// messages := struct {
-	// 	Messages []string   `json:"messages"`
-	// 	Details  signInForm `json:"details"`
-	// }{
-	// 	Messages: []string{},
-	// 	Details: signInForm{
-	// 		"",
-	// 	},
-	// }
-
-	// validate input
-	// if input.NameOrEmail == "" {
-	// 	messages.Details.NameOrEmail = "user name or email cannot be empty"
-	// 	valid = false
-	// } else {
-	// 	emailRegex := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
-	// 	usernameRegex := regexp.MustCompile("^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$")
-	// 	isEmail := emailRegex.MatchString(input.NameOrEmail)
-	// 	isUsername := usernameRegex.MatchString(input.NameOrEmail)
-	// 	if !isEmail && !isUsername {
-	// 		messages.Details.NameOrEmail = "neither user name is password are valid"
-	// 		valid = false
-	// 	}
-	// }
-	// if input.Password == "" {
-	// 	messages.Details.Password = "password cannot be empty"
-	// 	valid = false
-	// }
-
 	req, err := h.authService.SignIn(context.Background(), &auth.SignInReq{
 		NameOrEmail: input.NameOrEmail,
 		Password:    input.Password,
@@ -137,45 +107,9 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// verify user
-	// var user *user.User
-	// if valid {
-	// 	user, err = h.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
-	// 		NameOrEmail: input.NameOrEmail,
-	// 		Passord:     input.Password,
-	// 	})
-	// 	if err != nil {
-	// 		code := status.Code(err)
-	// 		s, _ := status.FromError(err)
-	// 		switch code {
-	// 		case codes.NotFound:
-	// 			messages.Messages = append(messages.Messages, s.Message())
-	// 			valid = false
-	// 		case codes.Internal:
-	// 			http.Error(w, "service unabailable", http.StatusServiceUnavailable)
-	// 			return
-	// 		default:
-	// 			MustSendError(err, w)
-	// 			return
-	// 		}
-	// 	}
-	// }
-	//
-	// w.Header().Set("Content-Type", "application/json")
-	// if !valid {
-	// 	w.WriteHeader(http.StatusUnauthorized)
-	// 	if err := json.NewEncoder(w).Encode(messages); err != nil {
-	// 		log.Panic(err)
-	// 		return
-	// 	}
-	// 	return
-	// }
-	//
-
-	// send user information
 	user := req.GetUser()
 	if err := json.NewEncoder(w).Encode(user); err != nil {
-		log.Panic(err)
+		MustSendError(err, w)
 		return
 	}
 
