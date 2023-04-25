@@ -231,7 +231,13 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 
 	_, err = h.authService.SignOut(context.Background(), &auth.SignOutReq{Token: c.Value})
 	if err != nil {
-		MustSendError(err, w)
+		code := status.Code(err)
+		switch code {
+		case codes.Unavailable:
+			http.Error(w, "auth service unavailable", http.StatusServiceUnavailable)
+		default:
+			MustSendError(err, w)
+		}
 		return
 	}
 
@@ -263,7 +269,13 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	// :TODO handle user that was deleted
 	tokenData, err := h.tokenStore.GetExistingToken(token)
 	if err != nil {
-		MustSendError(err, w)
+		code := status.Code(err)
+		switch code {
+		case codes.Unavailable:
+			http.Error(w, "auth service unavailable", http.StatusServiceUnavailable)
+		default:
+			MustSendError(err, w)
+		}
 		return
 	}
 
@@ -281,12 +293,12 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.Value = token
+	c.Path = "/"
+	http.SetCookie(w, c)
+
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(res.User); err != nil {
 		log.Panic(err)
 	}
-
-	c.Value = token
-	c.Path = "/"
-	http.SetCookie(w, c)
 }

@@ -109,8 +109,12 @@ func (s *AuthServiceServer) SignUp(context.Context, *auth.SignUpReq) (*auth.Sign
 	return nil, status.Errorf(codes.Unimplemented, "method SignUp not implemented")
 }
 
-func (s *AuthServiceServer) Refresh(context.Context, *auth.RefreshReq) (*auth.RefreshRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Refresh not implemented")
+func (s *AuthServiceServer) Refresh(ctx context.Context, req *auth.RefreshReq) (*auth.RefreshRes, error) {
+	token, err := s.service.Refesh(req.GetToken(), TokenLifetime)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "auth service error while refresh token %v: ", err)
+	}
+	return &auth.RefreshRes{Token: token}, nil
 }
 
 func (s *AuthServiceServer) SignOut(ctx context.Context, req *auth.SignOutReq) (*auth.Empty, error) {
