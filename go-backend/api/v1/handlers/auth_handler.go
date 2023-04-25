@@ -229,7 +229,7 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.tokenStore.Remove(c.Value)
+	_, err = h.authService.SignOut(context.Background(), &auth.SignOutReq{Token: c.Value})
 	if err != nil {
 		MustSendError(err, w)
 		return

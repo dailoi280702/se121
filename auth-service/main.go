@@ -113,8 +113,12 @@ func (s *AuthServiceServer) Refresh(context.Context, *auth.RefreshReq) (*auth.Re
 	return nil, status.Errorf(codes.Unimplemented, "method Refresh not implemented")
 }
 
-func (s *AuthServiceServer) SignOut(context.Context, *auth.SignOutReq) (*auth.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SignOut not implemented")
+func (s *AuthServiceServer) SignOut(ctx context.Context, req *auth.SignOutReq) (*auth.Empty, error) {
+	err := s.service.Remove(req.GetToken())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "auth service error while remove token %v: ", err)
+	}
+	return &auth.Empty{}, nil
 }
 
 func NewUserService(ctx context.Context) (*grpc.ClientConn, user.UserServiceClient) {
