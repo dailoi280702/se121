@@ -11,11 +11,9 @@ import (
 	"time"
 
 	"github.com/dailoi280702/se121/go_backend/internal/service/auth"
-	"github.com/dailoi280702/se121/go_backend/internal/service/user"
 	"github.com/dailoi280702/se121/go_backend/internal/utils"
 	"github.com/dailoi280702/se121/go_backend/models"
 	cached_store "github.com/dailoi280702/se121/go_backend/store/cache"
-	db_store "github.com/dailoi280702/se121/go_backend/store/db"
 	"github.com/go-chi/chi/v5"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc/codes"
@@ -29,18 +27,14 @@ const (
 var cookieAuthToken = flag.String("cookieAuthToken", "authToken", "name of auth token for cookie")
 
 type AuthHandler struct {
-	userStore  models.UserStore
-	tokenStore models.TokenStore
-	// userService user.UserServiceClient
+	tokenStore  models.TokenStore
 	authService auth.AuthServiceClient
 }
 
 // :TODO serialize password
-func NewAuthHandler(redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient, authService auth.AuthServiceClient) *AuthHandler {
+func NewAuthHandler(redisClient *redis.Client, db *sql.DB, authService auth.AuthServiceClient) *AuthHandler {
 	return &AuthHandler{
-		userStore:  db_store.NewDbUserStore(db),
-		tokenStore: cached_store.NewRedisAuthTokenStore(redisClient),
-		// userService: userService,
+		tokenStore:  cached_store.NewRedisAuthTokenStore(redisClient),
 		authService: authService,
 	}
 }

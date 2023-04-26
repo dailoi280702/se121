@@ -40,7 +40,7 @@ func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client, d
 	})
 
 	router.Mount("/say-hello", handlers.NewHelloRouter(gprcHelloClient).Routes())
-	router.Mount("/auth", handlers.NewAuthHandler(redisClient, db, userService, authService).Routes())
+	router.Mount("/auth", handlers.NewAuthHandler(redisClient, db, authService).Routes())
 
 	return router
 }
