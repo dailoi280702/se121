@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"regexp"
@@ -28,7 +29,11 @@ var (
 	redisAddr          = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
-const TokenLifetime = 24 * 5 * time.Hour
+const (
+	TokenLifetime = 24 * 5 * time.Hour
+	UsernameRegex = "^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$"
+	EmailRegex    = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+)
 
 type AuthServiceServer struct {
 	service     *service.Service
@@ -105,8 +110,67 @@ func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*a
 	}, Token: token}, nil
 }
 
-func (s *AuthServiceServer) SignUp(context.Context, *auth.SignUpReq) (*auth.SignUpRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SignUp not implemented")
+func (s *AuthServiceServer) SignUp(ctx context.Context, req *auth.SignUpReq) (*auth.Empty, error) {
+	errorsRes := struct {
+		Messages []string          `json:"messages"`
+		Details  map[string]string `json:"details"`
+	}{[]string{}, map[string]string{}}
+	name, email, password, rePassword := req.GetName(), req.GetEmail(), req.GetPassword(), req.GetRePasssword()
+
+	if err := ValidateField("name", name, true, regexp.MustCompile(UsernameRegex)); err != nil {
+		errorsRes.Details["name"] = err.Error()
+	}
+	if err := ValidateField("email", email, false, regexp.MustCompile(EmailRegex)); err != nil {
+		errorsRes.Details["email"] = err.Error()
+	}
+	if err := ValidateField("password", password, true, nil); err != nil {
+		errorsRes.Details["password"] = err.Error()
+	}
+	if err := ValidateField("rePassword", rePassword, true, nil); err != nil {
+		errorsRes.Details["rePassword"] = "please confirm password"
+	} else if password != rePassword {
+		errorsRes.Details["rePassword"] = "those password do not match"
+	}
+
+	if len(errorsRes.Details) != 0 {
+		data, err := json.Marshal(errorsRes)
+		if err != nil {
+			return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err: %v", err))
+		}
+		return nil, status.Error(codes.InvalidArgument, string(data))
+	}
+
+	stream, err := s.userService.CreateUser(context.Background(), &user.CreateUserReq{
+		Name:     name,
+		Email:    email,
+		Password: password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			code := status.Code(err)
+			switch code {
+			case codes.AlreadyExists:
+				data, err := json.Marshal(errorsRes)
+				if err != nil {
+					return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err: %v", err))
+				}
+				return nil, status.Error(codes.AlreadyExists, string(data))
+			default:
+				return nil, err
+			}
+		}
+		errorsRes.Details = req.GetErrors()
+	}
+
+	return &auth.Empty{}, nil
 }
 
 func (s *AuthServiceServer) Refresh(ctx context.Context, req *auth.RefreshReq) (*auth.RefreshRes, error) {

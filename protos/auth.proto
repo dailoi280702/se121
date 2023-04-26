@@ -4,7 +4,7 @@ package auth;
 
 service AuthService {
     rpc SignIn(SignInReq) returns (SignInRes);
-    rpc SignUp(SignUpReq) returns (SignUpRes);
+    rpc SignUp(SignUpReq) returns (Empty);
     rpc Refresh(RefreshReq) returns (RefreshRes);
     rpc SignOut(SignOutReq) returns (Empty);
 }

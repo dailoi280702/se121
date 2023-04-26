@@ -6,10 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"flag"
-	"io"
 	"log"
 	"net/http"
-	"regexp"
 	"time"
 
 	"github.com/dailoi280702/se121/go_backend/internal/service/auth"
@@ -147,75 +145,71 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	messages := struct {
-		Messages []string          `json:"messages"`
-		Details  map[string]string `json:"details"`
-	}{
-		Messages: []string{},
-		Details:  map[string]string{},
-	}
+	// messages := struct {
+	// 	Messages []string          `json:"messages"`
+	// 	Details  map[string]string `json:"details"`
+	// }{
+	// 	Messages: []string{},
+	// 	Details:  map[string]string{},
+	// }
 
 	// validate input
-	if err := utils.ValidateField("name", input.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
-		messages.Details["name"] = err.Error()
-	}
-	if err := utils.ValidateField("email", input.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
-		messages.Details["email"] = err.Error()
-	}
-	if err := utils.ValidateField("password", input.Password, true, nil); err != nil {
-		messages.Details["password"] = err.Error()
-	}
-	if err := utils.ValidateField("", input.RePassword, true, nil); err != nil {
-		messages.Details["rePassword"] = "please confirm password"
-	} else if input.Password != input.RePassword {
-		messages.Details["rePassword"] = "those password do not match"
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if len(messages.Details) != 0 {
-		w.WriteHeader(http.StatusBadRequest)
-		if err := json.NewEncoder(w).Encode(messages); err != nil {
-			log.Panic(err)
-			return
-		}
-		return
-	}
+	// if err := utils.ValidateField("name", input.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
+	// 	messages.Details["name"] = err.Error()
+	// }
+	// if err := utils.ValidateField("email", input.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
+	// 	messages.Details["email"] = err.Error()
+	// }
+	// if err := utils.ValidateField("password", input.Password, true, nil); err != nil {
+	// 	messages.Details["password"] = err.Error()
+	// }
+	// if err := utils.ValidateField("", input.RePassword, true, nil); err != nil {
+	// 	messages.Details["rePassword"] = "please confirm password"
+	// } else if input.Password != input.RePassword {
+	// 	messages.Details["rePassword"] = "those password do not match"
+	// }
+	//
+	// w.Header().Set("Content-Type", "application/json")
+	// if len(messages.Details) != 0 {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	if err := json.NewEncoder(w).Encode(messages); err != nil {
+	// 		log.Panic(err)
+	// 		return
+	// 	}
+	// 	return
+	// }
 
 	// register user
-	stream, err := h.userService.CreateUser(context.Background(), &user.CreateUserReq{
-		Name:     input.Name,
-		Email:    input.Email,
-		Password: input.Email,
+	_, err = h.authService.SignUp(context.Background(), &auth.SignUpReq{
+		Name:        input.Name,
+		Email:       input.Email,
+		Password:    input.Password,
+		RePasssword: input.RePassword,
 	})
+
+	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		MustSendError(err, w)
-	}
-	for {
-		req, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			code := status.Code(err)
-			switch code {
-			case codes.InvalidArgument:
-				w.WriteHeader(http.StatusBadRequest)
-			case codes.AlreadyExists:
-				w.WriteHeader(http.StatusConflict)
-			case codes.Internal:
-				http.Error(w, "service unavailable", http.StatusServiceUnavailable)
-				return
-			default:
-				MustSendError(err, w)
-				return
-			}
-			if err := json.NewEncoder(w).Encode(messages); err != nil {
-				log.Panic(err)
-			}
+		code := status.Code(err)
+		s, _ := status.FromError(err)
+
+		switch code {
+		case codes.InvalidArgument:
+			w.WriteHeader(http.StatusBadRequest)
+		case codes.AlreadyExists:
+			w.WriteHeader(http.StatusConflict)
+		case codes.Unavailable:
+			w.WriteHeader(http.StatusServiceUnavailable)
+			return
+		default:
+			MustSendError(err, w)
 			return
 		}
 
-		messages.Details = req.GetErrors()
+		_, err = w.Write([]byte(s.Message()))
+		if err != nil {
+			MustSendError(err, w)
+		}
+		return
 	}
 
 	log.Println(w.Write([]byte("ok")))
