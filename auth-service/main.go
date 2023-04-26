@@ -75,7 +75,7 @@ func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*a
 	}
 
 	// VerifyUser
-	data, err := s.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
+	user, err := s.userService.VerifyUser(context.Background(), &user.VerifyUserReq{
 		NameOrEmail: nameOrEmail,
 		Passord:     password,
 	})
@@ -95,19 +95,19 @@ func (s *AuthServiceServer) SignIn(ctx context.Context, req *auth.SignInReq) (*a
 	}
 
 	// genrate token
-	token, err := s.service.NewToken(data.Id, data.IsAdmin, TokenLifetime)
+	token, err := s.service.NewToken(user.Id, user.IsAdmin, TokenLifetime)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("auth service err while creating new auth token: %v", err))
 	}
 
 	return &auth.SignInRes{User: &auth.User{
-		Id:       data.Id,
-		Name:     data.Name,
-		Email:    data.Email,
-		ImageUrl: data.ImageUrl,
-		CreateAt: data.CreateAt,
-		IsAdmin:  data.IsAdmin,
-	}, Token: token}, nil
+		Id:       user.Id,
+		Name:     user.Name,
+		Email:    user.Email,
+		ImageUrl: user.ImageUrl,
+		CreateAt: user.CreateAt,
+		IsAdmin:  user.IsAdmin,
+	}, Token: token.Token}, nil
 }
 
 func (s *AuthServiceServer) SignUp(ctx context.Context, req *auth.SignUpReq) (*auth.Empty, error) {
@@ -178,7 +178,22 @@ func (s *AuthServiceServer) Refresh(ctx context.Context, req *auth.RefreshReq) (
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "auth service error while refresh token %v: ", err)
 	}
-	return &auth.RefreshRes{Token: token}, nil
+
+	res, err := s.userService.GetUser(context.Background(), &user.GetUserReq{Id: token.UserId})
+	if err != nil {
+		return nil, err
+	}
+
+	user := res.GetUser()
+
+	return &auth.RefreshRes{User: &auth.User{
+		Id:       user.Id,
+		Name:     user.Name,
+		Email:    user.Email,
+		ImageUrl: user.ImageUrl,
+		CreateAt: user.CreateAt,
+		IsAdmin:  user.IsAdmin,
+	}, Token: token.Token}, nil
 }
 
 func (s *AuthServiceServer) SignOut(ctx context.Context, req *auth.SignOutReq) (*auth.Empty, error) {

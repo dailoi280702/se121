@@ -24,25 +24,23 @@ import (
 
 const (
 	TokenLifetime = 24 * 5 * time.Hour
-	UsernameRegex = "^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$"
-	EmailRegex    = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 )
 
 var cookieAuthToken = flag.String("cookieAuthToken", "authToken", "name of auth token for cookie")
 
 type AuthHandler struct {
-	userStore   models.UserStore
-	tokenStore  models.TokenStore
-	userService user.UserServiceClient
+	userStore  models.UserStore
+	tokenStore models.TokenStore
+	// userService user.UserServiceClient
 	authService auth.AuthServiceClient
 }
 
 // :TODO serialize password
 func NewAuthHandler(redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient, authService auth.AuthServiceClient) *AuthHandler {
 	return &AuthHandler{
-		userStore:   db_store.NewDbUserStore(db),
-		tokenStore:  cached_store.NewRedisAuthTokenStore(redisClient),
-		userService: userService,
+		userStore:  db_store.NewDbUserStore(db),
+		tokenStore: cached_store.NewRedisAuthTokenStore(redisClient),
+		// userService: userService,
 		authService: authService,
 	}
 }
@@ -240,7 +238,9 @@ func (h AuthHandler) signOut(w http.ResponseWriter, r *http.Request) {
 	c.Path = "/"
 	http.SetCookie(w, c)
 
-	log.Panic(w.Write([]byte("signed out")))
+	if _, err := w.Write([]byte("signed out")); err != nil {
+		MustSendError(err, w)
+	}
 }
 
 func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
@@ -253,33 +253,47 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// refresh token
-	token, err := h.tokenStore.Refesh(c.Value, TokenLifetime)
-	if err != nil {
-		MustSendError(err, w)
-		return
-	}
+	// token, err := h.tokenStore.Refesh(c.Value, TokenLifetime)
+	// if err != nil {
+	// 	MustSendError(err, w)
+	// 	return
+	// }
 
 	// get and send user data
 	// :TODO handle user that was deleted
-	tokenData, err := h.tokenStore.GetExistingToken(token)
-	if err != nil {
-		code := status.Code(err)
-		switch code {
-		case codes.Unavailable:
-			http.Error(w, "auth service unavailable", http.StatusServiceUnavailable)
-		default:
-			MustSendError(err, w)
-		}
-		return
-	}
+	// tokenData, err := h.tokenStore.GetExistingToken(token)
+	// if err != nil {
+	// 	code := status.Code(err)
+	// 	switch code {
+	// 	case codes.Unavailable:
+	// 		http.Error(w, "auth service unavailable", http.StatusServiceUnavailable)
+	// 	default:
+	// 		MustSendError(err, w)
+	// 	}
+	// 	return
+	// }
+	//
+	// res, err := h.userService.GetUser(context.Background(), &user.GetUserReq{Id: tokenData.UserId})
+	// if err != nil {
+	// 	code := status.Code(err)
+	// 	switch code {
+	// 	case codes.NotFound:
+	// 		http.Error(w, "no user found", http.StatusNoContent)
+	// 	case codes.Internal:
+	// 		http.Error(w, "service unabailable", http.StatusServiceUnavailable)
+	// 	default:
+	// 		MustSendError(err, w)
+	// 	}
+	// 	return
+	// }
 
-	res, err := h.userService.GetUser(context.Background(), &user.GetUserReq{Id: tokenData.UserId})
+	res, err := h.authService.Refresh(context.Background(), &auth.RefreshReq{Token: c.Value})
 	if err != nil {
 		code := status.Code(err)
 		switch code {
 		case codes.NotFound:
 			http.Error(w, "no user found", http.StatusNoContent)
-		case codes.Internal:
+		case codes.Unavailable:
 			http.Error(w, "service unabailable", http.StatusServiceUnavailable)
 		default:
 			MustSendError(err, w)
@@ -287,12 +301,12 @@ func (h AuthHandler) refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.Value = token
+	c.Value = res.GetToken()
 	c.Path = "/"
 	http.SetCookie(w, c)
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(res.User); err != nil {
+	if err := json.NewEncoder(w).Encode(res.GetUser()); err != nil {
 		log.Panic(err)
 	}
 }

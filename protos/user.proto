@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "github.com/dailoi280702/se121/use_service/user";
+option go_package = "github.com/dailoi280702/se121/user_service/user";
 
 package user;
 

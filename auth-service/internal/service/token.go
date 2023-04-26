@@ -31,7 +31,7 @@ func (a *AuthToken) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, a)
 }
 
-func (s *Service) NewToken(userId string, isAdmin bool, lifetime time.Duration) (string, error) {
+func (s *Service) NewToken(userId string, isAdmin bool, lifetime time.Duration) (*AuthToken, error) {
 	key := uuid.NewString()
 	token := &AuthToken{
 		Token:     key,
@@ -41,7 +41,7 @@ func (s *Service) NewToken(userId string, isAdmin bool, lifetime time.Duration) 
 		ExpiresAt: time.Now().Add(lifetime),
 	}
 	err := s.rdb.HSet(context.Background(), *existingTokens, key, token).Err()
-	return key, err
+	return token, err
 }
 
 func (s *Service) IsExisting(token string) (bool, error) {
@@ -89,14 +89,14 @@ func (s *Service) Remove(token string) error {
 	return s.rdb.HSet(ctx, *expiredTokens, token, tokenSruct).Err()
 }
 
-func (s *Service) Refesh(token string, lifetime time.Duration) (string, error) {
+func (s *Service) Refesh(token string, lifetime time.Duration) (*AuthToken, error) {
 	tokenSruct, err := getToken(s.rdb, *existingTokens, token)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	err = s.Remove(token)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	return s.NewToken(tokenSruct.UserId, tokenSruct.Admin, lifetime)
 }
