@@ -47,8 +47,8 @@ func (s *userServer) GetUser(c context.Context, req *user.GetUserReq) (*user.Get
 	return &user.GetUserRes{User: &user.User{
 		Id:       u.Id,
 		Name:     u.Name,
-		Email:    &u.Email,
-		ImageUrl: &u.ImageUrl,
+		Email:    u.Email,
+		ImageUrl: u.ImageUrl,
 		CreateAt: u.CreateAt.UnixMilli(),
 		IsAdmin:  u.IsAdmin,
 	}}, nil
@@ -68,15 +68,15 @@ func (s *userServer) VerifyUser(ctx context.Context, req *user.VerifyUserReq) (*
 		case errors.Is(err, service.ErrIncorrectNameEmailOrPassword):
 			return nil, status.Error(codes.NotFound, "user name, email or password is not correct")
 		default:
-			return nil, status.Error(codes.Internal, "user service error: cannot verify user")
+			return nil, status.Errorf(codes.Internal, "user service error while verifying user: %v", err)
 		}
 	}
 
 	return &user.User{
 		Id:       u.Id,
 		Name:     u.Name,
-		Email:    &u.Email,
-		ImageUrl: &u.ImageUrl,
+		Email:    u.Email,
+		ImageUrl: u.ImageUrl,
 		CreateAt: u.CreateAt.UnixMilli(),
 		IsAdmin:  u.IsAdmin,
 	}, nil
@@ -87,10 +87,11 @@ func (s *userServer) GetUsers(*user.GetUsersReq, user.UserService_GetUsersServer
 }
 
 func (s *userServer) CreateUser(req *user.CreateUserReq, stream user.UserService_CreateUserServer) error {
+	name, email, password := req.GetName(), req.GetEmail(), req.GetPassword()
 	err := s.service.AddUser(service.User{
-		Name:     req.GetName(),
-		Email:    req.GetEmail(),
-		Password: req.GetPassword(),
+		Name:     name,
+		Email:    &email,
+		Password: password,
 	})
 	if err != nil {
 		var validationErrors *service.ValidationErrors

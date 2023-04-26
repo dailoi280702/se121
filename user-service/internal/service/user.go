@@ -14,8 +14,8 @@ var (
 type User struct {
 	Id       string    `json:"id,omitempty"`
 	Name     string    `json:"name"`
-	Email    string    `json:"email,omitempty"`
-	ImageUrl string    `json:"imageUrl,omitempty"`
+	Email    *string   `json:"email,omitempty"`
+	ImageUrl *string   `json:"imageUrl,omitempty"`
 	CreateAt time.Time `json:"createAt,omitempty"`
 	IsAdmin  bool      `json:"isAdmin,omitempty"`
 	Password string    `json:"password,omitempty"`
@@ -41,7 +41,7 @@ func (s *Service) AddUser(user User) error {
 		errs.Messages["name"] = "Username already in used"
 	}
 
-	if user.Email != "" {
+	if user.Email != nil {
 		isEmailExisted, err := ExistInDB(s.DB, isEmailExistedSql, user.Email)
 		if err != nil {
 			return err
