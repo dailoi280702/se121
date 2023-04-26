@@ -3,7 +3,7 @@
 import { useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
-import { UserAtom } from '../providers/user-provider'
+import { User, UserAtom } from '../providers/user-provider'
 
 export const Input = ({
   name,
@@ -111,7 +111,10 @@ export default function SignInForm({ callbackUrl = '/' }: Props) {
       return
     }
 
-    const user = await response.json()
+    const user = (await response.json()) as User
+    if (user) {
+      user.createAt = new Date(user.createAt)
+    }
     setUser(user)
     router.push(callbackUrl)
   }

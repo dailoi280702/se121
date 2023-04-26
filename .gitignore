@@ -148,6 +148,7 @@ dmypy.json
 
 # Go workspace file
 go.work
+tmp/
 
 # Logs
 logs

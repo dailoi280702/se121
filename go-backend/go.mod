@@ -3,12 +3,14 @@ module github.com/dailoi280702/se121/go_backend
 go 1.20
 
 require (
+	github.com/containerd/containerd v1.6.1
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/google/uuid v1.3.0
 	github.com/lib/pq v1.10.7
 	github.com/redis/go-redis/v9 v9.0.3
+	go.opentelemetry.io/otel v1.3.0
 	google.golang.org/grpc v1.53.0
 	google.golang.org/protobuf v1.28.1
 )
