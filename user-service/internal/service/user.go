@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"log"
 	"time"
 )
 
@@ -54,7 +55,12 @@ func (s *Service) AddUser(user User) error {
 		return &errs
 	}
 
-	if err := s.DB.QueryRow(addUserSql, user.Name, user.Email, user.Password).Err(); err != nil {
+	hash, err := generateFromPassword(user.Password, s.params)
+	if err != nil {
+		log.Println("FUCKKKKKKKKKKKKKKKk", err)
+		return err
+	}
+	if err := s.DB.QueryRow(addUserSql, user.Name, user.Email, hash).Err(); err != nil {
 		return err
 	}
 	return nil
@@ -73,14 +79,18 @@ func (s *Service) GetUserByEmailOrName(name string, email string) (User, error) 
 }
 
 func (s *Service) VerifyUser(nameOrEmail string, password string) (*User, error) {
-	user, err := GetObjectFromDB[User](s.DB, verifyUserQuery, nameOrEmail, password)
+	user, err := GetObjectFromDB[User](s.DB, verifyUserQuery, nameOrEmail)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
 		return nil, ErrIncorrectNameEmailOrPassword
 	}
-	user.Password = ""
+
+	match, err := comparePasswordAndHash(password, user.Password)
+	if !match || err != nil {
+		return nil, ErrIncorrectNameEmailOrPassword
+	}
 	return user, nil
 }
 
@@ -98,7 +108,7 @@ const isEmailExistedSql = `
     `
 
 const verifyUserQuery = `
-    SELECT * FROM users WHERE (name = $1 OR email = $1) AND password = $2
+    SELECT * FROM users WHERE name = $1 OR email = $1
     `
 
 const getUserByIdQuery = `

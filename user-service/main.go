@@ -148,6 +148,6 @@ func main() {
 		log.Fatalf("failed to connect to db: %v", err)
 	}
 	defer db.Close()
-	user.RegisterUserServiceServer(grpcServer, newServer(&service.Service{DB: db}))
+	user.RegisterUserServiceServer(grpcServer, newServer(service.NewService(db)))
 	log.Fatalf("Error serving user service: %v", grpcServer.Serve(lis))
 }
