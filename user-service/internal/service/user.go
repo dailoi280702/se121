@@ -57,7 +57,6 @@ func (s *Service) AddUser(user User) error {
 
 	hash, err := generateFromPassword(user.Password, s.params)
 	if err != nil {
-		log.Println("FUCKKKKKKKKKKKKKKKk", err)
 		return err
 	}
 	if err := s.DB.QueryRow(addUserSql, user.Name, user.Email, hash).Err(); err != nil {
