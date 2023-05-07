@@ -39,6 +39,14 @@ services:
     volumes:
       - ./auth-service/:/app
 
+  car-service:
+    container_name: car-service
+    build: ./car-service/
+    networks:
+      - db
+    volumes:
+      - ./car-service/:/app
+
   python-backend:
     build: ./python-backend/
     container_name: python-backend
