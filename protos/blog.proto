@@ -5,11 +5,11 @@ package blog;
 option go_package = "github.com/dailoi280702/se121/blog-service/pkg/blog";
 
 message Blog {
-  int id = 1;
+  int32 id = 1;
   string title = 2;
   string body = 3;
   optional string image_url = 4;
-  int author = 5;
+  int32 author = 5;
   optional string tldr = 6;
   // timestamp converted to unix time (milisecond)
   int64 createdAt = 7;
@@ -17,20 +17,18 @@ message Blog {
 }
 
 message BlogOverViews {
-  int id = 1;
+  int32 id = 1;
   string title = 2;
   optional string image_url = 4;
-  int author = 5;
+  int32 author = 5;
   string tldr = 6;
   int64 createdAt = 7;
 }
 
 message Tag {
-  int id = 1;
+  int32 id = 1;
   string name = 2;
   optional string description = 3;
-  int64 createdAt = 4;
-  optional int64 updatedAt = 5;
 }
 
 service BlogService {
@@ -42,6 +40,30 @@ service BlogService {
   rpc GetNumberOfBlogs(Empty) returns (GetNumberOfBlogsRes);
 
   // :TODO add method for tags
+  rpc CreateTag(CreateTagReq) returns (Empty);
+  rpc UpdateTag(UpdateTagReq) returns (Empty);
+  rpc DeleteTag(DeleteTagReq) returns (Empty);
+  rpc GetTag(GetTagReq) returns (Tag);
+  rpc GetAllTag(Empty) returns (stream Tag);
+}
+
+message GetTagReq {
+  int32 id = 1;
+}
+
+message DeleteTagReq {
+  int32 id = 1;
+}
+
+message UpdateTagReq {
+  int32 id = 1;
+  optional string name = 2;
+  optional string description = 3;
+}
+
+message CreateTagReq {
+  string name = 1;
+  optional string description = 2;
 }
 
 message Empty {}
@@ -50,21 +72,21 @@ message CreateBlogReq {
   string title = 1;
   string body = 2;
   optional string image_url = 3;
-  int author = 4;
+  int32 author = 4;
   optional string tldr = 5;
   optional int64 createdAt = 6;
 }
 
 message GetBlogReq {
-  int id = 1;
+  int32 id = 1;
 }
 
 message DeleteBlogReq {
-  int id = 1;
+  int32 id = 1;
 }
 
 message UpdateBlogReq {
-  int id = 1;
+  int32 id = 1;
   optional string title = 2;
   optional string body = 3;
   optional string image_url = 4;
@@ -80,5 +102,5 @@ message SearchForBlogsReq {
 }
 
 message GetNumberOfBlogsRes {
-  int GetNumberOfBlogs = 1;
+  int32 GetNumberOfBlogs = 1;
 }
