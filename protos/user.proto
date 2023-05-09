@@ -1,0 +1,63 @@
+syntax = "proto3";
+option go_package = "github.com/dailoi280702/se121/user_service/user";
+
+package user;
+
+service UserService {
+    rpc GetUser(GetUserReq) returns (GetUserRes);
+    rpc VerifyUser(VerifyUserReq) returns (User);
+    rpc GetUsers(GetUsersReq) returns (stream User);
+    rpc CreateUser(CreateUserReq) returns (stream CreateUserRes);
+    rpc UpdateUser(User) returns (UpdateUserRes);
+}
+
+message Error {
+    int32 code = 1;
+    string detail = 2;
+}
+
+message User {
+    string id = 1;
+    string name = 2;
+    optional string email = 3;
+    optional string imageUrl = 4;
+    int64 createAt = 5;
+    bool isAdmin = 6;
+    optional string password = 7;
+}
+
+message GetUserReq {
+    string id = 1;
+}
+
+message GetUserRes {
+    optional User user = 1;
+    repeated Error errors = 2;
+}
+
+message GetUsersReq {
+    User value = 1;
+    optional User max = 2;
+    string field = 3;
+    int64 start = 4;
+    int64 end = 5;
+}
+
+message CreateUserReq {
+    string name = 1;
+    string email = 2;
+    string password = 3;
+}
+
+message CreateUserRes {
+    map<string, string> errors = 1;
+}
+
+message UpdateUserRes {
+    map<string, Error> errors = 1;
+}
+
+message VerifyUserReq {
+    string nameOrEmail = 1;
+    string passord = 2;
+}

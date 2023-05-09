@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/dailoi280702/se121/go_backend/api/v1/handlers"
+	"github.com/dailoi280702/se121/go_backend/internal/service/auth"
+	"github.com/dailoi280702/se121/go_backend/internal/service/user"
 	"github.com/dailoi280702/se121/go_backend/protos"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -13,7 +15,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client, db *sql.DB) *chi.Mux {
+func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient, authService auth.AuthServiceClient) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
@@ -38,7 +40,7 @@ func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client, d
 	})
 
 	router.Mount("/say-hello", handlers.NewHelloRouter(gprcHelloClient).Routes())
-	router.Mount("/auth", handlers.NewAuthHandler(redisClient, db).Routes())
+	router.Mount("/auth", handlers.NewAuthHandler(redisClient, db, authService).Routes())
 
 	return router
 }
