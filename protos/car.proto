@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package car;
+
+option go_package = "github.com/dailoi280702/se121/car-service/pkg/car";
+
+service CarService {
+  rpc GetCar(GetCarReq) returns (Car);
+  rpc CreateCar(CreateCarReq) returns (Empty);
+  rpc UpdateCar(UpdateCarReq) returns (Empty);
+  rpc DeleteCar(DeleteCarReq) returns (Empty);
+  rpc SearchForCar(SearchForCarReq) returns (stream Car);
+
+  rpc GetBrand(GetBrandReq) returns (Brand);
+  rpc CreateBrand(CreateBrandReq) returns (Empty);
+  rpc UpdateBrand(UpdateBrandReq) returns (Empty);
+  rpc SearchForBrand(SearchForBrandReq) returns (stream Brand);
+
+  rpc GetSeries(GetSeriesReq) returns (Series);
+  rpc CreateSeries(CreateSeriesReq) returns (Empty);
+  rpc UpdateSeries(UpdateSeriesReq) returns (Empty);
+  rpc SearchForSeries(SearchForSeriesReq) returns (stream Series);
+}
+
+message Car {
+  string id = 1;
+  optional Brand brand = 2;
+  optional Series series = 3;
+  string name = 4;
+  optional int32 year = 5;
+  optional int32 horse_power = 6;
+  optional int32 torque = 7;
+  optional Transmission transmission = 8;
+  optional FuelType fuelType = 9;
+  optional string imageUrl = 10;
+  optional string review = 11;
+}
+
+message Brand {
+  string id = 1;
+  string name = 2;
+  optional string countryOfOrigin = 3;
+  optional int32 foundedYear = 4;
+  optional string websiteUrl = 5;
+  optional string logoUrl = 6;
+}
+
+message Series {
+  string id = 1;
+  string name = 2;
+  Brand brand = 3;
+}
+
+message Transmission {
+  int32 id = 1;
+  string name = 2;
+  optional string description = 3;
+}
+
+message FuelType {
+  int32 id = 1;
+  string name = 2;
+  optional string description = 3;
+}
+
+message Empty {}
+
+message GetCarReq {
+  int32 id = 1;
+}
+
+message CreateCarReq {
+  optional int32 brandId = 1;
+  optional int32 seriesId = 2;
+  string name = 3;
+  optional int32 year = 4;
+  optional int32 horse_power = 5;
+  optional int32 torque = 6;
+  optional Transmission transmission = 7;
+  optional FuelType fuelType = 8;
+  optional string imageUrl = 9;
+  optional string review = 10;
+}
+
+message UpdateCarReq {
+  int32 id = 1;
+  optional int32 brandId = 2;
+  optional int32 seriesId = 3;
+  optional string name = 4;
+  optional int32 year = 5;
+  optional int32 horse_power = 6;
+  optional int32 torque = 7;
+  optional Transmission transmission = 8;
+  optional FuelType fuelType = 9;
+  optional string imageUrl = 10;
+  optional string review = 11;
+}
+
+message DeleteCarReq {
+  string id = 1;
+}
+
+message GetBrandReq {
+  int32 id = 1;
+}
+
+message CreateBrandReq {
+  string name = 1;
+  optional string countryOfOrigin = 2;
+  optional int32 foundedYear = 3;
+  optional string websiteUrl = 4;
+  optional string logoUrl = 5;
+}
+
+message UpdateBrandReq {
+  optional string id = 1;
+  optional string name = 2;
+  optional string countryOfOrigin = 3;
+  optional int32 foundedYear = 4;
+  optional string websiteUrl = 5;
+  optional string logoUrl = 6;
+}
+
+message GetSeriesReq {
+  int32 id = 1;
+}
+
+message CreateSeriesReq {
+  string name = 1;
+  int32 brandId = 2;
+}
+
+message UpdateSeriesReq {
+  string id = 1;
+  string name = 2;
+  int32 brandId = 3;
+}
+
+message SearchForCarReq {
+  string text = 1;
+  string orderby = 2;
+  int32 startAt = 3;
+  int32 limit = 4;
+}
+
+message SearchForBrandReq {
+  string text = 1;
+  string orderby = 2;
+  int32 startAt = 3;
+  int32 limit = 4;
+}
+
+message SearchForSeriesReq {
+  string text = 1;
+  string orderby = 2;
+  int32 startAt = 3;
+  int32 limit = 4;
+}
