@@ -47,6 +47,22 @@ services:
     volumes:
       - ./car-service/:/app
 
+  comment-service:
+    container_name: comment-service
+    build: ./comment-service/
+    networks:
+      - db
+    volumes:
+      - ./comment-service/:/app
+
+  blog-service:
+    container_name: blog-service
+    build: ./blog-service/
+    networks:
+      - db
+    volumes:
+      - ./blog-service/:/app
+
   python-backend:
     build: ./python-backend/
     container_name: python-backend
