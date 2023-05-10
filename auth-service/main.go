@@ -11,9 +11,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/dailoi280702/se121/auth_service/internal/service"
-	"github.com/dailoi280702/se121/auth_service/internal/service/auth"
-	"github.com/dailoi280702/se121/auth_service/internal/service/user"
+	"github.com/dailoi280702/se121/auth-service/internal/service"
+	"github.com/dailoi280702/se121/auth-service/internal/service/auth"
+	"github.com/dailoi280702/se121/auth-service/internal/service/user"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

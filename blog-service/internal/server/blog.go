@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/dailoi280702/se121/blog_service/pkg/blog"
+	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

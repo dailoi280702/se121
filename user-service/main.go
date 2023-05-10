@@ -11,8 +11,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/dailoi280702/se121/user_service/internal/service"
-	"github.com/dailoi280702/se121/user_service/userpb"
+	"github.com/dailoi280702/se121/user-service/internal/service"
+	"github.com/dailoi280702/se121/user-service/userpb"
 	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

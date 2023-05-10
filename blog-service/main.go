@@ -5,8 +5,8 @@ import (
 	"log"
 	"net"
 
-	"github.com/dailoi280702/se121/blog_service/internal/server"
-	"github.com/dailoi280702/se121/blog_service/pkg/blog"
+	"github.com/dailoi280702/se121/blog-service/internal/server"
+	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"google.golang.org/grpc"
 )
 

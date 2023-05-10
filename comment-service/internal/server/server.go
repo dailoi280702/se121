@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/dailoi280702/se121/comment_service/pkg/comment"
+	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
