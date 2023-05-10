@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/dailoi280702/se121/car_service/internal/server"
-	"github.com/dailoi280702/se121/car_service/pkg/car"
+	"github.com/dailoi280702/se121/car-service/internal/server"
+	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"google.golang.org/grpc"
 )
 

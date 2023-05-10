@@ -8,6 +8,7 @@ package car
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -252,45 +253,56 @@ type CarServiceServer interface {
 }
 
 // UnimplementedCarServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedCarServiceServer struct {
-}
+type UnimplementedCarServiceServer struct{}
 
 func (UnimplementedCarServiceServer) GetCar(context.Context, *GetCarReq) (*Car, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) CreateCar(context.Context, *CreateCarReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) UpdateCar(context.Context, *UpdateCarReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) DeleteCar(context.Context, *DeleteCarReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) SearchForCar(*SearchForCarReq, CarService_SearchForCarServer) error {
 	return status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) GetBrand(context.Context, *GetBrandReq) (*Brand, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBrand not implemented")
 }
+
 func (UnimplementedCarServiceServer) CreateBrand(context.Context, *CreateBrandReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBrand not implemented")
 }
+
 func (UnimplementedCarServiceServer) UpdateBrand(context.Context, *UpdateBrandReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
 }
+
 func (UnimplementedCarServiceServer) SearchForBrand(*SearchForBrandReq, CarService_SearchForBrandServer) error {
 	return status.Errorf(codes.Unimplemented, "method SearchForBrand not implemented")
 }
+
 func (UnimplementedCarServiceServer) GetSeries(context.Context, *GetSeriesReq) (*Series, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSeries not implemented")
 }
+
 func (UnimplementedCarServiceServer) CreateSeries(context.Context, *CreateSeriesReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSeries not implemented")
 }
+
 func (UnimplementedCarServiceServer) UpdateSeries(context.Context, *UpdateSeriesReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeries not implemented")
 }
+
 func (UnimplementedCarServiceServer) SearchForSeries(*SearchForSeriesReq, CarService_SearchForSeriesServer) error {
 	return status.Errorf(codes.Unimplemented, "method SearchForSeries not implemented")
 }
