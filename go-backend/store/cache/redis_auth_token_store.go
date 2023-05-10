@@ -6,7 +6,7 @@ import (
 	"flag"
 	"time"
 
-	"github.com/dailoi280702/se121/go_backend/models"
+	"github.com/dailoi280702/se121/go-backend/models"
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )

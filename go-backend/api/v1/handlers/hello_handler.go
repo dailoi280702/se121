@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dailoi280702/se121/go_backend/protos"
+	"github.com/dailoi280702/se121/go-backend/protos"
 	"github.com/go-chi/chi/v5"
 )
 
