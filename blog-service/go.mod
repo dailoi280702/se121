@@ -1,4 +1,4 @@
-module github.com/dailoi280702/se121/blog_service
+module github.com/dailoi280702/se121/blog-service
 
 go 1.20
 
