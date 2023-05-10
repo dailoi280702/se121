@@ -9,7 +9,7 @@ COPY go.mod go.sum ./
 RUN go mod download && go mod verify
 
 COPY . .
-RUN go build -v -o "go-backend"
+RUN go build -v -o "api-gateway"
 
 # EXPOSE 8000
 

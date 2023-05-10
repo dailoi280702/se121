@@ -1,4 +1,4 @@
-module github.com/dailoi280702/se121/go-backend
+module github.com/dailoi280702/se121/api-gateway
 
 go 1.20
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/dailoi280702/se121/go-backend/models"
+	"github.com/dailoi280702/se121/api-gateway/models"
 	"github.com/google/uuid"
 )
 

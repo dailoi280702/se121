@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  go-backend:
-    container_name: go-backend
-    build: ./go-backend/
+  api-gateway:
+    container_name: api-gateway
+    build: ./api-gateway/
     environment:
       DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
@@ -13,7 +13,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./go-backend/:/app
+      - ./api-gateway/:/app
     depends_on:
       - redis
       - db

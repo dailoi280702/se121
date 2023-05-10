@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/dailoi280702/se121/go-backend/models"
+	"github.com/dailoi280702/se121/api-gateway/models"
 )
 
 func MustBeAuthenticated(next http.HandlerFunc, tokenStore models.TokenStore) http.HandlerFunc {
