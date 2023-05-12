@@ -59,8 +59,20 @@ type signInForm struct {
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	// get input
-	input := signInForm{}
-	err := utils.DecodeJSONBody(w, r, &input)
+	// input := signInForm{}
+	// err := utils.DecodeJSONBody(w, r, &input)
+	// if err != nil {
+	// 	var mr *utils.MalformedRequest
+	// 	if errors.As(err, &mr) {
+	// 		http.Error(w, mr.Msg, mr.Status)
+	// 	} else {
+	// 		MustSendError(err, w)
+	// 	}
+	// 	return
+	// }
+
+	var req auth.SignInReq
+	err := utils.DecodeJSONBody(w, r, &req)
 	if err != nil {
 		var mr *utils.MalformedRequest
 		if errors.As(err, &mr) {
@@ -70,34 +82,42 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	req, err := h.authService.SignIn(context.Background(), &auth.SignInReq{
-		NameOrEmail: input.NameOrEmail,
-		Password:    input.Password,
-	})
+	res, err := h.authService.SignIn(context.Background(), &req)
+	// res, err := h.authService.SignIn(context.Background(), &auth.SignInReq{
+	// 	NameOrEmail: input.NameOrEmail,
+	// 	Password:    input.Password,
+	// })
 	if err != nil {
-		code := status.Code(err)
-		s, _ := status.FromError(err)
-		switch code {
-		case codes.InvalidArgument:
-			w.WriteHeader(http.StatusBadRequest)
-		case codes.NotFound:
-			w.WriteHeader(http.StatusUnauthorized)
-		case codes.Unavailable:
-			w.WriteHeader(http.StatusServiceUnavailable)
-			return
-		default:
-			MustSendError(err, w)
-			return
-		}
-		_, err = w.Write([]byte(s.Message()))
-		if err != nil {
-			MustSendError(err, w)
-		}
+		SendJsonFromGrpcError(w, err, &map[codes.Code]func(){
+			codes.NotFound: func() {
+				w.WriteHeader(http.StatusUnauthorized)
+			},
+		})
 		return
 	}
-
-	token := req.GetToken()
+	// if err != nil {
+	// 	code := status.Code(err)
+	// 	s, _ := status.FromError(err)
+	// 	switch code {
+	// 	case codes.InvalidArgument:
+	// 		w.WriteHeader(http.StatusBadRequest)
+	// 	case codes.NotFound:
+	// 		w.WriteHeader(http.StatusUnauthorized)
+	// 	case codes.Unavailable:
+	// 		w.WriteHeader(http.StatusServiceUnavailable)
+	// 		return
+	// 	default:
+	// 		MustSendError(err, w)
+	// 		return
+	// 	}
+	// 	_, err = w.Write([]byte(s.Message()))
+	// 	if err != nil {
+	// 		MustSendError(err, w)
+	// 	}
+	// 	return
+	// }
+	//
+	token := res.GetToken()
 	c := http.Cookie{
 		Name:     *cookieAuthToken,
 		Value:    token,
@@ -109,7 +129,7 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, &c)
 
-	user := req.GetUser()
+	user := res.GetUser()
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		MustSendError(err, w)
 		return
@@ -136,40 +156,6 @@ func (h AuthHandler) signUp(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	// messages := struct {
-	// 	Messages []string          `json:"messages"`
-	// 	Details  map[string]string `json:"details"`
-	// }{
-	// 	Messages: []string{},
-	// 	Details:  map[string]string{},
-	// }
-
-	// validate input
-	// if err := utils.ValidateField("name", input.Name, true, regexp.MustCompile(UsernameRegex)); err != nil {
-	// 	messages.Details["name"] = err.Error()
-	// }
-	// if err := utils.ValidateField("email", input.Email, false, regexp.MustCompile(EmailRegex)); err != nil {
-	// 	messages.Details["email"] = err.Error()
-	// }
-	// if err := utils.ValidateField("password", input.Password, true, nil); err != nil {
-	// 	messages.Details["password"] = err.Error()
-	// }
-	// if err := utils.ValidateField("", input.RePassword, true, nil); err != nil {
-	// 	messages.Details["rePassword"] = "please confirm password"
-	// } else if input.Password != input.RePassword {
-	// 	messages.Details["rePassword"] = "those password do not match"
-	// }
-	//
-	// w.Header().Set("Content-Type", "application/json")
-	// if len(messages.Details) != 0 {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	if err := json.NewEncoder(w).Encode(messages); err != nil {
-	// 		log.Panic(err)
-	// 		return
-	// 	}
-	// 	return
-	// }
 
 	// register user
 	_, err = h.authService.SignUp(context.Background(), &auth.SignUpReq{
