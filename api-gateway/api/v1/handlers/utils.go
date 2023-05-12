@@ -49,6 +49,7 @@ type convertOpt struct {
 	callback func() error
 	after    *func()
 	actions  map[codes.Code]func()
+	reqData  interface{}
 }
 
 type convertOptFunc func(*convertOpt)
@@ -59,6 +60,7 @@ func defaultConvertOpt(callback func() error) *convertOpt {
 		callback: callback,
 		after:    nil,
 		actions:  map[codes.Code]func(){},
+		reqData:  nil,
 	}
 }
 
@@ -80,29 +82,37 @@ func convertWithCustomCodes(actions map[codes.Code]func()) convertOptFunc {
 	}
 }
 
-func convertJsonApiToGrpc(w http.ResponseWriter, r *http.Request, req interface{}, res interface{}, callback func() error, opts ...convertOptFunc) {
+func convertWithJsonReqData(data interface{}) convertOptFunc {
+	return func(opt *convertOpt) {
+		opt.reqData = data
+	}
+}
+
+func convertJsonApiToGrpc(w http.ResponseWriter, r *http.Request, callback func() error, opts ...convertOptFunc) {
 	opt := defaultConvertOpt(callback)
 	for _, fn := range opts {
 		fn(opt)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	err := utils.DecodeJSONBody(w, r, req)
-	if err != nil {
-		var mr *utils.MalformedRequest
-		if errors.As(err, &mr) {
-			http.Error(w, mr.Msg, mr.Status)
-		} else {
-			MustSendError(err, w)
+	if opt.reqData != nil {
+		err := utils.DecodeJSONBody(w, r, opt.reqData)
+		if err != nil {
+			var mr *utils.MalformedRequest
+			if errors.As(err, &mr) {
+				http.Error(w, mr.Msg, mr.Status)
+			} else {
+				MustSendError(err, w)
+			}
+			return
 		}
-		return
 	}
 
 	if opt.before != nil {
 		(*opt.before)()
 	}
 
-	err = callback()
+	err := callback()
 	if err != nil {
 		SendJsonFromGrpcError(w, err, opt.actions)
 		return
