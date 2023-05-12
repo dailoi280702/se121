@@ -50,17 +50,51 @@ func (h AuthHandler) Routes() chi.Router {
 	return router
 }
 
-type signInForm struct {
-	NameOrEmail string `json:"nameOrEmail"`
-	Password    string `json:"password"`
-}
+// type signInForm struct {
+// 	NameOrEmail string `json:"nameOrEmail"`
+// 	Password    string `json:"password"`
+// }
 
-// :TODO handle already authenticated request
 func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	// get input
-	// input := signInForm{}
-	// err := utils.DecodeJSONBody(w, r, &input)
+	var req auth.SignInReq
+	var res *auth.SignInRes
+
+	convertJsonApiToGrpc(
+		w, r, &req, res,
+		func() error {
+			var err error
+			res, err = h.authService.SignIn(context.Background(), &req)
+			return err
+		},
+		convertWithPostFunc(func() {
+			token := res.GetToken()
+			c := http.Cookie{
+				Name:     *cookieAuthToken,
+				Value:    token,
+				Path:     "/",
+				HttpOnly: true,
+				SameSite: http.SameSiteNoneMode,
+				Secure:   true,
+				Expires:  time.Now().Add(TokenLifetime),
+			}
+			http.SetCookie(w, &c)
+
+			user := res.GetUser()
+			if err := json.NewEncoder(w).Encode(user); err != nil {
+				MustSendError(err, w)
+				return
+			}
+		}),
+		convertWithCustomCodes(map[codes.Code]func(){
+			codes.NotFound: func() {
+				w.WriteHeader(http.StatusUnauthorized)
+			},
+		}))
+
+	// w.Header().Set("Content-Type", "application/json")
+	//
+	// var req auth.SignInReq
+	// err := utils.DecodeJSONBody(w, r, &req)
 	// if err != nil {
 	// 	var mr *utils.MalformedRequest
 	// 	if errors.As(err, &mr) {
@@ -70,70 +104,32 @@ func (h AuthHandler) signIn(w http.ResponseWriter, r *http.Request) {
 	// 	}
 	// 	return
 	// }
-
-	var req auth.SignInReq
-	err := utils.DecodeJSONBody(w, r, &req)
-	if err != nil {
-		var mr *utils.MalformedRequest
-		if errors.As(err, &mr) {
-			http.Error(w, mr.Msg, mr.Status)
-		} else {
-			MustSendError(err, w)
-		}
-		return
-	}
-	res, err := h.authService.SignIn(context.Background(), &req)
-	// res, err := h.authService.SignIn(context.Background(), &auth.SignInReq{
-	// 	NameOrEmail: input.NameOrEmail,
-	// 	Password:    input.Password,
-	// })
-	if err != nil {
-		SendJsonFromGrpcError(w, err, &map[codes.Code]func(){
-			codes.NotFound: func() {
-				w.WriteHeader(http.StatusUnauthorized)
-			},
-		})
-		return
-	}
+	// res, err := h.authService.SignIn(context.Background(), &req)
 	// if err != nil {
-	// 	code := status.Code(err)
-	// 	s, _ := status.FromError(err)
-	// 	switch code {
-	// 	case codes.InvalidArgument:
-	// 		w.WriteHeader(http.StatusBadRequest)
-	// 	case codes.NotFound:
-	// 		w.WriteHeader(http.StatusUnauthorized)
-	// 	case codes.Unavailable:
-	// 		w.WriteHeader(http.StatusServiceUnavailable)
-	// 		return
-	// 	default:
-	// 		MustSendError(err, w)
-	// 		return
-	// 	}
-	// 	_, err = w.Write([]byte(s.Message()))
-	// 	if err != nil {
-	// 		MustSendError(err, w)
-	// 	}
+	// 	SendJsonFromGrpcError(w, err, &map[codes.Code]func(){
+	// 		codes.NotFound: func() {
+	// 			w.WriteHeader(http.StatusUnauthorized)
+	// 		},
+	// 	})
 	// 	return
 	// }
+	// token := res.GetToken()
+	// c := http.Cookie{
+	// 	Name:     *cookieAuthToken,
+	// 	Value:    token,
+	// 	Path:     "/",
+	// 	HttpOnly: true,
+	// 	SameSite: http.SameSiteNoneMode,
+	// 	Secure:   true,
+	// 	Expires:  time.Now().Add(TokenLifetime),
+	// }
+	// http.SetCookie(w, &c)
 	//
-	token := res.GetToken()
-	c := http.Cookie{
-		Name:     *cookieAuthToken,
-		Value:    token,
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
-		Secure:   true,
-		Expires:  time.Now().Add(TokenLifetime),
-	}
-	http.SetCookie(w, &c)
-
-	user := res.GetUser()
-	if err := json.NewEncoder(w).Encode(user); err != nil {
-		MustSendError(err, w)
-		return
-	}
+	// user := res.GetUser()
+	// if err := json.NewEncoder(w).Encode(user); err != nil {
+	// 	MustSendError(err, w)
+	// 	return
+	// }
 }
 
 type signUpForm struct {
