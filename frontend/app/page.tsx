@@ -18,7 +18,7 @@ export default async function Home() {
     <>
       {/* <div className="text-center bg-slate-800 h-screen text-gray-200"> */}
       <div>
-        New project, yayyy!
+        dangkhoa
         <div>{helloString}</div>
       </div>
     </>

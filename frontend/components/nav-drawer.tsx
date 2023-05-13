@@ -1,5 +1,7 @@
 'use client'
 
+import { ChangeEvent, FormEvent, HTMLInputTypeAttribute, useState } from 'react'
+
 import { atom, useAtom } from 'jotai'
 import { Logo } from '@/components/Header'
 import useCloseShade from '@/components/hooks/use-close-shade'
@@ -17,8 +19,36 @@ const DrawerHeader = ({ onClose }: { onClose: () => void }) => {
   )
 }
 
+export const NavMenu = ({ label }: { label?: string }) => {
+  return (
+    <div className="w-full space-y-2 min-h-min">
+      <nav className="flex flex-col w-full">
+        <a
+          href="#"
+          className="px-6 py-3 mb-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-200"
+        >
+          {label ? label : 'required*'}
+        </a>
+        {/* <a
+          href="#"
+          className="px-6 py-3 mb-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-200"
+        >
+          {label ? label : 'required*'}
+        </a> */}
+      </nav>
+    </div>
+  )
+}
+
 const DrawerBody = () => {
-  return <div>nav body</div>
+  return (
+    <div className="flex flex-col h-screen">
+      <NavMenu label="Home" />
+      <NavMenu label="Blog" />
+      <NavMenu label="Car" />
+      <NavMenu label="Brand" />
+    </div>
+  )
 }
 
 export default function NavDrawer() {
