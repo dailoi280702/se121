@@ -18,20 +18,25 @@ func NewCarHandler(carService car.CarServiceClient) *CarHandler {
 	}
 }
 
-// get /
-// put /
-// post /
-// delete /
-// get / brand /
-// get /
-
-func (h *CarHandler) Routes() chi.Router {
+func NewCarRoutes(carService car.CarServiceClient) chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		handleGetCarMetaData(w, r, carService)
 	})
 
 	return r
+}
+
+func handleGetCarMetaData(w http.ResponseWriter, r *http.Request, carService car.CarServiceClient) {
+	var res *car.GetCarMetadataRes
+	convertJsonApiToGrpc(w, r, func() error {
+		var err error
+		res, err = carService.GetCarMetadata(context.Background(), &car.Empty{})
+		return err
+	}, convertWithPostFunc(func() {
+		SendJson(w, res)
+	}))
 }
 
 func handleGetCar(w http.ResponseWriter, r *http.Request, carService car.CarServiceClient) {

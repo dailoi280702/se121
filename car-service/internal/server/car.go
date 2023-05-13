@@ -45,10 +45,11 @@ func (s *carSerivceServer) GetCarMetadata(context.Context, *car.Empty) (*car.Get
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "car service err: %v", err)
 	}
-	return &car.GetCarMetadataRes{
+	res := car.GetCarMetadataRes{
 		Brands:       brands,
 		Series:       series,
 		FuelType:     fuelTypes,
 		Transmission: transmissions,
-	}, nil
+	}
+	return &res, nil
 }

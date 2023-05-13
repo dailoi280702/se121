@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var serverAdress = flag.String("server address", "[::]:5050", "server address of car serivce")
+var serverAdress = flag.String("server address", "[::]:50051", "server address of car serivce")
 
 func serveGrpcServer(db *sql.DB) {
 	lis, err := net.Listen("tcp", *serverAdress)

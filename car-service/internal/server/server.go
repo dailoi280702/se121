@@ -20,7 +20,7 @@ func NewServer(db *sql.DB) *carSerivceServer {
 func getAllBrandFromDb(db *sql.DB) ([]*car.Brand, error) {
 	brands := []*car.Brand{}
 	rows, err := db.Query(`
-        select id, name, country_of_origin, founded_year, website_ur, logo_url
+        select id, name, country_of_origin, founded_year, website_url, logo_url
         from car_brands
         `)
 	if err != nil {

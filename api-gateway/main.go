@@ -13,6 +13,7 @@ import (
 	"github.com/dailoi280702/se121/api-gateway/internal/service/auth"
 	"github.com/dailoi280702/se121/api-gateway/internal/service/user"
 	"github.com/dailoi280702/se121/api-gateway/protos"
+	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -27,6 +28,7 @@ var (
 	addr            = flag.String("addr", "python-backend:50051", "the address to connect to")
 	userServicePort = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
 	authServicePort = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
+	carServicePort  = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
 	redisAddr       = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
@@ -48,6 +50,15 @@ func NewAuthService(ctx context.Context) (*grpc.ClientConn, auth.AuthServiceClie
 	return conn, auth.NewAuthServiceClient(conn)
 }
 
+func NewCarService(ctx context.Context) (*grpc.ClientConn, car.CarServiceClient) {
+	conn, err := grpc.DialContext(ctx, *carServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect auth service: %v", err)
+	}
+
+	return conn, car.NewCarServiceClient(conn)
+}
+
 func main() {
 	// grpc
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -59,8 +70,8 @@ func main() {
 	ctx := context.Background()
 
 	userServiceConn, userService := NewUserService(ctx)
-
 	authServiceConn, authService := NewAuthService(ctx)
+	carServiceConn, carService := NewCarService(ctx)
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -79,6 +90,7 @@ func main() {
 		conn.Close()
 		userServiceConn.Close()
 		authServiceConn.Close()
+		carServiceConn.Close()
 	}()
 
 	// database migratetion
@@ -106,6 +118,6 @@ func main() {
 
 	// routes
 	router := chi.NewRouter()
-	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db, userService, authService))
+	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db, userService, authService, carService))
 	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }
