@@ -24,6 +24,10 @@ func (s *carSerivceServer) DeleteCar(context.Context, *car.DeleteCarReq) (*car.E
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteCar not implemented")
 }
 
-func (s *carSerivceServer) SearchForCar(*car.SearchForCarReq, car.CarService_SearchForCarServer) error {
-	return status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
+func (s *carSerivceServer) SearchForCar(context.Context, *car.SearchForCarReq) (*car.SearchForCarRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
+}
+
+func (s *carSerivceServer) GetCarMetadata(context.Context, *car.Empty) (*car.GetCarMetadataRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCarMetadata not implemented")
 }

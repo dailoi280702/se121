@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -10,6 +11,13 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+func SendJson(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		log.Panic(err)
+	}
+}
 
 func MustSendError(err error, w http.ResponseWriter) {
 	log.Printf("\nBitch, you got an err: %s\n", err.Error())

@@ -20,6 +20,6 @@ func (s *carSerivceServer) UpdateBrand(context.Context, *car.UpdateBrandReq) (*c
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
 }
 
-func (s *carSerivceServer) SearchForBrand(*car.SearchForBrandReq, car.CarService_SearchForBrandServer) error {
-	return status.Errorf(codes.Unimplemented, "method SearchForBrand not implemented")
+func (s *carSerivceServer) SearchForBrand(context.Context, *car.SearchForBrandReq) (*car.SearchForBrandRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
 }

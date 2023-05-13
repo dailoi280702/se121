@@ -9,17 +9,19 @@ service CarService {
   rpc CreateCar(CreateCarReq) returns (Empty);
   rpc UpdateCar(UpdateCarReq) returns (Empty);
   rpc DeleteCar(DeleteCarReq) returns (Empty);
-  rpc SearchForCar(SearchForCarReq) returns (stream Car);
+  rpc SearchForCar(SearchForCarReq) returns (SearchForCarRes);
 
   rpc GetBrand(GetBrandReq) returns (Brand);
   rpc CreateBrand(CreateBrandReq) returns (Empty);
   rpc UpdateBrand(UpdateBrandReq) returns (Empty);
-  rpc SearchForBrand(SearchForBrandReq) returns (stream Brand);
+  rpc SearchForBrand(SearchForBrandReq) returns (SearchForBrandRes);
 
   rpc GetSeries(GetSeriesReq) returns (Series);
   rpc CreateSeries(CreateSeriesReq) returns (Empty);
   rpc UpdateSeries(UpdateSeriesReq) returns (Empty);
-  rpc SearchForSeries(SearchForSeriesReq) returns (stream Series);
+  rpc SearchForSeries(SearchForSeriesReq) returns (SearchForSeriesRes);
+
+  rpc GetCarMetadata(Empty) returns (GetCarMetadataRes);
 }
 
 message Car {
@@ -155,4 +157,26 @@ message SearchForSeriesReq {
   string orderby = 2;
   int32 startAt = 3;
   int32 limit = 4;
+}
+
+message SearchForCarRes {
+    repeated Car cars = 1;
+    int32 total = 2;
+}
+
+message SearchForBrandRes {
+    repeated Brand brands = 1;
+    int32 total = 2;
+}
+
+message SearchForSeriesRes {
+    repeated Series series = 1;
+    int32 total = 2;
+}
+
+message GetCarMetadataRes {
+    repeated Brand brands = 1;
+    repeated Series series = 2;
+    repeated FuelType fuelType = 3;
+    repeated Transmission transmission = 4;
 }
