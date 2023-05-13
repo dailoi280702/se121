@@ -29,5 +29,26 @@ func (s *carSerivceServer) SearchForCar(context.Context, *car.SearchForCarReq) (
 }
 
 func (s *carSerivceServer) GetCarMetadata(context.Context, *car.Empty) (*car.GetCarMetadataRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCarMetadata not implemented")
+	brands, err := getAllBrandFromDb(s.db)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "car service err: %v", err)
+	}
+	series, err := getAllSeriesFromDb(s.db)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "car service err: %v", err)
+	}
+	fuelTypes, err := getAllFuelTypesFromDb(s.db)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "car service err: %v", err)
+	}
+	transmissions, err := getAllTransmissionFromDb(s.db)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "car service err: %v", err)
+	}
+	return &car.GetCarMetadataRes{
+		Brands:       brands,
+		Series:       series,
+		FuelType:     fuelTypes,
+		Transmission: transmissions,
+	}, nil
 }
