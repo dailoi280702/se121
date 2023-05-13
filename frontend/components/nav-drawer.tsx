@@ -29,12 +29,6 @@ export const NavMenu = ({ label }: { label?: string }) => {
         >
           {label ? label : 'required*'}
         </a>
-        {/* <a
-          href="#"
-          className="px-6 py-3 mb-2 text-sm font-medium text-gray-600 rounded-md hover:bg-gray-200"
-        >
-          {label ? label : 'required*'}
-        </a> */}
       </nav>
     </div>
   )
