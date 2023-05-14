@@ -353,6 +353,8 @@ github.com/dailoi280702/se121/car-service v0.0.0-20230513133552-f76e64581517 h1:
 github.com/dailoi280702/se121/car-service v0.0.0-20230513133552-f76e64581517/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
 github.com/dailoi280702/se121/car-service v0.0.0-20230514050410-b8480de2dfbe h1:Aqiwqb5Xe4/0wcKA9ZUkD7EhRz14eYo5wK+Ciy00410=
 github.com/dailoi280702/se121/car-service v0.0.0-20230514050410-b8480de2dfbe/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
+github.com/dailoi280702/se121/car-service v0.0.0-20230514085517-c7d96ea25030 h1:GBBd9rgrxPV/7SU+5LCQw/hNvL/PA7xANR4bgGjvPlI=
+github.com/dailoi280702/se121/car-service v0.0.0-20230514085517-c7d96ea25030/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

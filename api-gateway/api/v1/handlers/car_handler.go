@@ -47,18 +47,14 @@ func handleUpdateCar(carService car.CarServiceClient) http.HandlerFunc {
 
 func handleDeleteCarById(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.GetCarReq
-		var res *car.Car
+		var req car.DeleteCarReq
 		convertJsonApiToGrpc(w, r,
 			func() error {
 				var err error
-				res, err = carService.GetCar(context.Background(), &req)
+				_, err = carService.DeleteCar(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
-			convertWithPostFunc(func() {
-				SendJson(w, res)
-			}))
+			convertWithJsonReqData(&req))
 	}
 }
 

@@ -42,10 +42,7 @@ func dbGetBrandIdBySeriesId(db *sql.DB, id int) (int, error) {
 
 func dbSeriesBrandMatches(db *sql.DB, series_id, brand_id any) (bool, error) {
 	return dbExists(db, `
-        SELECT true
-        FROM car_brands
-        JOIN car_series ON car_brands.id = car_series.brand_id
-        WHERE car_brands.id = $1 AND car_series.brand_id = $2;
+        SELECT EXISTS(SELECT 1 FROM car_series WHERE id = $1 AND brand_id = $2)
         `, series_id, brand_id)
 }
 
