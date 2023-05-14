@@ -78,8 +78,8 @@ message CreateCarReq {
   optional int32 year = 4;
   optional int32 horse_power = 5;
   optional int32 torque = 6;
-  optional Transmission transmission = 7;
-  optional FuelType fuelType = 8;
+  optional int32 transmissionId = 7;
+  optional int32 fuelTypeId = 8;
   optional string imageUrl = 9;
   optional string review = 10;
 }

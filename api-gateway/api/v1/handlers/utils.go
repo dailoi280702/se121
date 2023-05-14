@@ -43,7 +43,8 @@ func SendJsonFromGrpcError(w http.ResponseWriter, err error, actions map[codes.C
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return
 	default:
-		MustSendError(err, w)
+		http.Error(w, s.Message(), http.StatusInternalServerError)
+		// MustSendError(err.New s.Message(), w)
 		return
 	}
 

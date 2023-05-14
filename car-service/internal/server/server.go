@@ -2,8 +2,14 @@ package server
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type carSerivceServer struct {
@@ -15,6 +21,32 @@ func NewServer(db *sql.DB) *carSerivceServer {
 	return &carSerivceServer{
 		db: db,
 	}
+}
+
+func dbGetBrandIdBySeriesId(db *sql.DB, id int) (int, error) {
+	brand_id := 0
+	if err := db.QueryRow(`
+        SELECT brand_id
+        FROM car_series
+        WHERE id = $1;
+        `, id).Scan(&brand_id); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return 0, nil
+		default:
+			return brand_id, err
+		}
+	}
+	return brand_id, nil
+}
+
+func dbSeriesBrandMatches(db *sql.DB, series_id, brand_id any) (bool, error) {
+	return dbExists(db, `
+        SELECT true
+        FROM car_brands
+        JOIN car_series ON car_brands.id = car_series.brand_id
+        WHERE car_brands.id = $1 AND car_series.brand_id = $2;
+        `, series_id, brand_id)
 }
 
 func getCarFromBd(db *sql.DB, id int) (*car.Car, error) {
@@ -132,4 +164,38 @@ func countNumberOFRows(db *sql.DB, query string, args ...any) (int, error) {
 		return 0, err
 	}
 	return c, nil
+}
+
+func dbExists(db *sql.DB, query string, args ...any) (bool, error) {
+	exists := false
+	if err := db.QueryRow(query, args...).Scan(&exists); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return false, nil
+		default:
+			log.Println(args...)
+			return false, err
+		}
+	}
+	return exists, nil
+}
+
+func dbIdExists(db *sql.DB, table, id any) (bool, error) {
+	query := `
+        SELECT true FROM %s WHERE id = $1
+        `
+	query = fmt.Sprintf(query, table)
+	return dbExists(db, query, id)
+}
+
+func convertGrpcToJsonError(e any) error {
+	if e == nil {
+		return nil
+	}
+
+	data, err := json.Marshal(e)
+	if err != nil {
+		return status.Error(codes.Internal, fmt.Sprintf("car service err: %v", err))
+	}
+	return status.Error(codes.InvalidArgument, string(data))
 }
