@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"google.golang.org/grpc/codes"
@@ -47,18 +48,19 @@ func dbSeriesBrandMatches(db *sql.DB, series_id, brand_id any) (bool, error) {
         `, series_id, brand_id)
 }
 
+// Fetch car details and related entities from the database
 func dbGetCarById(db *sql.DB, id int) (*car.Car, error) {
 	var car car.Car
 	var brandId *int
-	var seriresId *int
+	var seriesId *int
 	var transmissionId *int
 	var fuelTypeId *int
 
-	// get car from db
+	// Fetch car details from the database
 	err := dbScanRecordById(db, "car_models", id,
 		"id", &car.Id,
 		"brand_id", &brandId,
-		"series_id", &seriresId,
+		"series_id", &seriesId,
 		"name", &car.Name,
 		"year", &car.Year,
 		"horsepower", &car.HorsePower,
@@ -72,26 +74,58 @@ func dbGetCarById(db *sql.DB, id int) (*car.Car, error) {
 		return nil, err
 	}
 
+	// Fetch related entities concurrently
+	var wg sync.WaitGroup
+	errCh := make(chan error, 3)
+
+	// Fetch brand details concurrently
 	if brandId != nil {
-		car.Brand, err = dbGetBrandById(db, *brandId)
-		if err != nil {
-			return nil, err
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			car.Brand, err = dbGetBrandById(db, *brandId)
+			errCh <- err
+		}()
 	}
-	if seriresId != nil {
-		car.Series, err = dbGetSeriesById(db, *seriresId)
-		if err != nil {
-			return nil, err
-		}
+
+	// Fetch series details concurrently
+	if seriesId != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			car.Series, err = dbGetSeriesById(db, *seriesId)
+			errCh <- err
+		}()
 	}
+
+	// Fetch transmission details concurrently
 	if transmissionId != nil {
-		car.Transmission, err = dbGetTransmissionById(db, *transmissionId)
-		if err != nil {
-			return nil, err
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			car.Transmission, err = dbGetTransmissionById(db, *transmissionId)
+			errCh <- err
+		}()
 	}
+
+	// Fetch fuel type details concurrently
 	if fuelTypeId != nil {
-		car.FuelType, err = dbGetFuelTypeById(db, *fuelTypeId)
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			car.FuelType, err = dbGetFuelTypeById(db, *fuelTypeId)
+			errCh <- err
+		}()
+	}
+
+	// Wait for all related entities to be fetched
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	// Check for errors in fetching related entities
+	for err := range errCh {
 		if err != nil {
 			return nil, err
 		}
