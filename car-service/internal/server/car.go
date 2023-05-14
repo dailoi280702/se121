@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
@@ -72,8 +73,12 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 		})
 	}
 
-	errCh := make(chan error, 1)
+	errCh := make(chan error, 100)
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer close(errCh)
+
 		// Verify brand and series existence
 		if req.BrandId != nil {
 			id := req.GetBrandId()
@@ -125,13 +130,21 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 				}
 			}
 		}
-		close(errCh)
 	}()
 
-	for range errCh {
-		err := <-errCh
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+verificationLoop:
+	for {
+		select {
+		case err, ok := <-errCh:
+			if err != nil {
+				return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+			}
+			if !ok {
+				break verificationLoop
+			}
+		case <-time.After(5 * time.Second):
+			// Timeout duration
+			return nil, status.Error(codes.Internal, "Verification timeout")
 		}
 	}
 
