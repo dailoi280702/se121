@@ -60,7 +60,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 	}
 
 	if len(errorsRes.Details) != 0 {
-		return nil, convertGrpcToJsonError(errorsRes)
+		return nil, convertGrpcToJsonError(codes.InvalidArgument, errorsRes)
 	}
 
 	// verify
@@ -127,7 +127,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 	}
 
 	if len(errorsRes.Details) != 0 {
-		return nil, convertGrpcToJsonError(errorsRes)
+		return nil, convertGrpcToJsonError(codes.NotFound, errorsRes)
 	}
 
 	// insert to db
@@ -136,7 +136,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
         `, req.BrandId, req.SeriesId, req.Name, req.Year, req.HorsePower, req.Torque, req.TransmissionId, req.FuelTypeId, req.Review, req.ImageUrl)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "error while insert car %v to db: %v", req, err)
+		return nil, status.Errorf(codes.Internal, "error while inserting car %v to db: %v", req, err)
 	}
 
 	return &car.Empty{}, nil
@@ -146,8 +146,23 @@ func (s *carSerivceServer) UpdateCar(context.Context, *car.UpdateCarReq) (*car.E
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCar not implemented")
 }
 
-func (s *carSerivceServer) DeleteCar(context.Context, *car.DeleteCarReq) (*car.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteCar not implemented")
+func (s *carSerivceServer) DeleteCar(context context.Context, req *car.DeleteCarReq) (*car.Empty, error) {
+	id := req.GetId()
+
+	exists, err := dbIdExists(s.db, "car_models", id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error while deleting car %v to db: %v", req, err)
+	}
+	if !exists {
+		return nil, convertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Car id %v not exists", id))
+	}
+
+	err = dbDeleteRecordById(s.db, "car_models", id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error while deleting car %v to db: %v", req, err)
+	}
+
+	return &car.Empty{}, nil
 }
 
 func (s *carSerivceServer) SearchForCar(context.Context, *car.SearchForCarReq) (*car.SearchForCarRes, error) {

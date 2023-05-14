@@ -51,6 +51,16 @@ func getCarFromBd(db *sql.DB, id int) (*car.Car, error) {
 	return nil, nil
 }
 
+func dbDeleteRecordById(db *sql.DB, tableName string, id any) error {
+	query := "DELETE FROM " + tableName + " WHERE id = $1"
+	_, err := db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getAllBrandFromDb(db *sql.DB) ([]*car.Brand, error) {
 	brands := []*car.Brand{}
 	rows, err := db.Query(`
@@ -179,13 +189,13 @@ func dbExists(db *sql.DB, query string, args ...any) (bool, error) {
 
 func dbIdExists(db *sql.DB, table, id any) (bool, error) {
 	query := `
-        SELECT true FROM %s WHERE id = $1
+        SELECT exists( SELECT 1 FROM %s WHERE id = $1)
         `
 	query = fmt.Sprintf(query, table)
 	return dbExists(db, query, id)
 }
 
-func convertGrpcToJsonError(e any) error {
+func convertGrpcToJsonError(c codes.Code, e any) error {
 	if e == nil {
 		return nil
 	}
@@ -194,5 +204,5 @@ func convertGrpcToJsonError(e any) error {
 	if err != nil {
 		return status.Error(codes.Internal, fmt.Sprintf("car service err: %v", err))
 	}
-	return status.Error(codes.InvalidArgument, string(data))
+	return status.Error(c, string(data))
 }
