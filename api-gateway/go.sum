@@ -347,6 +347,8 @@ github.com/dailoi280702/se121/car-service v0.0.0-20230510061546-14d7209d2579 h1:
 github.com/dailoi280702/se121/car-service v0.0.0-20230510061546-14d7209d2579/go.mod h1:G7kUmiL1r/sUHh8pAftbKsuAwUX5y5kRlilddob1BNs=
 github.com/dailoi280702/se121/car-service v0.0.0-20230510084004-81abb477675b h1:K5mVKHbfII538FjhAFHiq3NrNr4UTH+zAP0TaCxMoYg=
 github.com/dailoi280702/se121/car-service v0.0.0-20230510084004-81abb477675b/go.mod h1:G7kUmiL1r/sUHh8pAftbKsuAwUX5y5kRlilddob1BNs=
+github.com/dailoi280702/se121/car-service v0.0.0-20230512115000-6a3eb91f102e h1:E7vrS4+kVmyBLQa7DS6MGYqnvleH0x6eg9V7R4Qd0U8=
+github.com/dailoi280702/se121/car-service v0.0.0-20230512115000-6a3eb91f102e/go.mod h1:G7kUmiL1r/sUHh8pAftbKsuAwUX5y5kRlilddob1BNs=
 github.com/dailoi280702/se121/car-service v0.0.0-20230513133552-f76e64581517 h1:Sar4EbfFx3SFUKyEHztYzfcFjudyQWB4f9KI8p8c94A=
 github.com/dailoi280702/se121/car-service v0.0.0-20230513133552-f76e64581517/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
 github.com/dailoi280702/se121/car-service v0.0.0-20230514050410-b8480de2dfbe h1:Aqiwqb5Xe4/0wcKA9ZUkD7EhRz14eYo5wK+Ciy00410=

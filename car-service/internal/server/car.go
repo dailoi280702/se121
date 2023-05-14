@@ -134,7 +134,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 	_, err := s.db.Exec(`
         insert into car_models (brand_id, series_id, name, year, horsepower, torque, transmission, fuel_type, review, image_url)
         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
-        `, req.BrandId, req.SeriesId, req.Name, req.Year, req.HorsePower, req.Torque, req.Transmission, req.FuelType, req.Review, req.ImageUrl)
+        `, req.BrandId, req.SeriesId, req.Name, req.Year, req.HorsePower, req.Torque, req.TransmissionId, req.FuelTypeId, req.Review, req.ImageUrl)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error while insert car %v to db: %v", req, err)
 	}
