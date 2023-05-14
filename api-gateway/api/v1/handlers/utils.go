@@ -37,6 +37,8 @@ func SendJsonFromGrpcError(w http.ResponseWriter, err error, actions map[codes.C
 		w.WriteHeader(http.StatusBadRequest)
 	case code == codes.AlreadyExists:
 		w.WriteHeader(http.StatusConflict)
+	case code == codes.NotFound:
+		w.WriteHeader(http.StatusNotFound)
 	case code == codes.Unavailable:
 		w.WriteHeader(http.StatusServiceUnavailable)
 		return

@@ -17,6 +17,11 @@ func NewServer(db *sql.DB) *carSerivceServer {
 	}
 }
 
+func getCarFromBd(db *sql.DB, id int) (*car.Car, error) {
+	// :TODO
+	return nil, nil
+}
+
 func getAllBrandFromDb(db *sql.DB) ([]*car.Brand, error) {
 	brands := []*car.Brand{}
 	rows, err := db.Query(`
@@ -40,18 +45,6 @@ func getAllBrandFromDb(db *sql.DB) ([]*car.Brand, error) {
 	}
 
 	return brands, nil
-}
-
-func countNumberOFRows(db *sql.DB, query string, args ...any) (int, error) {
-	c := 0
-	err := db.QueryRow(query, args...).Scan(&c)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, nil
-		}
-		return 0, err
-	}
-	return c, nil
 }
 
 func getAllSeriesFromDb(db *sql.DB) ([]*car.Series, error) {
@@ -127,4 +120,16 @@ func getAllTransmissionFromDb(db *sql.DB) ([]*car.Transmission, error) {
 	}
 
 	return transmissions, nil
+}
+
+func countNumberOFRows(db *sql.DB, query string, args ...any) (int, error) {
+	c := 0
+	err := db.QueryRow(query, args...).Scan(&c)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return c, nil
 }
