@@ -25,6 +25,11 @@ func NewServer(db *sql.DB) *carSerivceServer {
 	}
 }
 
+type errorResponse struct {
+	Messages []string          `json:"messages,omitempty"`
+	Details  map[string]string `json:"details,omitempty"`
+}
+
 func dbGetBrandIdBySeriesId(db *sql.DB, id int) (int, error) {
 	brand_id := 0
 	if err := db.QueryRow(`

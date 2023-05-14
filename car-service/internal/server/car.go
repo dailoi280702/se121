@@ -37,43 +37,42 @@ func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car
 }
 
 func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*car.Empty, error) {
-	errorsRes := struct {
-		Messages []string          `json:"messages"`
-		Details  map[string]string `json:"details"`
-	}{[]string{}, map[string]string{}}
+	validationErrors := make(map[string]string)
 
-	name := req.GetName()
-
-	// validate
-	if strings.TrimSpace(name) == "" {
-		errorsRes.Details["name"] = "Name can not be empty"
+	// Validate inputs
+	if strings.TrimSpace(req.GetName()) == "" {
+		validationErrors["name"] = "Name cannot be empty"
 	}
+
 	if req.Year != nil {
 		if req.GetYear() < 0 || req.GetYear() > int32(time.Now().Year()) {
-			errorsRes.Details["year"] = "Year out of range"
+			validationErrors["year"] = "Year is out of range"
 		}
 	}
 	if req.HorsePower != nil {
-		if req.GetHorsePower() < 0 {
-			errorsRes.Details["horsepower"] = "Horse power out of range"
+		if req.GetHorsePower() <= 0 {
+			validationErrors["horsepower"] = "Horsepower is out of range"
 		}
 	}
 	if req.Torque != nil {
-		if req.GetTorque() < 0 {
-			errorsRes.Details["torque"] = "Torque out of range"
+		if req.GetTorque() <= 0 {
+			validationErrors["torque"] = "Torque is out of range"
 		}
 	}
 	if req.ImageUrl != nil {
 		if !regexp.MustCompile(httpRegex).MatchString(req.GetImageUrl()) {
-			errorsRes.Details["imageUrl"] = "Image url is not a valid url"
+			validationErrors["imageUrl"] = "Image URL is not valid"
 		}
 	}
 
-	if len(errorsRes.Details) != 0 {
-		return nil, convertGrpcToJsonError(codes.InvalidArgument, errorsRes)
+	if len(validationErrors) > 0 {
+		return nil, convertGrpcToJsonError(codes.InvalidArgument, errorResponse{
+			Messages: []string{"Validation error"},
+			Details:  validationErrors,
+		})
 	}
 
-	// verify
+	// Verify brand and series existence
 	if req.BrandId != nil {
 		id := req.GetBrandId()
 		exists, err := dbIdExists(s.db, "car_brands", id)
@@ -81,7 +80,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 			return nil, status.Error(codes.Internal, fmt.Sprintf("car service err: %v", err))
 		}
 		if !exists {
-			errorsRes.Details["brandId"] = fmt.Sprintf("Brand %d not exists", id)
+			validationErrors["brandId"] = fmt.Sprintf("Brand %d does not exist", id)
 		}
 	}
 	if req.SeriesId != nil {
@@ -91,9 +90,9 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 			return nil, status.Error(codes.Internal, fmt.Sprintf("car service err: %v", err))
 		}
 		if !exists {
-			errorsRes.Details["seriesId"] = fmt.Sprintf("Series %d not exists", id)
+			validationErrors["seriesId"] = fmt.Sprintf("Series %d does not exist", id)
 		} else {
-			_, ok := errorsRes.Details["brandId"]
+			_, ok := validationErrors["brandId"]
 			if !ok {
 				if req.BrandId != nil {
 					brandId := req.GetBrandId()
@@ -102,7 +101,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 						return nil, status.Error(codes.Internal, fmt.Sprintf("car service err: %v", err))
 					}
 					if !match {
-						errorsRes.Details["seriesId"] = fmt.Sprintf("Series %d not exists in brand %d", id, brandId)
+						validationErrors["seriesId"] = fmt.Sprintf("Series %d does not exist in brand %d", id, brandId)
 					}
 				} else {
 					brandId, err := dbGetBrandIdBySeriesId(s.db, int(id))
@@ -114,6 +113,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 				}
 			}
 		}
+
 		if req.FuelTypeId != nil {
 			id := req.GetFuelTypeId()
 			exists, err := dbIdExists(s.db, "fuel_types", id)
@@ -121,7 +121,7 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 				return nil, status.Error(codes.Internal, fmt.Sprintf("car service err: %v", err))
 			}
 			if !exists {
-				errorsRes.Details["fuel"] = fmt.Sprintf("Fuel type %d not exists", id)
+				validationErrors["fuel"] = fmt.Sprintf("Fuel type %d does not exist", id)
 			}
 		}
 		if req.TransmissionId != nil {
@@ -131,16 +131,19 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 				return nil, status.Error(codes.Internal, fmt.Sprintf("car service err: %v", err))
 			}
 			if !exists {
-				errorsRes.Details["transmission"] = fmt.Sprintf("Transmission %d not exists", id)
+				validationErrors["transmission"] = fmt.Sprintf("Transmission %d does not exist", id)
 			}
 		}
 	}
 
-	if len(errorsRes.Details) != 0 {
-		return nil, convertGrpcToJsonError(codes.NotFound, errorsRes)
+	if len(validationErrors) > 0 {
+		return nil, convertGrpcToJsonError(codes.NotFound, errorResponse{
+			Messages: []string{"Validation error"},
+			Details:  validationErrors,
+		})
 	}
 
-	// insert to db
+	// Insert car into the database
 	_, err := s.db.Exec(`
         insert into car_models (brand_id, series_id, name, year, horsepower, torque, transmission, fuel_type, review, image_url)
         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
