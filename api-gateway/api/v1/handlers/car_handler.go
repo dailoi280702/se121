@@ -21,61 +21,95 @@ func NewCarHandler(carService car.CarServiceClient) *CarHandler {
 func NewCarRoutes(carService car.CarServiceClient) chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		handleGetCarMetaData(w, r, carService)
-	})
+	r.Get("/", handleGetCarById(carService))
+	r.Delete("/", handleDeleteCarById(carService))
+	r.Put("/", handleUpdateCar(carService))
+	r.Post("/", handleCreateCar(carService))
+
+	r.Get("/index", handleGetCarMetaData(carService))
+	r.Get("/search", handleSearchCar(carService))
 
 	return r
 }
 
-func handleGetCarMetaData(w http.ResponseWriter, r *http.Request, carService car.CarServiceClient) {
-	var res *car.GetCarMetadataRes
-	convertJsonApiToGrpc(w, r, func() error {
-		var err error
-		res, err = carService.GetCarMetadata(context.Background(), &car.Empty{})
-		return err
-	}, convertWithPostFunc(func() {
-		SendJson(w, res)
-	}))
+func handleUpdateCar(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.UpdateCarReq
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				_, err = carService.UpdateCar(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req))
+	}
 }
 
-func handleGetCar(w http.ResponseWriter, r *http.Request, carService car.CarServiceClient) {
-	var req car.GetCarReq
-	var car *car.Car
-	convertJsonApiToGrpc(w, r, func() error {
-		var err error
-		car, err = carService.GetCar(context.Background(), &req)
-		return err
-	},
-		convertWithJsonReqData(&req),
-		convertWithPostFunc(func() {
-			SendJson(w, car)
+func handleDeleteCarById(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.GetCarReq
+		var res *car.Car
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				res, err = carService.GetCar(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}))
+	}
+}
+
+func handleGetCarById(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.GetCarReq
+		var res *car.Car
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				res, err = carService.GetCar(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}))
+	}
+}
+
+func handleGetCarMetaData(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var res *car.GetCarMetadataRes
+		convertJsonApiToGrpc(w, r, func() error {
+			var err error
+			res, err = carService.GetCarMetadata(context.Background(), &car.Empty{})
+			return err
+		}, convertWithPostFunc(func() {
+			SendJson(w, res)
 		}))
+	}
 }
 
-func handleCreateCar(w http.ResponseWriter, r *http.Request, carService car.CarServiceClient) {
-	var req car.CreateCarReq
-	convertJsonApiToGrpc(w, r, func() error {
-		var err error
-		_, err = carService.CreateCar(context.Background(), &req)
-		return err
-	}, convertWithJsonReqData(&req))
+func handleCreateCar(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.CreateCarReq
+		convertJsonApiToGrpc(w, r, func() error {
+			var err error
+			_, err = carService.CreateCar(context.Background(), &req)
+			return err
+		}, convertWithJsonReqData(&req))
+	}
 }
 
-func handleUpdateCar(w http.ResponseWriter, r *http.Request, carService car.CarServiceClient) {
-	var req car.UpdateCarReq
-	convertJsonApiToGrpc(w, r, func() error {
-		var err error
-		_, err = carService.UpdateCar(context.Background(), &req)
-		return err
-	}, convertWithJsonReqData(&req))
-}
-
-func handleSearchCar(w http.ResponseWriter, r *http.Request, carService car.CarServiceClient) {
-	var req car.SearchForCarReq
-	convertJsonApiToGrpc(w, r, func() error {
-		var err error
-		_, err = carService.SearchForCar(context.Background(), &req)
-		return err
-	}, convertWithJsonReqData(&req))
+func handleSearchCar(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.SearchForCarReq
+		convertJsonApiToGrpc(w, r, func() error {
+			var err error
+			_, err = carService.SearchForCar(context.Background(), &req)
+			return err
+		}, convertWithJsonReqData(&req))
+	}
 }
