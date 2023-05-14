@@ -16,14 +16,24 @@ const httpRegex = `/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z
 
 func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car.Car, error) {
 	id := int(req.GetId())
-	car, err := getCarFromBd(s.db, id)
+	exists, err := dbIdExists(s.db, "car_models", id)
+	if err != nil {
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "error while checking for car existence: %v", err)
+		}
+	}
+	if !exists {
+		return nil, convertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Car %d not exists", id))
+	}
+
+	car, err := dbGetCarById(s.db, id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "error while get car data from db: %v", err)
 	}
 	if car == nil {
 		return nil, status.Errorf(codes.NotFound, "car %d not exists", id)
 	}
-	return nil, nil
+	return car, nil
 }
 
 func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*car.Empty, error) {

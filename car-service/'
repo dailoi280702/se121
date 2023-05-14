@@ -54,8 +54,7 @@ func dbGetCarById(db *sql.DB, id int) (*car.Car, error) {
 	var transmissionId *int
 	var fuelTypeId *int
 
-	// get car from db
-	err := dbScanRecordById(db, "car_models", id,
+	if err := dbScanRecordById(db, "car_models", id,
 		"id", &car.Id,
 		"brand_id", &brandId,
 		"series_id", &seriresId,
@@ -67,34 +66,8 @@ func dbGetCarById(db *sql.DB, id int) (*car.Car, error) {
 		"fuel_type", &fuelTypeId,
 		"review", &car.Review,
 		"image_url", &car.ImageUrl,
-	)
-	if err != nil {
+	); err != nil {
 		return nil, err
-	}
-
-	if brandId != nil {
-		car.Brand, err = dbGetBrandById(db, *brandId)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if seriresId != nil {
-		car.Series, err = dbGetSeriesById(db, *seriresId)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if transmissionId != nil {
-		car.Transmission, err = dbGetTransmissionById(db, *transmissionId)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if fuelTypeId != nil {
-		car.FuelType, err = dbGetFuelTypeById(db, *fuelTypeId)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return &car, nil
@@ -102,53 +75,36 @@ func dbGetCarById(db *sql.DB, id int) (*car.Car, error) {
 
 func dbGetBrandById(db *sql.DB, id int) (*car.Brand, error) {
 	var brand car.Brand
-	if err := dbScanRecordById(db, "car_brands", id,
-		"id", &brand.Id,
-		"name", &brand.Name,
-		"founded_year", &brand.FoundedYear,
-		"country_of_origin", &brand.CountryOfOrigin,
-		"website_url", &brand.WebsiteUrl,
-		"logo_url", &brand.LogoUrl,
-	); err != nil {
-		return nil, err
+	if err := db.QueryRow(`
+        SELECT (id, name, founded_year, country_of_origin, website_url, logo_url)
+        FROM car_models
+        WHERE id = $1
+        `, id).Scan(&brand.Id, &brand.Name, &brand.FoundedYear, &brand.CountryOfOrigin, &brand.WebsiteUrl, &brand.LogoUrl); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, err
+		}
 	}
 	return &brand, nil
 }
 
 func dbGetSeriesById(db *sql.DB, id int) (*car.Series, error) {
 	var series car.Series
-	if err := dbScanRecordById(db, "car_series", id,
-		"id", &series.Id,
-		"name", &series.Name,
-		"brand_id", &series.BrandId,
-	); err != nil {
-		return nil, err
+	if err := db.QueryRow(`
+        SELECT (id, name, brand_id)
+        FROM car_models
+        WHERE id = $1
+        `, id).Scan(&series.Id, &series.Name, &series.BrandId); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, nil
+		default:
+			return nil, err
+		}
 	}
 	return &series, nil
-}
-
-func dbGetFuelTypeById(db *sql.DB, id int) (*car.FuelType, error) {
-	var fuelType car.FuelType
-	if err := dbScanRecordById(db, "fuel_types", id,
-		"id", &fuelType.Id,
-		"name", &fuelType.Name,
-		"description", &fuelType.Description,
-	); err != nil {
-		return nil, err
-	}
-	return &fuelType, nil
-}
-
-func dbGetTransmissionById(db *sql.DB, id int) (*car.Transmission, error) {
-	var transmission car.Transmission
-	if err := dbScanRecordById(db, "car_transmissions", id,
-		"id", &transmission.Id,
-		"name", &transmission.Name,
-		"description", &transmission.Description,
-	); err != nil {
-		return nil, err
-	}
-	return &transmission, nil
 }
 
 func dbDeleteRecordById(db *sql.DB, tableName string, id any) error {
@@ -287,24 +243,42 @@ func dbExists(db *sql.DB, query string, args ...any) (bool, error) {
 	return exists, nil
 }
 
+// // arguments is slice of key-value, for example: k1 v1 k2 v2 k3 v3 k4 v4
+// func dbScanRecordById(db *sql.DB, table string, id any, args ...any) error {
+// 	if len(args)%2 != 0 {
+// 		return errors.New("number of arguments must be even")
+// 	}
+//
+// 	var keys []string
+// 	var vals []any
+// 	for i := 0; i < len(args); i += 1 {
+// 		if i%2 == 0 {
+// 			keys = append(keys, args[i].(string))
+// 			continue
+// 		}
+// 		vals = append(vals, args[i])
+// 	}
+//
+// 	query := fmt.Sprintf("SELECT %s FROM %s WHERE id = $1", strings.Join(keys, ", "), table)
+// 	if err := db.QueryRow(query, id).Scan(vals...); err != nil {
+// 		switch {
+// 		case errors.Is(err, sql.ErrNoRows):
+// 			return nil
+// 		default:
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }
 // arguments is slice of key-value, for example: k1 v1 k2 v2 k3 v3 k4 v4
-
-func dbScanRecordById(db *sql.DB, table string, id any, args ...any) error {
+func dbScanRecordById(db *sql.DB, table string, id interface{}, args ...interface{}) error {
 	if len(args)%2 != 0 {
 		return errors.New("number of arguments must be even")
 	}
 
-	var keys []string
-	var vals []any
-	for i := 0; i < len(args); i += 1 {
-		if i%2 == 0 {
-			keys = append(keys, args[i].(string))
-			continue
-		}
-		vals = append(vals, args[i])
-	}
+	query := fmt.Sprintf("SELECT %s FROM %s WHERE id = $1", strings.Join(args[0::2].([]string), ", "), table)
+	vals := args[1:len(args) - 1:2]
 
-	query := fmt.Sprintf("SELECT %s FROM %s WHERE id = $1", strings.Join(keys, ", "), table)
 	if err := db.QueryRow(query, id).Scan(vals...); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -313,6 +287,7 @@ func dbScanRecordById(db *sql.DB, table string, id any, args ...any) error {
 			return err
 		}
 	}
+
 	return nil
 }
 
