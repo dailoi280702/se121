@@ -8,6 +8,7 @@ package car
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -26,15 +27,15 @@ type CarServiceClient interface {
 	CreateCar(ctx context.Context, in *CreateCarReq, opts ...grpc.CallOption) (*Empty, error)
 	UpdateCar(ctx context.Context, in *UpdateCarReq, opts ...grpc.CallOption) (*Empty, error)
 	DeleteCar(ctx context.Context, in *DeleteCarReq, opts ...grpc.CallOption) (*Empty, error)
-	SearchForCar(ctx context.Context, in *SearchForCarReq, opts ...grpc.CallOption) (*SearchForCarRes, error)
+	SearchForCar(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchForCarRes, error)
 	GetBrand(ctx context.Context, in *GetBrandReq, opts ...grpc.CallOption) (*Brand, error)
 	CreateBrand(ctx context.Context, in *CreateBrandReq, opts ...grpc.CallOption) (*Empty, error)
 	UpdateBrand(ctx context.Context, in *UpdateBrandReq, opts ...grpc.CallOption) (*Empty, error)
-	SearchForBrand(ctx context.Context, in *SearchForBrandReq, opts ...grpc.CallOption) (*SearchForBrandRes, error)
+	SearchForBrand(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchForBrandRes, error)
 	GetSeries(ctx context.Context, in *GetSeriesReq, opts ...grpc.CallOption) (*Series, error)
 	CreateSeries(ctx context.Context, in *CreateSeriesReq, opts ...grpc.CallOption) (*Empty, error)
 	UpdateSeries(ctx context.Context, in *UpdateSeriesReq, opts ...grpc.CallOption) (*Empty, error)
-	SearchForSeries(ctx context.Context, in *SearchForSeriesReq, opts ...grpc.CallOption) (*SearchForSeriesRes, error)
+	SearchForSeries(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchForSeriesRes, error)
 	GetCarMetadata(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetCarMetadataRes, error)
 }
 
@@ -82,7 +83,7 @@ func (c *carServiceClient) DeleteCar(ctx context.Context, in *DeleteCarReq, opts
 	return out, nil
 }
 
-func (c *carServiceClient) SearchForCar(ctx context.Context, in *SearchForCarReq, opts ...grpc.CallOption) (*SearchForCarRes, error) {
+func (c *carServiceClient) SearchForCar(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchForCarRes, error) {
 	out := new(SearchForCarRes)
 	err := c.cc.Invoke(ctx, "/car.CarService/SearchForCar", in, out, opts...)
 	if err != nil {
@@ -118,7 +119,7 @@ func (c *carServiceClient) UpdateBrand(ctx context.Context, in *UpdateBrandReq, 
 	return out, nil
 }
 
-func (c *carServiceClient) SearchForBrand(ctx context.Context, in *SearchForBrandReq, opts ...grpc.CallOption) (*SearchForBrandRes, error) {
+func (c *carServiceClient) SearchForBrand(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchForBrandRes, error) {
 	out := new(SearchForBrandRes)
 	err := c.cc.Invoke(ctx, "/car.CarService/SearchForBrand", in, out, opts...)
 	if err != nil {
@@ -154,7 +155,7 @@ func (c *carServiceClient) UpdateSeries(ctx context.Context, in *UpdateSeriesReq
 	return out, nil
 }
 
-func (c *carServiceClient) SearchForSeries(ctx context.Context, in *SearchForSeriesReq, opts ...grpc.CallOption) (*SearchForSeriesRes, error) {
+func (c *carServiceClient) SearchForSeries(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchForSeriesRes, error) {
 	out := new(SearchForSeriesRes)
 	err := c.cc.Invoke(ctx, "/car.CarService/SearchForSeries", in, out, opts...)
 	if err != nil {
@@ -180,62 +181,74 @@ type CarServiceServer interface {
 	CreateCar(context.Context, *CreateCarReq) (*Empty, error)
 	UpdateCar(context.Context, *UpdateCarReq) (*Empty, error)
 	DeleteCar(context.Context, *DeleteCarReq) (*Empty, error)
-	SearchForCar(context.Context, *SearchForCarReq) (*SearchForCarRes, error)
+	SearchForCar(context.Context, *SearchReq) (*SearchForCarRes, error)
 	GetBrand(context.Context, *GetBrandReq) (*Brand, error)
 	CreateBrand(context.Context, *CreateBrandReq) (*Empty, error)
 	UpdateBrand(context.Context, *UpdateBrandReq) (*Empty, error)
-	SearchForBrand(context.Context, *SearchForBrandReq) (*SearchForBrandRes, error)
+	SearchForBrand(context.Context, *SearchReq) (*SearchForBrandRes, error)
 	GetSeries(context.Context, *GetSeriesReq) (*Series, error)
 	CreateSeries(context.Context, *CreateSeriesReq) (*Empty, error)
 	UpdateSeries(context.Context, *UpdateSeriesReq) (*Empty, error)
-	SearchForSeries(context.Context, *SearchForSeriesReq) (*SearchForSeriesRes, error)
+	SearchForSeries(context.Context, *SearchReq) (*SearchForSeriesRes, error)
 	GetCarMetadata(context.Context, *Empty) (*GetCarMetadataRes, error)
 	mustEmbedUnimplementedCarServiceServer()
 }
 
 // UnimplementedCarServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedCarServiceServer struct {
-}
+type UnimplementedCarServiceServer struct{}
 
 func (UnimplementedCarServiceServer) GetCar(context.Context, *GetCarReq) (*Car, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) CreateCar(context.Context, *CreateCarReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) UpdateCar(context.Context, *UpdateCarReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) DeleteCar(context.Context, *DeleteCarReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteCar not implemented")
 }
-func (UnimplementedCarServiceServer) SearchForCar(context.Context, *SearchForCarReq) (*SearchForCarRes, error) {
+
+func (UnimplementedCarServiceServer) SearchForCar(context.Context, *SearchReq) (*SearchForCarRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
 }
+
 func (UnimplementedCarServiceServer) GetBrand(context.Context, *GetBrandReq) (*Brand, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBrand not implemented")
 }
+
 func (UnimplementedCarServiceServer) CreateBrand(context.Context, *CreateBrandReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateBrand not implemented")
 }
+
 func (UnimplementedCarServiceServer) UpdateBrand(context.Context, *UpdateBrandReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
 }
-func (UnimplementedCarServiceServer) SearchForBrand(context.Context, *SearchForBrandReq) (*SearchForBrandRes, error) {
+
+func (UnimplementedCarServiceServer) SearchForBrand(context.Context, *SearchReq) (*SearchForBrandRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchForBrand not implemented")
 }
+
 func (UnimplementedCarServiceServer) GetSeries(context.Context, *GetSeriesReq) (*Series, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSeries not implemented")
 }
+
 func (UnimplementedCarServiceServer) CreateSeries(context.Context, *CreateSeriesReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateSeries not implemented")
 }
+
 func (UnimplementedCarServiceServer) UpdateSeries(context.Context, *UpdateSeriesReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeries not implemented")
 }
-func (UnimplementedCarServiceServer) SearchForSeries(context.Context, *SearchForSeriesReq) (*SearchForSeriesRes, error) {
+
+func (UnimplementedCarServiceServer) SearchForSeries(context.Context, *SearchReq) (*SearchForSeriesRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchForSeries not implemented")
 }
+
 func (UnimplementedCarServiceServer) GetCarMetadata(context.Context, *Empty) (*GetCarMetadataRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetCarMetadata not implemented")
 }
@@ -325,7 +338,7 @@ func _CarService_DeleteCar_Handler(srv interface{}, ctx context.Context, dec fun
 }
 
 func _CarService_SearchForCar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchForCarReq)
+	in := new(SearchReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -337,7 +350,7 @@ func _CarService_SearchForCar_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/car.CarService/SearchForCar",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CarServiceServer).SearchForCar(ctx, req.(*SearchForCarReq))
+		return srv.(CarServiceServer).SearchForCar(ctx, req.(*SearchReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -397,7 +410,7 @@ func _CarService_UpdateBrand_Handler(srv interface{}, ctx context.Context, dec f
 }
 
 func _CarService_SearchForBrand_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchForBrandReq)
+	in := new(SearchReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -409,7 +422,7 @@ func _CarService_SearchForBrand_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: "/car.CarService/SearchForBrand",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CarServiceServer).SearchForBrand(ctx, req.(*SearchForBrandReq))
+		return srv.(CarServiceServer).SearchForBrand(ctx, req.(*SearchReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -469,7 +482,7 @@ func _CarService_UpdateSeries_Handler(srv interface{}, ctx context.Context, dec 
 }
 
 func _CarService_SearchForSeries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SearchForSeriesReq)
+	in := new(SearchReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -481,7 +494,7 @@ func _CarService_SearchForSeries_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/car.CarService/SearchForSeries",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CarServiceServer).SearchForSeries(ctx, req.(*SearchForSeriesReq))
+		return srv.(CarServiceServer).SearchForSeries(ctx, req.(*SearchReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }

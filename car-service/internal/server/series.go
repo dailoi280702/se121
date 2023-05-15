@@ -20,6 +20,6 @@ func (s *carSerivceServer) UpdateSeries(context.Context, *car.UpdateSeriesReq) (
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeries not implemented")
 }
 
-func (s *carSerivceServer) SearchForSeries(context.Context, *car.SearchForSeriesReq) (*car.SearchForSeriesRes, error) {
+func (s *carSerivceServer) SearchForSeries(context.Context, *car.SearchReq) (*car.SearchForSeriesRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
 }

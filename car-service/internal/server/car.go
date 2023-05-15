@@ -125,7 +125,7 @@ func (s *carSerivceServer) DeleteCar(context context.Context, req *car.DeleteCar
 	return &car.Empty{}, nil
 }
 
-func (s *carSerivceServer) SearchForCar(context.Context, *car.SearchForCarReq) (*car.SearchForCarRes, error) {
+func (s *carSerivceServer) SearchForCar(context.Context, *car.SearchReq) (*car.SearchForCarRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
 }
 

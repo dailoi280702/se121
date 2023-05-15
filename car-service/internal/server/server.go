@@ -327,7 +327,6 @@ func dbExists(db *sql.DB, query string, args ...any) (bool, error) {
 }
 
 // arguments is slice of key-value, for example: k1 v1 k2 v2 k3 v3 k4 v4
-
 func dbScanRecordById(db *sql.DB, table string, id any, args ...any) error {
 	if len(args)%2 != 0 {
 		return errors.New("number of arguments must be even")

@@ -4,22 +4,24 @@ package car;
 
 option go_package = "github.com/dailoi280702/se121/car-service/pkg/car";
 
+import "./utils.proto";
+
 service CarService {
   rpc GetCar(GetCarReq) returns (Car);
   rpc CreateCar(CreateCarReq) returns (Empty);
   rpc UpdateCar(UpdateCarReq) returns (Empty);
   rpc DeleteCar(DeleteCarReq) returns (Empty);
-  rpc SearchForCar(SearchForCarReq) returns (SearchForCarRes);
+  rpc SearchForCar(utils.SearchReq) returns (SearchForCarRes);
 
   rpc GetBrand(GetBrandReq) returns (Brand);
   rpc CreateBrand(CreateBrandReq) returns (Empty);
   rpc UpdateBrand(UpdateBrandReq) returns (Empty);
-  rpc SearchForBrand(SearchForBrandReq) returns (SearchForBrandRes);
+  rpc SearchForBrand(utils.SearchReq) returns (SearchForBrandRes);
 
   rpc GetSeries(GetSeriesReq) returns (Series);
   rpc CreateSeries(CreateSeriesReq) returns (Empty);
   rpc UpdateSeries(UpdateSeriesReq) returns (Empty);
-  rpc SearchForSeries(SearchForSeriesReq) returns (SearchForSeriesRes);
+  rpc SearchForSeries(utils.SearchReq) returns (SearchForSeriesRes);
 
   rpc GetCarMetadata(Empty) returns (GetCarMetadataRes);
 }
@@ -179,4 +181,12 @@ message GetCarMetadataRes {
     repeated Series series = 2;
     repeated FuelType fuelType = 3;
     repeated Transmission transmission = 4;
+}
+
+message SearchReq{
+  optional string query = 1;
+  optional string orderby = 2;
+  optional int32 startAt = 3;
+  optional int32 limit = 4;
+  optional bool isAscending = 5;
 }
