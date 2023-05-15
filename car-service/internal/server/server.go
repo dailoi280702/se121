@@ -347,11 +347,35 @@ func dbScanRecordById(db *sql.DB, table string, id any, args ...any) error {
 	if err := db.QueryRow(query, id).Scan(vals...); err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
-			return nil
+			return fmt.Errorf("failed to insert record: %v", err)
 		default:
 			return err
 		}
 	}
+	return nil
+}
+
+func dbUpdateRecord(db *sql.DB, table string, record map[string]interface{}, id int) error {
+	query := fmt.Sprintf("UPDATE %s SET", table)
+
+	args := make([]interface{}, 0)
+	i := 1
+	for key, value := range record {
+		if value == nil {
+			continue
+		}
+		query += fmt.Sprintf(" %s = $%d,", key, i)
+		args = append(args, value)
+		i++
+	}
+	query = query[:len(query)-1] + fmt.Sprintf(" WHERE id = $%d", i)
+	args = append(args, id)
+
+	_, err := db.Exec(query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to update record: %v", err)
+	}
+
 	return nil
 }
 

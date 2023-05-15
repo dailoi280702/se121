@@ -30,7 +30,7 @@ message Car {
   optional Series series = 3;
   string name = 4;
   optional int32 year = 5;
-  optional int32 horse_power = 6;
+  optional int32 horsePower = 6;
   optional int32 torque = 7;
   optional Transmission transmission = 8;
   optional FuelType fuelType = 9;
@@ -76,7 +76,7 @@ message CreateCarReq {
   optional int32 seriesId = 2;
   string name = 3;
   optional int32 year = 4;
-  optional int32 horse_power = 5;
+  optional int32 horsePower = 5;
   optional int32 torque = 6;
   optional int32 transmissionId = 7;
   optional int32 fuelTypeId = 8;
@@ -90,10 +90,10 @@ message UpdateCarReq {
   optional int32 seriesId = 3;
   optional string name = 4;
   optional int32 year = 5;
-  optional int32 horse_power = 6;
+  optional int32 horsePower = 6;
   optional int32 torque = 7;
-  optional Transmission transmission = 8;
-  optional FuelType fuelType = 9;
+  optional int32 transmissionId = 8;
+  optional int32 fuelTypeId = 9;
   optional string imageUrl = 10;
   optional string review = 11;
 }
