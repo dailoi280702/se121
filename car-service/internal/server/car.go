@@ -100,6 +100,7 @@ func (s *carSerivceServer) UpdateCar(ctx context.Context, req *car.UpdateCarReq)
 	if req.ImageUrl != nil {
 		updateData["image_url"] = *req.ImageUrl
 	}
+	updateData["updated_at"] = time.Now()
 
 	// Update car record
 	if err := dbUpdateRecord(s.db, "car_models", updateData, int(req.GetId())); err != nil {
