@@ -101,7 +101,7 @@ func handleCreateCar(carService car.CarServiceClient) http.HandlerFunc {
 
 func handleSearchCar(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.SearchForCarReq
+		var req car.SearchReq
 		convertJsonApiToGrpc(w, r, func() error {
 			var err error
 			_, err = carService.SearchForCar(context.Background(), &req)

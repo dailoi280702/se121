@@ -125,7 +125,17 @@ func (s *carSerivceServer) DeleteCar(context context.Context, req *car.DeleteCar
 	return &car.Empty{}, nil
 }
 
-func (s *carSerivceServer) SearchForCar(context.Context, *car.SearchReq) (*car.SearchForCarRes, error) {
+func (s *carSerivceServer) SearchForCar(ctx context.Context, req *car.SearchReq) (*car.SearchForCarRes, error) {
+	// query := generateQuery(req)
+	// rows, err := s.db.Query(query)
+	// if err != nil {
+	// 	return nil, status.Error(codes.Internal, "Verification timeout")
+	// }
+	//    defer rows.Close()
+	//
+	//    for rows.Next() {
+	//        var
+	//    }
 	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
 }
 
@@ -287,4 +297,31 @@ verificationLoop:
 	}
 
 	return nil
+}
+
+func generateSearchForCarQuery(req *car.SearchReq, table string, columns ...string) string {
+	query := "SELECT " + strings.Join(columns, ", ") + "FROM " + table + " WHERE 1=1"
+
+	if req.GetOrderby() != "" {
+		query += fmt.Sprintf(" AND column1 ILIKE '%%%s%%'", req.GetOrderby())
+	}
+
+	if req.GetOrderby() != "" {
+		query += fmt.Sprintf(" ORDER BY %s", req.GetOrderby())
+		if req.GetIsAscending() {
+			query += " ASC"
+		} else {
+			query += " DESC"
+		}
+	}
+
+	if req.GetStartAt() > 0 {
+		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
+	}
+
+	if req.GetLimit() > 0 {
+		query += fmt.Sprintf(" LIMIT %d", req.GetLimit())
+	}
+
+	return query
 }
