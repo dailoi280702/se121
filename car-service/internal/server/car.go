@@ -337,6 +337,9 @@ verificationLoop:
 	return nil
 }
 
+// generateSearchForCarQuery generates a SQL query for searching cars based on the provided search request.
+// The generated query performs a left join on various tables and applies search conditions, ordering, and pagination.
+// The query is returned as a string.
 func generateSearchForCarQuery(req *car.SearchReq) string {
 	query := `
     SELECT car_models.id 
@@ -347,21 +350,23 @@ func generateSearchForCarQuery(req *car.SearchReq) string {
     LEFT JOIN car_transmissions on car_models.transmission = car_transmissions.id
     WHERE 1=1`
 
-	if req.GetOrderby() != "" {
+	// Add search conditions if a query is provided
+	if req.GetQuery() != "" {
 		query += fmt.Sprintf(` 
-            AND car_models.name ILIKE '%%%s%%'
+            AND (car_models.name ILIKE '%%%s%%'
             OR car_brands.name ILIKE '%%%s%%'
             OR car_series.name ILIKE '%%%s%%'
             OR fuel_types.name ILIKE '%%%s%%'
-            OR car_transmissions.name ILIKE '%%%s%%'
-            `, req.GetQuery(), req.GetOrderby(), req.GetQuery(), req.GetQuery(), req.GetQuery())
+            OR car_transmissions.name ILIKE '%%%s%%')`,
+			req.GetQuery(), req.GetQuery(), req.GetQuery(), req.GetQuery(), req.GetQuery())
 	}
 
+	// Add ordering if orderby field is provided
 	if req.GetOrderby() != "" {
 		orderBy := "car_models.create_at"
 		switch req.GetOrderby() {
 		case "date":
-			orderBy = "car_models.created_date"
+			orderBy = "car_models.create_at"
 		case "torque":
 			orderBy = "car_models.torque"
 		case "horsePower":
@@ -379,10 +384,12 @@ func generateSearchForCarQuery(req *car.SearchReq) string {
 		}
 	}
 
+	// Add pagination if startAt field is provided
 	if req.GetStartAt() > 0 {
 		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
 	}
 
+	// Add limit if limit field is provided
 	if req.GetLimit() > 0 {
 		query += fmt.Sprintf(" LIMIT %d", req.GetLimit())
 	}
