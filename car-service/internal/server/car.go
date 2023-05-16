@@ -40,7 +40,7 @@ func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car
 }
 
 func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*car.Empty, error) {
-	// Validate and verify ihputs
+	// Validate and verify inputs
 	err := validateCar(s.db, &req.Name, req.ImageUrl, req.Year, req.HorsePower, req.Torque, req.BrandId, req.SeriesId, req.FuelTypeId, req.TransmissionId)
 	if err != nil {
 		return nil, err

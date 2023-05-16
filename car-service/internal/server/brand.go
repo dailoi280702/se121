@@ -23,11 +23,35 @@ func (s *carSerivceServer) GetBrand(ctx context.Context, req *car.GetBrandReq) (
 	return brand, nil
 }
 
-func (s *carSerivceServer) CreateBrand(context.Context, *car.CreateBrandReq) (*car.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBrand not implemented")
+func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrandReq) (*car.Empty, error) {
+	// Verify inputs
+	if err := validateBrand(&req.Name, req.CountryOfOrigin, req.WebsiteUrl, req.LogoUrl, req.FoundedYear); err != nil {
+		return nil, err
+	}
+
+	// Insert brand into database
+	// :TODO
+
+	return &car.Empty{}, nil
 }
 
-func (s *carSerivceServer) UpdateBrand(context.Context, *car.UpdateBrandReq) (*car.Empty, error) {
+func (s *carSerivceServer) UpdateBrand(ctx context.Context, req *car.UpdateBrandReq) (*car.Empty, error) {
+	// Verify brand existence
+	if err := checkForBrandExistence(s.db, req.GetId()); err != nil {
+		return nil, err
+	}
+
+	// Verify inputs
+	if err := validateBrand(req.Name, req.CountryOfOrigin, req.WebsiteUrl, req.LogoUrl, req.FoundedYear); err != nil {
+		return nil, err
+	}
+
+	// Prepare update data
+	// :TODO
+
+	// Update brand record
+	// :TODO
+
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
 }
 
@@ -66,6 +90,27 @@ func (s *carSerivceServer) SearchForBrand(ctx context.Context, req *car.SearchRe
 	return &res, nil
 }
 
+// validate brand's inputs before modifying database
+// return an json encoded errorResponse as error if inputs are not in correct formats
+func validateBrand(name, countryOfOrigin, webSiteUrl, logoUrl *string, foundedYear *int32) error {
+	// :TODO
+	return nil
+}
+
+// check for existence of a brand in car_brands table using its id
+// return an error if brand does not exist or got an internal error
+func checkForBrandExistence(db *sql.DB, id int32) error {
+	exists, err := dbIdExists(db, "car_brands", id)
+	if err != nil {
+		return serverError(err)
+	}
+	if !exists {
+		return convertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Car id %v not exists", id))
+	}
+	return nil
+}
+
+// genreate sql query for searching brands from grpc request as string
 func generateSearchForBrandsQuery(req *car.SearchReq) string {
 	query := `
     SELECT id, name, country_of_origin, founded_year ,website_url, logo_url
