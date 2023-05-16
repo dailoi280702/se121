@@ -4,7 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"google.golang.org/grpc/codes"
@@ -30,7 +33,12 @@ func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrand
 	}
 
 	// Insert brand into database
-	// :TODO
+	if _, err := s.db.Exec(`
+        INSERT INTO car_brands (name, country_of_origin, founded_year, website_url, logo_url)
+        VALUES ($1, $2, $3, $4, $5)
+        `, req.Name, req.CountryOfOrigin, req.FoundedYear, req.WebsiteUrl, req.LogoUrl); err != nil {
+		return nil, serverError(err)
+	}
 
 	return &car.Empty{}, nil
 }
@@ -93,7 +101,37 @@ func (s *carSerivceServer) SearchForBrand(ctx context.Context, req *car.SearchRe
 // validate brand's inputs before modifying database
 // return an json encoded errorResponse as error if inputs are not in correct formats
 func validateBrand(name, countryOfOrigin, webSiteUrl, logoUrl *string, foundedYear *int32) error {
-	// :TODO
+	validationErrors := map[string]string{}
+
+	if name != nil {
+		if strings.TrimSpace(*name) == "" {
+			validationErrors["name"] = "Name can not be empty"
+		}
+	}
+	if foundedYear != nil {
+		if *foundedYear < 0 || *foundedYear > int32(time.Now().Year()) {
+			validationErrors["foundedYear"] = "Founded year is out of range"
+		}
+	}
+	if countryOfOrigin != nil {
+		if strings.TrimSpace(*countryOfOrigin) == "" {
+			validationErrors["countryOfOrigin"] = "Country of origin can not be empty"
+		}
+	}
+	if webSiteUrl != nil {
+		if strings.TrimSpace(*webSiteUrl) == "" || !regexp.MustCompile(httpRegex).MatchString(*webSiteUrl) {
+			validationErrors["webSiteUrl"] = "Websiate URL is not valid"
+		}
+	}
+	if logoUrl != nil {
+		if strings.TrimSpace(*logoUrl) == "" || !regexp.MustCompile(httpRegex).MatchString(*logoUrl) {
+			validationErrors["logoUrl"] = "Logo URL is not valid"
+		}
+	}
+
+	if len(validationErrors) > 0 {
+		return convertGrpcToJsonError(codes.InvalidArgument, errorResponse{Details: validationErrors})
+	}
 	return nil
 }
 
