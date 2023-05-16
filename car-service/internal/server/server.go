@@ -30,6 +30,10 @@ type errorResponse struct {
 	Details  map[string]string `json:"details,omitempty"`
 }
 
+func serverError(err error) error {
+	return status.Errorf(codes.Internal, "car service error: %v", err)
+}
+
 func dbGetBrandIdBySeriesId(db *sql.DB, id int) (int, error) {
 	brand_id := 0
 	if err := db.QueryRow(`
@@ -81,7 +85,7 @@ func dbGetCarById(db *sql.DB, id int) (*car.Car, error) {
 
 	// Fetch related entities concurrently
 	var wg sync.WaitGroup
-	errCh := make(chan error, 3)
+	errCh := make(chan error, 4)
 
 	// Fetch brand details concurrently
 	if brandId != nil {
@@ -300,16 +304,16 @@ func getAllTransmissionFromDb(db *sql.DB) ([]*car.Transmission, error) {
 	return transmissions, nil
 }
 
-func countNumberOFRows(db *sql.DB, query string, args ...any) (int, error) {
-	c := 0
-	err := db.QueryRow(query, args...).Scan(&c)
+func dbCountRecords(db *sql.DB, table string) (int, error) {
+	query := fmt.Sprintf("SELECT COUNT(*) FROM %s", table)
+
+	var count int
+	err := db.QueryRow(query).Scan(&count)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, nil
-		}
-		return 0, err
+		return 0, fmt.Errorf("failed to count records: %v", err)
 	}
-	return c, nil
+
+	return count, nil
 }
 
 func dbExists(db *sql.DB, query string, args ...any) (bool, error) {

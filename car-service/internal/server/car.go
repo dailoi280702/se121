@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"math"
 	"regexp"
 	"strings"
 	"sync"
@@ -126,17 +127,54 @@ func (s *carSerivceServer) DeleteCar(context context.Context, req *car.DeleteCar
 }
 
 func (s *carSerivceServer) SearchForCar(ctx context.Context, req *car.SearchReq) (*car.SearchForCarRes, error) {
-	// query := generateQuery(req)
-	// rows, err := s.db.Query(query)
-	// if err != nil {
-	// 	return nil, status.Error(codes.Internal, "Verification timeout")
-	// }
-	//    defer rows.Close()
-	//
-	//    for rows.Next() {
-	//        var
-	//    }
-	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
+	query := generateSearchForCarQuery(req)
+	idList := []int{}
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		err := rows.Scan(&id)
+		idList = append(idList, id)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+		}
+	}
+
+	errCh := make(chan error, 2)
+	var wg sync.WaitGroup
+	var res car.SearchForCarRes
+	wg.Add(2)
+
+	go func() {
+		res.Cars, err = getCarsFromIds(s.db, int(math.Ceil(math.Sqrt(float64(len(idList))))), idList...)
+		errCh <- err
+		wg.Done()
+	}()
+
+	go func() {
+		total, err := dbCountRecords(s.db, "car_models")
+		res.Total = int32(total)
+		errCh <- err
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err := range errCh {
+		if err != nil {
+			return nil, serverError(err)
+		}
+	}
+
+	return &res, nil
 }
 
 func (s *carSerivceServer) GetCarMetadata(context.Context, *car.Empty) (*car.GetCarMetadataRes, error) {
@@ -299,15 +337,41 @@ verificationLoop:
 	return nil
 }
 
-func generateSearchForCarQuery(req *car.SearchReq, table string, columns ...string) string {
-	query := "SELECT " + strings.Join(columns, ", ") + "FROM " + table + " WHERE 1=1"
+func generateSearchForCarQuery(req *car.SearchReq) string {
+	query := `
+    SELECT car_models.id 
+    FROM  car_models
+    LEFT JOIN car_brands on car_models.brand_id = car_brands.id
+    LEFT JOIN car_series on car_models.series_id = car_series.id
+    LEFT JOIN fuel_types on car_models.fuel_type = fuel_types.id
+    LEFT JOIN car_transmissions on car_models.transmission = car_transmissions.id
+    WHERE 1=1`
 
 	if req.GetOrderby() != "" {
-		query += fmt.Sprintf(" AND column1 ILIKE '%%%s%%'", req.GetOrderby())
+		query += fmt.Sprintf(` 
+            AND car_models.name ILIKE '%%%s%%'
+            OR car_brands.name ILIKE '%%%s%%'
+            OR car_series.name ILIKE '%%%s%%'
+            OR fuel_types.name ILIKE '%%%s%%'
+            OR car_transmissions.name ILIKE '%%%s%%'
+            `, req.GetQuery(), req.GetOrderby(), req.GetQuery(), req.GetQuery(), req.GetQuery())
 	}
 
 	if req.GetOrderby() != "" {
-		query += fmt.Sprintf(" ORDER BY %s", req.GetOrderby())
+		orderBy := "car_models.create_at"
+		switch req.GetOrderby() {
+		case "date":
+			orderBy = "car_models.created_date"
+		case "torque":
+			orderBy = "car_models.torque"
+		case "horsePower":
+			orderBy = "car_models.horsepower"
+		case "year":
+			orderBy = "car_models.year"
+		case "name":
+			orderBy = "car_models.name"
+		}
+		query += fmt.Sprintf(" ORDER BY %s", orderBy)
 		if req.GetIsAscending() {
 			query += " ASC"
 		} else {
@@ -324,4 +388,71 @@ func generateSearchForCarQuery(req *car.SearchReq, table string, columns ...stri
 	}
 
 	return query
+}
+
+// getCarsFromIds retrieves cars from the database based on the provided IDs.
+// It uses a worker pool approach to parallelize the database queries and
+// returns the cars in the same order as the provided IDs.
+func getCarsFromIds(db *sql.DB, numWorkers int, ids ...int) ([]*car.Car, error) {
+	numTasks := len(ids)
+
+	cars := make([]*car.Car, len(ids))
+	carsCh := make(chan struct {
+		idex int
+		car  *car.Car
+	}, len(ids))
+
+	type task struct {
+		idex  int
+		carId int
+	}
+	taskCh := make(chan task, numTasks)
+
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
+
+	// worker performs the actual retrieval of cars from the database
+	worker := func() {
+		for task := range taskCh {
+			c, err := dbGetCarById(db, task.carId)
+			if err != nil {
+				// Send a nil car to indicate an error occurred during retrieval
+				carsCh <- struct {
+					idex int
+					car  *car.Car
+				}{task.idex, nil}
+				continue
+			}
+
+			// Send the retrieved car and its index to the cars channel
+			carsCh <- struct {
+				idex int
+				car  *car.Car
+			}{task.idex, c}
+		}
+		wg.Done()
+	}
+
+	// Spawn worker goroutines
+	for i := 0; i < numWorkers; i++ {
+		go worker()
+	}
+
+	// Launch tasks
+	for i, id := range ids {
+		taskCh <- task{i, id}
+	}
+	close(taskCh)
+
+	go func() {
+		wg.Wait()
+		close(carsCh)
+	}()
+
+	// Collect the retrieved cars from the cars channel
+	for result := range carsCh {
+		cars[result.idex] = result.car
+	}
+
+	return cars, nil
 }
