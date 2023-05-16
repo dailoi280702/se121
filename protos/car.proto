@@ -4,30 +4,28 @@ package car;
 
 option go_package = "github.com/dailoi280702/se121/car-service/pkg/car";
 
-import "./utils.proto";
-
 service CarService {
   rpc GetCar(GetCarReq) returns (Car);
   rpc CreateCar(CreateCarReq) returns (Empty);
   rpc UpdateCar(UpdateCarReq) returns (Empty);
   rpc DeleteCar(DeleteCarReq) returns (Empty);
-  rpc SearchForCar(utils.SearchReq) returns (SearchForCarRes);
+  rpc SearchForCar(SearchReq) returns (SearchForCarRes);
 
   rpc GetBrand(GetBrandReq) returns (Brand);
   rpc CreateBrand(CreateBrandReq) returns (Empty);
   rpc UpdateBrand(UpdateBrandReq) returns (Empty);
-  rpc SearchForBrand(utils.SearchReq) returns (SearchForBrandRes);
+  rpc SearchForBrand(SearchReq) returns (SearchForBrandRes);
 
   rpc GetSeries(GetSeriesReq) returns (Series);
   rpc CreateSeries(CreateSeriesReq) returns (Empty);
   rpc UpdateSeries(UpdateSeriesReq) returns (Empty);
-  rpc SearchForSeries(utils.SearchReq) returns (SearchForSeriesRes);
+  rpc SearchForSeries(SearchReq) returns (SearchForSeriesRes);
 
   rpc GetCarMetadata(Empty) returns (GetCarMetadataRes);
 }
 
 message Car {
-  string id = 1;
+  int32 id = 1;
   optional Brand brand = 2;
   optional Series series = 3;
   string name = 4;
@@ -117,7 +115,7 @@ message CreateBrandReq {
 }
 
 message UpdateBrandReq {
-  optional string id = 1;
+  int32 id = 1;
   optional string name = 2;
   optional string countryOfOrigin = 3;
   optional int32 foundedYear = 4;
@@ -138,27 +136,6 @@ message UpdateSeriesReq {
   int32 id = 1;
   string name = 2;
   int32 brandId = 3;
-}
-
-message SearchForCarReq {
-  string text = 1;
-  string orderby = 2;
-  int32 startAt = 3;
-  int32 limit = 4;
-}
-
-message SearchForBrandReq {
-  string text = 1;
-  string orderby = 2;
-  int32 startAt = 3;
-  int32 limit = 4;
-}
-
-message SearchForSeriesReq {
-  string text = 1;
-  string orderby = 2;
-  int32 startAt = 3;
-  int32 limit = 4;
 }
 
 message SearchForCarRes {
