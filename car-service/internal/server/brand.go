@@ -105,7 +105,7 @@ func checkForBrandExistence(db *sql.DB, id int32) error {
 		return serverError(err)
 	}
 	if !exists {
-		return convertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Car id %v not exists", id))
+		return convertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Brand id %v not exists", id))
 	}
 	return nil
 }

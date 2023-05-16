@@ -12,6 +12,8 @@ func NewBrandRoutes(carService car.CarServiceClient) chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/", handleGetBrand(carService))
+	r.Post("/", handleCreateBrand(carService))
+	r.Put("/", handleUpdateBrand(carService))
 	r.Get("/search", handleSearchForBrand(carService))
 
 	return r
@@ -31,6 +33,30 @@ func handleGetBrand(carService car.CarServiceClient) http.HandlerFunc {
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))
+	}
+}
+
+func handleCreateBrand(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.CreateBrandReq
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				_, err := carService.CreateBrand(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req))
+	}
+}
+
+func handleUpdateBrand(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.UpdateBrandReq
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				_, err := carService.UpdateBrand(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req))
 	}
 }
 
