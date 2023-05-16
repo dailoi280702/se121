@@ -8,8 +8,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (s *carSerivceServer) GetBrand(context.Context, *car.GetBrandReq) (*car.Brand, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetBrand not implemented")
+func (s *carSerivceServer) GetBrand(ctx context.Context, req *car.GetBrandReq) (*car.Brand, error) {
+	id := int(req.GetId())
+	brand, err := dbGetBrandById(s.db, id)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "error while get car data from db: %v", err)
+	}
+	if brand == nil {
+		return nil, status.Errorf(codes.NotFound, "car %d not exists", id)
+	}
+	return brand, nil
 }
 
 func (s *carSerivceServer) CreateBrand(context.Context, *car.CreateBrandReq) (*car.Empty, error) {
