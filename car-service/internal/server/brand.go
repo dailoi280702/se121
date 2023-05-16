@@ -55,12 +55,29 @@ func (s *carSerivceServer) UpdateBrand(ctx context.Context, req *car.UpdateBrand
 	}
 
 	// Prepare update data
-	// :TODO
+	updateData := map[string]interface{}{"updated_at": time.Now()}
+	if req.Name != nil {
+		updateData["name"] = *req.Name
+	}
+	if req.CountryOfOrigin != nil {
+		updateData["country_of_origin"] = *req.CountryOfOrigin
+	}
+	if req.FoundedYear != nil {
+		updateData["founded_year"] = *req.FoundedYear
+	}
+	if req.WebsiteUrl != nil {
+		updateData["website_url"] = *req.WebsiteUrl
+	}
+	if req.LogoUrl != nil {
+		updateData["logo_url"] = *req.LogoUrl
+	}
 
 	// Update brand record
-	// :TODO
+	if err := dbUpdateRecord(s.db, "car_brands", updateData, int(req.GetId())); err != nil {
+		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateBrand not implemented")
+	return &car.Empty{}, nil
 }
 
 func (s *carSerivceServer) SearchForBrand(ctx context.Context, req *car.SearchReq) (*car.SearchForBrandRes, error) {
