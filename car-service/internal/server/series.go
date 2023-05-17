@@ -20,8 +20,12 @@ func (s *carSerivceServer) GetSeries(ctx context.Context, req *car.GetSeriesReq)
 	}
 
 	// Fetch series from database
+	series, err := dbGetSeriesById(s.db, int(id))
+	if err != nil {
+		return nil, serverError(err)
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method GetSeries not implemented")
+	return series, nil
 }
 
 func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeriesReq) (*car.Empty, error) {
