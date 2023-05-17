@@ -36,8 +36,15 @@ func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeri
 	}
 
 	// Insert series into database
+	_, err := s.db.Exec(`
+        INSERT INTO car_series (name, brand_id)
+        VALUES ($1, $2)
+        `, req.Name, req.BrandId)
+	if err != nil {
+		return nil, serverError(fmt.Errorf("failed to insert series: %v", err))
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method CreateSeries not implemented")
+	return &car.Empty{}, nil
 }
 
 func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeriesReq) (*car.Empty, error) {
@@ -135,7 +142,7 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 	go func() {
 		defer wg.Done()
 		nameExists, err := dbExists(db, `
-            SELECT EXISTS(SELECT 1 FROM car_series WHERE name = $1
+            SELECT EXISTS(SELECT 1 FROM car_series WHERE name = $1)
             `, *name)
 		errCh <- err
 		if nameExists {
@@ -158,16 +165,16 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 		close(errCh)
 	}()
 
-	// return an error if verification failed
-	if len(validateErrors) > 0 {
-		return convertGrpcToJsonError(codes.InvalidArgument, errorResponse{Details: validateErrors})
-	}
-
 	// return interal error if exist
 	for err := range errCh {
 		if err != nil {
 			return serverError(err)
 		}
+	}
+
+	// return an error if verification failed
+	if len(validateErrors) > 0 {
+		return convertGrpcToJsonError(codes.InvalidArgument, errorResponse{Details: validateErrors})
 	}
 
 	return nil
