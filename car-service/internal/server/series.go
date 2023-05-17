@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -58,8 +59,34 @@ func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeri
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeries not implemented")
 }
 
-func (s *carSerivceServer) SearchForSeries(context.Context, *car.SearchReq) (*car.SearchForSeriesRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchForCar not implemented")
+func (s *carSerivceServer) SearchForSeries(ctx context.Context, req *car.SearchReq) (*car.SearchForSeriesRes, error) {
+	res := car.SearchForSeriesRes{}
+	errCh := make(chan error)
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		var err error
+		res.Total, err = fetchNumSeries(s.db, req)
+		errCh <- err
+	}()
+
+	go func() {
+		defer wg.Done()
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err := range errCh {
+		if err != nil {
+			return nil, serverError(err)
+		}
+	}
+	return &res, nil
 }
 
 // check for series existence in database by its id
@@ -99,13 +126,11 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 
 	errCh := make(chan error)
 	var wg sync.WaitGroup
-	go func() {
-		wg.Done()
-		close(errCh)
-	}()
+	wg.Add(2)
 
 	// verify name
 	go func() {
+		defer wg.Done()
 		nameExists, err := dbExists(db, `
             SELECT EXISTS(SELECT 1 FROM car_series WHERE name = $1
             `, *name)
@@ -117,11 +142,17 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 
 	// verify brand
 	go func() {
+		defer wg.Done()
 		brandExists, err := dbIdExists(db, "car_brands", *brandID)
 		errCh <- err
 		if !brandExists {
 			validateErrors["brandId"] = fmt.Sprintf("Brand %d does not exist", *brandID)
 		}
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errCh)
 	}()
 
 	// return an error if verification failed
@@ -139,12 +170,82 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 	return nil
 }
 
-// return SQL query string for series from search request
+// return SQL query string for get series from search request
 func generateSQLSearchQueryForSeries(req *car.SearchReq) string {
-	return ""
+	query := `
+    SELECT car_series.id, car_series.name, car_series.brand_id
+    FROM car_series
+    LEFT JOIN car_brands on car_series.brand_id = car_brands.id
+    WHERE 1=1`
+
+	// Add search conditions if a query is provided
+	if req.GetQuery() != "" {
+		query += fmt.Sprintf(` 
+            AND (name ILIKE '%%%s%%'
+            OR brand.name ILIKE '%%%s%%')`,
+			req.GetQuery(), req.GetQuery())
+	}
+
+	// Add ordering if orderby field is provided
+	if req.GetOrderby() != "" {
+		var orderBy string
+		switch req.GetOrderby() {
+		case "name":
+			orderBy = "car_series.name"
+		default:
+			orderBy = "car_series.created_at"
+		}
+		query += fmt.Sprintf(" ORDER BY %s", orderBy)
+		if req.GetIsAscending() {
+			query += " ASC"
+		} else {
+			query += " DESC"
+		}
+	}
+
+	// Add pagination if startAt field is provided
+	if req.GetStartAt() > 0 {
+		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
+	}
+
+	// Add limit if limit field is provided
+	if req.GetLimit() > 0 {
+		query += fmt.Sprintf(" LIMIT %d", req.GetLimit())
+	}
+
+	return query
 }
 
 // fetch series from database by SQL query
-func fetchSeries(db *sql.DB, query string) ([]*car.Series, error) {
+func fetchSeries(db *sql.DB, req *car.SearchReq) ([]*car.Series, error) {
 	return nil, nil
+}
+
+// fetch numbser of series from database by SQL query
+func fetchNumSeries(db *sql.DB, req *car.SearchReq) (int32, error) {
+	query := `
+    SELECT COUNT(*)
+    FROM car_series
+    LEFT JOIN car_brands on car_series.brand_id = car_brands.id
+    WHERE 1=1`
+
+	// Add search conditions if a query is provided
+	if req.GetQuery() != "" {
+		query += fmt.Sprintf(` 
+            AND (car_series.name ILIKE '%%%s%%'
+            OR car_brands.name ILIKE '%%%s%%')`,
+			req.GetQuery(), req.GetQuery())
+	}
+
+	var nums int
+	if err := db.QueryRow(query).Scan(&nums); err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return 0, nil
+		default:
+			return 0, err
+		}
+	}
+
+	return int32(nums), nil
 }
