@@ -21,9 +21,7 @@ func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car
 	id := int(req.GetId())
 	exists, err := dbIdExists(s.db, "car_models", id)
 	if err != nil {
-		if err != nil {
-			return nil, status.Errorf(codes.Internal, "error while checking for car existence: %v", err)
-		}
+		return nil, status.Errorf(codes.Internal, "error while checking for car existence: %v", err)
 	}
 	if !exists {
 		return nil, convertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Car %d not exists", id))
