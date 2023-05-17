@@ -140,8 +140,8 @@ message CreateSeriesReq {
 
 message UpdateSeriesReq {
   int32 id = 1;
-  string name = 2;
-  int32 brandId = 3;
+  optional string name = 2;
+  optional int32 brandId = 3;
 }
 
 message SearchForCarRes {

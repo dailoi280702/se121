@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 func (s *carSerivceServer) GetSeries(ctx context.Context, req *car.GetSeriesReq) (*car.Series, error) {
@@ -55,15 +55,25 @@ func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeri
 	}
 
 	// Validate and verify inputs
-	if err := validateSeries(s.db, &req.Name, &req.BrandId); err != nil {
+	if err := validateSeries(s.db, req.Name, req.BrandId); err != nil {
 		return nil, err
 	}
 
 	// Prepare update data
+	updateData := map[string]interface{}{"updated_at": time.Now()}
+	if req.Name != nil {
+		updateData["name"] = *req.Name
+	}
+	if req.BrandId != nil {
+		updateData["brand_id"] = *req.BrandId
+	}
 
 	// Update series record
+	if err := dbUpdateRecord(s.db, "car_series", updateData, int(id)); err != nil {
+		return nil, serverError(err)
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeries not implemented")
+	return &car.Empty{}, nil
 }
 
 func (s *carSerivceServer) SearchForSeries(ctx context.Context, req *car.SearchReq) (*car.SearchForSeriesRes, error) {
@@ -136,29 +146,34 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 
 	errCh := make(chan error)
 	var wg sync.WaitGroup
-	wg.Add(2)
 
 	// verify name
-	go func() {
-		defer wg.Done()
-		nameExists, err := dbExists(db, `
+	if name != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			nameExists, err := dbExists(db, `
             SELECT EXISTS(SELECT 1 FROM car_series WHERE name = $1)
             `, *name)
-		errCh <- err
-		if nameExists {
-			validateErrors["name"] = fmt.Sprintf("Series %s already exists", *name)
-		}
-	}()
+			errCh <- err
+			if nameExists {
+				validateErrors["name"] = fmt.Sprintf("Series %s already exists", *name)
+			}
+		}()
+	}
 
 	// verify brand
-	go func() {
-		defer wg.Done()
-		brandExists, err := dbIdExists(db, "car_brands", *brandID)
-		errCh <- err
-		if !brandExists {
-			validateErrors["brandId"] = fmt.Sprintf("Brand %d does not exist", *brandID)
-		}
-	}()
+	if brandID != nil {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			brandExists, err := dbIdExists(db, "car_brands", *brandID)
+			errCh <- err
+			if !brandExists {
+				validateErrors["brandId"] = fmt.Sprintf("Brand %d does not exist", *brandID)
+			}
+		}()
+	}
 
 	go func() {
 		wg.Wait()
