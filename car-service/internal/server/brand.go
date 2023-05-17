@@ -238,6 +238,11 @@ func fetchBrands(db *sql.DB, query string) ([]*car.Brand, error) {
 }
 
 func fetchBrandsByIDs(db *sql.DB, ids ...int) ([]*car.Brand, error) {
+	// Guard condition
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
 	// Convert list of ids to list of string
 	idStrings := make([]string, len(ids))
 	for i, num := range ids {
