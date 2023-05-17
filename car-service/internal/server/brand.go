@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -234,4 +235,21 @@ func fetchBrands(db *sql.DB, query string) ([]*car.Brand, error) {
 		brands = append(brands, &brand)
 	}
 	return brands, nil
+}
+
+func fetchBrandsByIDs(db *sql.DB, ids ...int) ([]*car.Brand, error) {
+	// Convert list of ids to list of string
+	idStrings := make([]string, len(ids))
+	for i, num := range ids {
+		idStrings[i] = strconv.Itoa(num)
+	}
+
+	// Prepare the SQL query to retrieve records based on the list of IDs
+	query := fmt.Sprintf(`
+    SELECT id, name, country_of_origin, founded_year ,website_url, logo_url
+    FROM car_brands
+    WHERE id IN (%s)`, strings.Join(idStrings, ", "))
+
+	// Fetch brands
+	return fetchBrands(db, query)
 }

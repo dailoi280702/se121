@@ -53,6 +53,12 @@ message Series {
   int32 brandId = 3;
 }
 
+message SeriesDetail {
+  int32 id = 1;
+  string name = 2;
+  Brand brand = 3;
+}
+
 message Transmission {
   int32 id = 1;
   string name = 2;
@@ -149,7 +155,7 @@ message SearchForBrandRes {
 }
 
 message SearchForSeriesRes {
-    repeated Series series = 1;
+    repeated SeriesDetail series = 1;
     int32 total = 2;
 }
 

@@ -68,12 +68,15 @@ func (s *carSerivceServer) SearchForSeries(ctx context.Context, req *car.SearchR
 	go func() {
 		defer wg.Done()
 		var err error
-		res.Total, err = fetchNumSeries(s.db, req)
+		res.Series, err = fetchSeriesDetails(s.db, req)
 		errCh <- err
 	}()
 
 	go func() {
 		defer wg.Done()
+		var err error
+		res.Total, err = fetchNumSeries(s.db, req)
+		errCh <- err
 	}()
 
 	go func() {
@@ -171,7 +174,7 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 }
 
 // return SQL query string for get series from search request
-func generateSQLSearchQueryForSeries(req *car.SearchReq) string {
+func generateSearchSeriesQuery(req *car.SearchReq) string {
 	query := `
     SELECT car_series.id, car_series.name, car_series.brand_id
     FROM car_series
@@ -181,8 +184,8 @@ func generateSQLSearchQueryForSeries(req *car.SearchReq) string {
 	// Add search conditions if a query is provided
 	if req.GetQuery() != "" {
 		query += fmt.Sprintf(` 
-            AND (name ILIKE '%%%s%%'
-            OR brand.name ILIKE '%%%s%%')`,
+            AND (car_series.name ILIKE '%%%s%%'
+            OR car_brands.name ILIKE '%%%s%%')`,
 			req.GetQuery(), req.GetQuery())
 	}
 
@@ -217,8 +220,57 @@ func generateSQLSearchQueryForSeries(req *car.SearchReq) string {
 }
 
 // fetch series from database by SQL query
-func fetchSeries(db *sql.DB, req *car.SearchReq) ([]*car.Series, error) {
-	return nil, nil
+func fetchSeriesDetails(db *sql.DB, req *car.SearchReq) ([]*car.SeriesDetail, error) {
+	query := generateSearchSeriesQuery(req)
+	brands := map[int]*car.Brand{}
+	brandIDs := []int{}
+	seriesList := []*car.Series{}
+	seriesDetails := []*car.SeriesDetail{}
+
+	rows, err := db.Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return seriesDetails, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	// fetch list of series
+	for rows.Next() {
+		var series car.Series
+
+		err = rows.Scan(&series.Id, &series.Name, &series.BrandId)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get record: %v", err)
+		}
+
+		seriesList = append(seriesList, &series)
+		brandIDs = append(brandIDs, int(series.BrandId))
+	}
+
+	// fetch existed brands in list of series
+	brandList, err := fetchBrandsByIDs(db, brandIDs...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch brands %v", err)
+	}
+	// convet list of brands of map of brand id and brand
+	for _, brand := range brandList {
+		if brand != nil {
+			brands[int((*brand).GetId())] = brand
+		}
+	}
+
+	// Combine brands and list of series
+	for _, series := range seriesList {
+		seriesDetails = append(seriesDetails, &car.SeriesDetail{
+			Id:    series.Id,
+			Name:  series.Name,
+			Brand: brands[int(series.BrandId)],
+		})
+	}
+
+	return seriesDetails, nil
 }
 
 // fetch numbser of series from database by SQL query
