@@ -77,7 +77,7 @@ func (s *InMemoryTokenStore) Remove(token string) error {
 	}
 
 	ctx := context.Background()
-	s.client.HDel(ctx, *existingTokens, token).Err()
+	err = s.client.HDel(ctx, *existingTokens, token).Err()
 	if err != nil {
 		return err
 	}
