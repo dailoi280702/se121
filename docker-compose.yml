@@ -63,7 +63,7 @@ services:
     container_name: blog-service
     build: ./blog-service/
     environment:
-      DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
+      DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
       - blog-service
     volumes:

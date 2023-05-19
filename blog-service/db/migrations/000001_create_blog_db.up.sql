@@ -11,7 +11,7 @@ CREATE TABLE blogs(
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     image_url TEXT NULL,
-    author STRING NULL,
+    author TEXT NULL,
     tldr TEXT NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE NULL
@@ -48,8 +48,6 @@ CREATE TABLE blog_tags(
 ALTER TABLE
     blog_tags ADD PRIMARY KEY(id);
 
-ALTER TABLE
-    blog_tags ADD PRIMARY KEY(id);
 ALTER TABLE
     blog_tags ADD CONSTRAINT blog_tags_blog_id_foreign FOREIGN KEY(blog_id) REFERENCES blogs(id);
 ALTER TABLE
