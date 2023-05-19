@@ -66,6 +66,7 @@ services:
       DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
       - blog-service
+      - db
     volumes:
       - ./blog-service/:/app
     depends_on:

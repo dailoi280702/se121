@@ -15,7 +15,7 @@ func NewBlogRoutes(blogService blog.BlogServiceClient) chi.Router {
 	c.Put("/", handleUpdateBlog(blogService))
 	c.Post("/", handleCreateBlog(blogService))
 	c.Delete("/", handleDeleteBlog(blogService))
-	c.Get("/Search", handleSearchBlog(blogService))
+	c.Get("/search", handleSearchBlog(blogService))
 
 	return c
 }
