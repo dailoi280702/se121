@@ -145,28 +145,28 @@ message UpdateSeriesReq {
 }
 
 message SearchForCarRes {
-    repeated Car cars = 1;
-    int32 total = 2;
+  repeated Car cars = 1;
+  int32 total = 2;
 }
 
 message SearchForBrandRes {
-    repeated Brand brands = 1;
-    int32 total = 2;
+  repeated Brand brands = 1;
+  int32 total = 2;
 }
 
 message SearchForSeriesRes {
-    repeated SeriesDetail series = 1;
-    int32 total = 2;
+  repeated SeriesDetail series = 1;
+  int32 total = 2;
 }
 
 message GetCarMetadataRes {
-    repeated Brand brands = 1;
-    repeated Series series = 2;
-    repeated FuelType fuelType = 3;
-    repeated Transmission transmission = 4;
+  repeated Brand brands = 1;
+  repeated Series series = 2;
+  repeated FuelType fuelType = 3;
+  repeated Transmission transmission = 4;
 }
 
-message SearchReq{
+message SearchReq {
   optional string query = 1;
   optional string orderby = 2;
   optional int32 startAt = 3;

@@ -36,7 +36,7 @@ service BlogService {
   rpc GetBlog(GetBlogReq) returns (Blog);
   rpc UpdateBlog(UpdateBlogReq) returns (Empty);
   rpc DeleteBlog(DeleteBlogReq) returns (Empty);
-  rpc SearchForBlogs(SearchForBlogsReq) returns (stream BlogOverViews);
+  rpc SearchForBlogs(SearchReq) returns (SearchBlogsRes);
   rpc GetNumberOfBlogs(Empty) returns (GetNumberOfBlogsRes);
 
   // :TODO add method for tags
@@ -44,7 +44,7 @@ service BlogService {
   rpc UpdateTag(UpdateTagReq) returns (Empty);
   rpc DeleteTag(DeleteTagReq) returns (Empty);
   rpc GetTag(GetTagReq) returns (Tag);
-  rpc GetAllTag(Empty) returns (stream Tag);
+  rpc GetAllTag(Empty) returns (GetAllTagsRes);
 }
 
 message GetTagReq {
@@ -64,6 +64,10 @@ message UpdateTagReq {
 message CreateTagReq {
   string name = 1;
   optional string description = 2;
+}
+
+message GetAllTagsRes {
+  repeated Tag tags = 1;
 }
 
 message Empty {}
@@ -94,11 +98,17 @@ message UpdateBlogReq {
   optional int64 updatedAt = 8;
 }
 
-message SearchForBlogsReq {
-  string text = 1;
-  string orderby = 2;
-  int32 startAt = 3;
-  int32 limit = 4;
+message SearchReq {
+  optional string query = 1;
+  optional string orderby = 2;
+  optional int32 startAt = 3;
+  optional int32 limit = 4;
+  optional bool isAscending = 5;
+}
+
+message SearchBlogsRes {
+  repeated Blog blogs = 1;
+  int32 total = 2;
 }
 
 message GetNumberOfBlogsRes {

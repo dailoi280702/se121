@@ -26,14 +26,14 @@ type BlogServiceClient interface {
 	GetBlog(ctx context.Context, in *GetBlogReq, opts ...grpc.CallOption) (*Blog, error)
 	UpdateBlog(ctx context.Context, in *UpdateBlogReq, opts ...grpc.CallOption) (*Empty, error)
 	DeleteBlog(ctx context.Context, in *DeleteBlogReq, opts ...grpc.CallOption) (*Empty, error)
-	SearchForBlogs(ctx context.Context, in *SearchForBlogsReq, opts ...grpc.CallOption) (BlogService_SearchForBlogsClient, error)
+	SearchForBlogs(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchBlogsRes, error)
 	GetNumberOfBlogs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetNumberOfBlogsRes, error)
 	// :TODO add method for tags
 	CreateTag(ctx context.Context, in *CreateTagReq, opts ...grpc.CallOption) (*Empty, error)
 	UpdateTag(ctx context.Context, in *UpdateTagReq, opts ...grpc.CallOption) (*Empty, error)
 	DeleteTag(ctx context.Context, in *DeleteTagReq, opts ...grpc.CallOption) (*Empty, error)
 	GetTag(ctx context.Context, in *GetTagReq, opts ...grpc.CallOption) (*Tag, error)
-	GetAllTag(ctx context.Context, in *Empty, opts ...grpc.CallOption) (BlogService_GetAllTagClient, error)
+	GetAllTag(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetAllTagsRes, error)
 }
 
 type blogServiceClient struct {
@@ -80,36 +80,13 @@ func (c *blogServiceClient) DeleteBlog(ctx context.Context, in *DeleteBlogReq, o
 	return out, nil
 }
 
-func (c *blogServiceClient) SearchForBlogs(ctx context.Context, in *SearchForBlogsReq, opts ...grpc.CallOption) (BlogService_SearchForBlogsClient, error) {
-	stream, err := c.cc.NewStream(ctx, &BlogService_ServiceDesc.Streams[0], "/blog.BlogService/SearchForBlogs", opts...)
+func (c *blogServiceClient) SearchForBlogs(ctx context.Context, in *SearchReq, opts ...grpc.CallOption) (*SearchBlogsRes, error) {
+	out := new(SearchBlogsRes)
+	err := c.cc.Invoke(ctx, "/blog.BlogService/SearchForBlogs", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &blogServiceSearchForBlogsClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type BlogService_SearchForBlogsClient interface {
-	Recv() (*BlogOverViews, error)
-	grpc.ClientStream
-}
-
-type blogServiceSearchForBlogsClient struct {
-	grpc.ClientStream
-}
-
-func (x *blogServiceSearchForBlogsClient) Recv() (*BlogOverViews, error) {
-	m := new(BlogOverViews)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 func (c *blogServiceClient) GetNumberOfBlogs(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetNumberOfBlogsRes, error) {
@@ -157,36 +134,13 @@ func (c *blogServiceClient) GetTag(ctx context.Context, in *GetTagReq, opts ...g
 	return out, nil
 }
 
-func (c *blogServiceClient) GetAllTag(ctx context.Context, in *Empty, opts ...grpc.CallOption) (BlogService_GetAllTagClient, error) {
-	stream, err := c.cc.NewStream(ctx, &BlogService_ServiceDesc.Streams[1], "/blog.BlogService/GetAllTag", opts...)
+func (c *blogServiceClient) GetAllTag(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*GetAllTagsRes, error) {
+	out := new(GetAllTagsRes)
+	err := c.cc.Invoke(ctx, "/blog.BlogService/GetAllTag", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &blogServiceGetAllTagClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type BlogService_GetAllTagClient interface {
-	Recv() (*Tag, error)
-	grpc.ClientStream
-}
-
-type blogServiceGetAllTagClient struct {
-	grpc.ClientStream
-}
-
-func (x *blogServiceGetAllTagClient) Recv() (*Tag, error) {
-	m := new(Tag)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // BlogServiceServer is the server API for BlogService service.
@@ -197,14 +151,14 @@ type BlogServiceServer interface {
 	GetBlog(context.Context, *GetBlogReq) (*Blog, error)
 	UpdateBlog(context.Context, *UpdateBlogReq) (*Empty, error)
 	DeleteBlog(context.Context, *DeleteBlogReq) (*Empty, error)
-	SearchForBlogs(*SearchForBlogsReq, BlogService_SearchForBlogsServer) error
+	SearchForBlogs(context.Context, *SearchReq) (*SearchBlogsRes, error)
 	GetNumberOfBlogs(context.Context, *Empty) (*GetNumberOfBlogsRes, error)
 	// :TODO add method for tags
 	CreateTag(context.Context, *CreateTagReq) (*Empty, error)
 	UpdateTag(context.Context, *UpdateTagReq) (*Empty, error)
 	DeleteTag(context.Context, *DeleteTagReq) (*Empty, error)
 	GetTag(context.Context, *GetTagReq) (*Tag, error)
-	GetAllTag(*Empty, BlogService_GetAllTagServer) error
+	GetAllTag(context.Context, *Empty) (*GetAllTagsRes, error)
 	mustEmbedUnimplementedBlogServiceServer()
 }
 
@@ -224,8 +178,8 @@ func (UnimplementedBlogServiceServer) UpdateBlog(context.Context, *UpdateBlogReq
 func (UnimplementedBlogServiceServer) DeleteBlog(context.Context, *DeleteBlogReq) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlog not implemented")
 }
-func (UnimplementedBlogServiceServer) SearchForBlogs(*SearchForBlogsReq, BlogService_SearchForBlogsServer) error {
-	return status.Errorf(codes.Unimplemented, "method SearchForBlogs not implemented")
+func (UnimplementedBlogServiceServer) SearchForBlogs(context.Context, *SearchReq) (*SearchBlogsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchForBlogs not implemented")
 }
 func (UnimplementedBlogServiceServer) GetNumberOfBlogs(context.Context, *Empty) (*GetNumberOfBlogsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNumberOfBlogs not implemented")
@@ -242,8 +196,8 @@ func (UnimplementedBlogServiceServer) DeleteTag(context.Context, *DeleteTagReq) 
 func (UnimplementedBlogServiceServer) GetTag(context.Context, *GetTagReq) (*Tag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTag not implemented")
 }
-func (UnimplementedBlogServiceServer) GetAllTag(*Empty, BlogService_GetAllTagServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllTag not implemented")
+func (UnimplementedBlogServiceServer) GetAllTag(context.Context, *Empty) (*GetAllTagsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTag not implemented")
 }
 func (UnimplementedBlogServiceServer) mustEmbedUnimplementedBlogServiceServer() {}
 
@@ -330,25 +284,22 @@ func _BlogService_DeleteBlog_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BlogService_SearchForBlogs_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(SearchForBlogsReq)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _BlogService_SearchForBlogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchReq)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(BlogServiceServer).SearchForBlogs(m, &blogServiceSearchForBlogsServer{stream})
-}
-
-type BlogService_SearchForBlogsServer interface {
-	Send(*BlogOverViews) error
-	grpc.ServerStream
-}
-
-type blogServiceSearchForBlogsServer struct {
-	grpc.ServerStream
-}
-
-func (x *blogServiceSearchForBlogsServer) Send(m *BlogOverViews) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(BlogServiceServer).SearchForBlogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/blog.BlogService/SearchForBlogs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogServiceServer).SearchForBlogs(ctx, req.(*SearchReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _BlogService_GetNumberOfBlogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -441,25 +392,22 @@ func _BlogService_GetTag_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _BlogService_GetAllTag_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Empty)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _BlogService_GetAllTag_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(BlogServiceServer).GetAllTag(m, &blogServiceGetAllTagServer{stream})
-}
-
-type BlogService_GetAllTagServer interface {
-	Send(*Tag) error
-	grpc.ServerStream
-}
-
-type blogServiceGetAllTagServer struct {
-	grpc.ServerStream
-}
-
-func (x *blogServiceGetAllTagServer) Send(m *Tag) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(BlogServiceServer).GetAllTag(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/blog.BlogService/GetAllTag",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlogServiceServer).GetAllTag(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // BlogService_ServiceDesc is the grpc.ServiceDesc for BlogService service.
@@ -486,6 +434,10 @@ var BlogService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _BlogService_DeleteBlog_Handler,
 		},
 		{
+			MethodName: "SearchForBlogs",
+			Handler:    _BlogService_SearchForBlogs_Handler,
+		},
+		{
 			MethodName: "GetNumberOfBlogs",
 			Handler:    _BlogService_GetNumberOfBlogs_Handler,
 		},
@@ -505,18 +457,11 @@ var BlogService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetTag",
 			Handler:    _BlogService_GetTag_Handler,
 		},
-	},
-	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "SearchForBlogs",
-			Handler:       _BlogService_SearchForBlogs_Handler,
-			ServerStreams: true,
-		},
-		{
-			StreamName:    "GetAllTag",
-			Handler:       _BlogService_GetAllTag_Handler,
-			ServerStreams: true,
+			MethodName: "GetAllTag",
+			Handler:    _BlogService_GetAllTag_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "blog.proto",
 }

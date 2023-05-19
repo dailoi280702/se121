@@ -64,8 +64,8 @@ func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlog not implemented")
 }
 
-func (s *server) SearchForBlogs(*blog.SearchForBlogsReq, blog.BlogService_SearchForBlogsServer) error {
-	return status.Errorf(codes.Unimplemented, "method SearchForBlogs not implemented")
+func (s *server) SearchForBlogs(ctx context.Context, req *blog.SearchReq) (*blog.SearchBlogsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SearchForBlogs not implemented")
 }
 
 func (s *server) GetNumberOfBlogs(context.Context, *blog.Empty) (*blog.GetNumberOfBlogsRes, error) {

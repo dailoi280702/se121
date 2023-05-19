@@ -24,6 +24,6 @@ func (s *server) GetTag(context.Context, *blog.GetTagReq) (*blog.Tag, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTag not implemented")
 }
 
-func (s *server) GetAllTag(*blog.Empty, blog.BlogService_GetAllTagServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllTag not implemented")
+func (s *server) GetAllTag(context.Context, *blog.Empty) (*blog.GetAllTagsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllTag not implemented")
 }
