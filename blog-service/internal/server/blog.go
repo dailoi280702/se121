@@ -2,25 +2,62 @@ package server
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-func (s *server) CreateBlog(context.Context, *blog.CreateBlogReq) (*blog.Empty, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBlog not implemented")
-}
+func (s *server) GetBlog(ctx context.Context, req *blog.GetBlogReq) (*blog.Blog, error) {
+	// Check for blog existence
+	id := req.GetId()
+	err := checkBlogExistence(s.db, id)
+	if err != nil {
+		return nil, err
+	}
 
-func (s *server) GetBlog(context.Context, *blog.GetBlogReq) (*blog.Blog, error) {
+	// Fetch blog from database
+
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlog not implemented")
 }
 
-func (s *server) UpdateBlog(context.Context, *blog.UpdateBlogReq) (*blog.Empty, error) {
+func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog.Empty, error) {
+	// Validate and verify inputs
+	err := validateBLog(s.db, &req.Title, &req.Body, req.Tldr, &req.Author, req.ImageUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	// Insert blog into database
+
+	return nil, status.Errorf(codes.Unimplemented, "method CreateBlog not implemented")
+}
+
+func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*blog.Empty, error) {
+	// Validate and verify inputs
+	err := validateBLog(s.db, req.Title, req.Body, req.Tldr, nil, req.ImageUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare update data
+
+	// Update blog record
+
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBlog not implemented")
 }
 
-func (s *server) DeleteBlog(context.Context, *blog.DeleteBlogReq) (*blog.Empty, error) {
+func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog.Empty, error) {
+	// Check for blog existence
+	id := req.GetId()
+	err := checkBlogExistence(s.db, id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Delete blog record
+
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlog not implemented")
 }
 
@@ -30,4 +67,12 @@ func (s *server) SearchForBlogs(*blog.SearchForBlogsReq, blog.BlogService_Search
 
 func (s *server) GetNumberOfBlogs(context.Context, *blog.Empty) (*blog.GetNumberOfBlogsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNumberOfBlogs not implemented")
+}
+
+func checkBlogExistence(db *sql.DB, id int32) error {
+	return nil
+}
+
+func validateBLog(db *sql.DB, title, body, trdl, author, imageUrl *string) error {
+	return nil
 }

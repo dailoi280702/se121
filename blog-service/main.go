@@ -22,14 +22,14 @@ import (
 
 var serverAddress = flag.String("server address", "[::]:50051", "address of blog server")
 
-func serveServer() {
+func serveServer(db *sql.DB) {
 	lis, err := net.Listen("tcp", *serverAddress)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	sv := grpc.NewServer()
-	blog.RegisterBlogServiceServer(sv, server.NewServer())
+	blog.RegisterBlogServiceServer(sv, server.NewServer(db))
 	if err := sv.Serve(lis); err != nil {
 		log.Fatalf("failed to serve server: %v", err)
 	}
@@ -66,5 +66,5 @@ func main() {
 	defer db.Close()
 
 	runDBMigration(db)
-	serveServer()
+	serveServer(db)
 }
