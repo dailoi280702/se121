@@ -97,9 +97,9 @@ func insertBlog(db *sql.DB, req *blog.CreateBlogReq) (int, error) {
 	return id, nil
 }
 
-func updateBlog(db *sql.DB, req *blog.UpdateBlogReq) error {
+func updateBlog(tx *sql.Tx, req *blog.UpdateBlogReq) error {
 	// Prepare update data
-	updateData := map[string]interface{}{"udpated_at": "NOW()"}
+	updateData := map[string]interface{}{"updated_at": "NOW()"}
 	if req.Title != nil {
 		updateData["title"] = *req.Title
 	}
@@ -114,21 +114,18 @@ func updateBlog(db *sql.DB, req *blog.UpdateBlogReq) error {
 	}
 
 	// Update blog record
-	return sqlutils.UpdateRecord(db, "blogs", updateData, int(req.Id))
+	return sqlutils.UpdateRecordWithTransaction(tx, "blogs", updateData, int(req.Id))
 }
 
-func updateBlogTags(db *sql.DB, blogID int, tagIDs []int) error {
-	// Start a transaction
-	tx, err := db.Begin()
+func updateBlogTags(tx *sql.Tx, blogID int, tagIDs []int) error {
+	// Remove old blog_tags
+	_, err := tx.Exec("DELETE FROM blog_tags WHERE blog_id = $1", blogID)
 	if err != nil {
 		return err
 	}
 
-	// Remove old blog_tags
-	_, err = tx.Exec("DELETE FROM blog_tags WHERE blog_id = $1", blogID)
-	if err != nil {
-		_ = tx.Rollback()
-		return err
+	if len(tagIDs) == 0 {
+		return nil
 	}
 
 	// Prepare the INSERT statement for multiple blog_tags
@@ -148,14 +145,6 @@ func updateBlogTags(db *sql.DB, blogID int, tagIDs []int) error {
 	// Insert new blog_tags
 	_, err = tx.Exec(insertQuery, args...)
 	if err != nil {
-		_ = tx.Rollback()
-		return err
-	}
-
-	// Commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		_ = tx.Rollback()
 		return err
 	}
 

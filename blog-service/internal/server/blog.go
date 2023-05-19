@@ -4,7 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"strings"
+	"sync"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/pkg/go/sqlutils"
@@ -42,17 +44,59 @@ func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog
 }
 
 func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*blog.Empty, error) {
-	// Validate and verify inputs
-	err := validateBLog(s.db, req.Title, req.Body, req.Tldr, nil, req.ImageUrl, req.Tags)
+	// Check for blog existence
+	id := req.GetId()
+	err := checkBlogExistence(s.db, id)
 	if err != nil {
 		return nil, err
 	}
 
-	// Prepare update data
+	// Validate and verify inputs
+	err = validateBLog(s.db, req.Title, req.Body, req.Tldr, nil, req.ImageUrl, req.Tags)
+	if err != nil {
+		return nil, err
+	}
 
-	// Update blog record
+	errCh := make(chan error)
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateBlog not implemented")
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, serverError(fmt.Errorf("failed to start transaction: %v", err))
+	}
+
+	go func() {
+		err := updateBlog(tx, req)
+		errCh <- err
+		wg.Done()
+	}()
+
+	go func() {
+		tagIDs, err := insertTagsIfNotExists(s.db, req.Tags)
+		errCh <- err
+		errCh <- updateBlogTags(tx, int(id), tagIDs)
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err := range errCh {
+		if err != nil {
+			log.Println("Update failed, rooling back...")
+			_ = tx.Rollback()
+			return nil, serverError(err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
+	}
+
+	return &blog.Empty{}, nil
 }
 
 func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog.Empty, error) {

@@ -340,6 +340,8 @@ github.com/d2g/dhcp4server v0.0.0-20181031114812-7d4a0a7f59a5/go.mod h1:Eo87+Kg/
 github.com/d2g/hardwareaddr v0.0.0-20190221164911-e7d9fbe030e4/go.mod h1:bMl4RjIciD2oAxI7DmWRx6gbeqrkoLqv3MV0vzNad+I=
 github.com/dailoi280702/se121/pkg/go v0.0.0-20230519020329-8e707e6dd415 h1:7ikOIG1N9b18PXN21W/92Mv3Tuqsg4wPvfpAFnECkso=
 github.com/dailoi280702/se121/pkg/go v0.0.0-20230519020329-8e707e6dd415/go.mod h1:oxqNpTiyBhvZrJNrPC7kTfenjVdVw/ZwHat7WTBFrOs=
+github.com/dailoi280702/se121/pkg/go v0.0.0-20230519141506-a72846b03f43 h1:uWwKIXQcvSHh09mfkFAWd3GUiPKSvvrp82EAeSG8UcQ=
+github.com/dailoi280702/se121/pkg/go v0.0.0-20230519141506-a72846b03f43/go.mod h1:oxqNpTiyBhvZrJNrPC7kTfenjVdVw/ZwHat7WTBFrOs=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
