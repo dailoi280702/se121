@@ -73,19 +73,19 @@ func handleDeleteBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 	}
 }
 
-// func handleSearchBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
-// 	return func(w http.ResponseWriter, r *http.Request) {
-// 		var req blog.SearchForBlogsReq
-// 		var res *blog.B
-// 		convertJsonApiToGrpc(w, r,
-// 			func() error {
-// 				var err error
-// 				res, err = blogService.SearchForBlogs(context.Background(), &req)
-// 				return err
-// 			},
-// 			convertWithJsonReqData(&req),
-// 			convertWithPostFunc(func() {
-// 				SendJson(w, res)
-// 			}))
-// 	}
-// }
+func handleSearchBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req blog.SearchReq
+		var res *blog.SearchBlogsRes
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				res, err = blogService.SearchForBlogs(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}))
+	}
+}

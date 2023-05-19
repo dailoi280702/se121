@@ -344,6 +344,8 @@ github.com/d2g/dhcp4server v0.0.0-20181031114812-7d4a0a7f59a5/go.mod h1:Eo87+Kg/
 github.com/d2g/hardwareaddr v0.0.0-20190221164911-e7d9fbe030e4/go.mod h1:bMl4RjIciD2oAxI7DmWRx6gbeqrkoLqv3MV0vzNad+I=
 github.com/dailoi280702/se121/blog-service v0.0.0-20230518135741-a63f385301a8 h1:yD/sYGl2ohTlt/27vq/5ep5Q8zTnuakOVVClnALY6K0=
 github.com/dailoi280702/se121/blog-service v0.0.0-20230518135741-a63f385301a8/go.mod h1:6m8d2luOs/Pe0zCfuT2tjQuuZsQA97iOO0vVaEMUV/U=
+github.com/dailoi280702/se121/blog-service v0.0.0-20230519042321-dc950b159746 h1:TeimevgTPgfn2msQlSF87LH1mzyN0PH2XeJRlVYvKrk=
+github.com/dailoi280702/se121/blog-service v0.0.0-20230519042321-dc950b159746/go.mod h1:djkbhWyuoUH/r7kd8car/N0AVCDucdQXf+p8ocwDttk=
 github.com/dailoi280702/se121/car-service v0.0.0-20230517131018-2ce86c3e9827 h1:bxC+83yUcHUi+mbHILc6LlpFkZlhzpFT62WCCjQjcV0=
 github.com/dailoi280702/se121/car-service v0.0.0-20230517131018-2ce86c3e9827/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
