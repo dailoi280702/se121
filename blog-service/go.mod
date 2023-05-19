@@ -3,19 +3,19 @@ module github.com/dailoi280702/se121/blog-service
 go 1.20
 
 require (
+	github.com/dailoi280702/se121/pkg/go v0.0.0-20230519020329-8e707e6dd415
 	github.com/golang-migrate/migrate/v4 v4.15.2
+	github.com/lib/pq v1.10.0
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 )
 
 require (
-	github.com/dailoi280702/se121/pkg/go v0.0.0-20230519020329-8e707e6dd415 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-github/v39 v39.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
-	github.com/lib/pq v1.10.0 // indirect
 	go.uber.org/atomic v1.7.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/net v0.8.0 // indirect
