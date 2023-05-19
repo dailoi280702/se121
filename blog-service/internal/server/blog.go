@@ -3,8 +3,11 @@ package server
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
+	"github.com/dailoi280702/se121/pkg/go/sqlutils"
+	"github.com/dailoi280702/se121/pkg/go/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -70,6 +73,13 @@ func (s *server) GetNumberOfBlogs(context.Context, *blog.Empty) (*blog.GetNumber
 }
 
 func checkBlogExistence(db *sql.DB, id int32) error {
+	exists, err := sqlutils.IdExists(db, "blogs", id)
+	if err != nil {
+		return serverError(err)
+	}
+	if !exists {
+		return utils.ConvertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Blog %d does not exist", id))
+	}
 	return nil
 }
 
