@@ -14,6 +14,7 @@ message Blog {
   // timestamp converted to unix time (milisecond)
   int64 createdAt = 7;
   optional int64 updatedAt = 8;
+  repeated Tag tags = 9;
 }
 
 message BlogOverViews {
@@ -78,7 +79,7 @@ message CreateBlogReq {
   optional string image_url = 3;
   string author = 4;
   optional string tldr = 5;
-  optional int64 createdAt = 6;
+  repeated Tag tags = 6;
 }
 
 message GetBlogReq {
@@ -95,7 +96,7 @@ message UpdateBlogReq {
   optional string body = 3;
   optional string image_url = 4;
   optional string tldr = 6;
-  optional int64 updatedAt = 8;
+  repeated Tag tags = 7;
 }
 
 message SearchReq {
