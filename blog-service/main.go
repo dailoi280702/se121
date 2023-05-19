@@ -63,8 +63,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to db :%v", err)
 	}
+	runDBMigration(db)
 	defer db.Close()
 
-	runDBMigration(db)
 	serveServer(db)
 }

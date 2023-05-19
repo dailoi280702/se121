@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/pkg/go/sqlutils"
@@ -27,19 +28,22 @@ func (s *server) GetBlog(ctx context.Context, req *blog.GetBlogReq) (*blog.Blog,
 
 func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog.Empty, error) {
 	// Validate and verify inputs
-	err := validateBLog(s.db, &req.Title, &req.Body, req.Tldr, &req.Author, req.ImageUrl)
+	err := validateBLog(s.db, &req.Title, &req.Body, req.Tldr, &req.Author, req.ImageUrl, req.Tags)
 	if err != nil {
 		return nil, err
 	}
 
 	// Insert blog into database
+	if err := createBlogWithTags(s.db, req); err != nil {
+		return nil, serverError(err)
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method CreateBlog not implemented")
+	return &blog.Empty{}, nil
 }
 
 func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*blog.Empty, error) {
 	// Validate and verify inputs
-	err := validateBLog(s.db, req.Title, req.Body, req.Tldr, nil, req.ImageUrl)
+	err := validateBLog(s.db, req.Title, req.Body, req.Tldr, nil, req.ImageUrl, req.Tags)
 	if err != nil {
 		return nil, err
 	}
@@ -83,6 +87,65 @@ func checkBlogExistence(db *sql.DB, id int32) error {
 	return nil
 }
 
-func validateBLog(db *sql.DB, title, body, trdl, author, imageUrl *string) error {
+func validateBLog(db *sql.DB, title, body, trdl, author, imageUrl *string, tags []*blog.Tag) error {
+	validationErrors := map[string]string{}
+
+	if title != nil {
+		if strings.TrimSpace(*title) == "" {
+			validationErrors["title"] = "Title can not be empty"
+		}
+	}
+	if body != nil {
+		if strings.TrimSpace(*body) == "" {
+			validationErrors["body"] = "Body can not be empty"
+		}
+	}
+	if trdl != nil {
+		if strings.TrimSpace(*trdl) == "" {
+			validationErrors["trdl"] = "TRDL can not be empty"
+		}
+	}
+	if author != nil {
+		if strings.TrimSpace(*author) == "" {
+			validationErrors["author"] = "Author can not be empty"
+		}
+	}
+	if imageUrl != nil {
+		if strings.TrimSpace(*imageUrl) == "" {
+			validationErrors["imageUrl"] = "Image URL can not be empty"
+		}
+	}
+
+	if len(validationErrors) > 0 {
+		return utils.ConvertGrpcToJsonError(codes.InvalidArgument, errorResponse{
+			Details: validationErrors,
+		})
+	}
+
 	return nil
+}
+
+func createBlogWithTags(db *sql.DB, req *blog.CreateBlogReq) error {
+	// Insert blog record
+	blogId, err := insertBlog(db, req)
+	if err != nil {
+		return err
+	}
+	if len(req.Tags) == 0 {
+		return nil
+	}
+
+	// Insert new tag record if tag name not exists
+	tagIds := []int{}
+	for _, tag := range req.Tags {
+		tagId, err := insertTagIfNotExists(db, tag)
+		if err != nil {
+			return err
+		}
+		tagIds = append(tagIds, tagId)
+	}
+
+	// Create blog and tags references
+	err = createBlogTags(db, blogId, tagIds)
+	return err
 }
