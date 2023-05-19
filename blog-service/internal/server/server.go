@@ -3,9 +3,12 @@ package server
 import (
 	"database/sql"
 	"fmt"
+	"math"
 	"strings"
+	"sync"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
+	"github.com/dailoi280702/se121/pkg/go/sqlutils"
 )
 
 type server struct {
@@ -18,7 +21,7 @@ func NewServer(db *sql.DB) *server {
 }
 
 func serverError(err error) error {
-	return fmt.Errorf("Blog server error %v", err)
+	return fmt.Errorf("Blog server error: %v", err)
 }
 
 type errorResponse struct {
@@ -92,4 +95,125 @@ func insertBlog(db *sql.DB, req *blog.CreateBlogReq) (int, error) {
 	}
 
 	return id, nil
+}
+
+func updateBlog(db *sql.DB, req *blog.UpdateBlogReq) error {
+	// Prepare update data
+	updateData := map[string]interface{}{"udpated_at": "NOW()"}
+	if req.Title != nil {
+		updateData["title"] = *req.Title
+	}
+	if req.Body != nil {
+		updateData["body"] = *req.Body
+	}
+	if req.ImageUrl != nil {
+		updateData["image_url"] = *req.ImageUrl
+	}
+	if req.Tldr != nil {
+		updateData["tldr"] = *req.Tldr
+	}
+
+	// Update blog record
+	return sqlutils.UpdateRecord(db, "blogs", updateData, int(req.Id))
+}
+
+func updateBlogTags(db *sql.DB, blogID int, tagIDs []int) error {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// Remove old blog_tags
+	_, err = tx.Exec("DELETE FROM blog_tags WHERE blog_id = $1", blogID)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Prepare the INSERT statement for multiple blog_tags
+	insertStmt := "INSERT INTO blog_tags (tag_id, blog_id) VALUES "
+	values := make([]string, len(tagIDs))
+	for i := range tagIDs {
+		values[i] = fmt.Sprintf("($%d, $%d)", i*2+1, i*2+2)
+	}
+
+	insertQuery := insertStmt + strings.Join(values, ", ")
+	args := make([]interface{}, len(tagIDs)*2)
+	for i, tagID := range tagIDs {
+		args[i*2] = tagID
+		args[i*2+1] = blogID
+	}
+
+	// Insert new blog_tags
+	_, err = tx.Exec(insertQuery, args...)
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	return nil
+}
+
+// Insert new tag record if tag name not exists and return list of tags id
+func insertTagsIfNotExists(db *sql.DB, tags []*blog.Tag) ([]int, error) {
+	numsWorker := getNumWorkers(len(tags))
+	jobs := make(chan *blog.Tag, len(tags))
+	errCh := make(chan error)
+	var wg sync.WaitGroup
+	wg.Add(numsWorker)
+
+	tagIds := []int{}
+
+	// Function to insert tags concurrently
+	worker := func() {
+		defer wg.Done()
+		for tag := range jobs {
+			tagId, err := insertTagIfNotExists(db, tag)
+			errCh <- err
+			tagIds = append(tagIds, tagId)
+		}
+	}
+
+	// Spawn workers in goroutines
+	for i := 0; i < numsWorker; i++ {
+		go worker()
+	}
+
+	// Send jobs to workers
+	for _, tag := range tags {
+		jobs <- tag
+	}
+	close(jobs)
+
+	// Close errCh after all workers fished working
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	// Check for errors in the errCh channel
+	for err := range errCh {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tagIds, nil
+}
+
+// calculates the number of worker goroutines based on the number of jobs.
+func getNumWorkers(numJobs int) int {
+	numWorkers := int(math.Floor(math.Sqrt(float64(numJobs))))
+	if numWorkers > 10 {
+		return 10
+	}
+	return numWorkers
 }

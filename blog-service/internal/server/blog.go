@@ -4,9 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"math"
 	"strings"
-	"sync"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/pkg/go/sqlutils"
@@ -138,58 +136,12 @@ func createBlogWithTags(db *sql.DB, req *blog.CreateBlogReq) error {
 		return nil
 	}
 
-	// Insert new tag record if tag name not exists
-	numsWorker := getNumWorkers(len(req.Tags))
-	jobs := make(chan *blog.Tag, len(req.Tags))
-	errCh := make(chan error)
-	var wg sync.WaitGroup
-	wg.Add(numsWorker)
-
-	tagIds := []int{}
-
-	// Function to insert tags concurrently
-	worker := func() {
-		defer wg.Done()
-		for tag := range jobs {
-			tagId, err := insertTagIfNotExists(db, tag)
-			errCh <- err
-			tagIds = append(tagIds, tagId)
-		}
-	}
-
-	// Spawn workers in goroutines
-	for i := 0; i < numsWorker; i++ {
-		go worker()
-	}
-
-	// Send jobs to workers
-	for _, tag := range req.Tags {
-		jobs <- tag
-	}
-	close(jobs)
-	// Close errCh after all workers fished working
-	go func() {
-		wg.Wait()
-		close(errCh)
-	}()
-
-	// Check for errors in the errCh channel
-	for err := range errCh {
-		if err != nil {
-			return err
-		}
+	tagIds, err := insertTagsIfNotExists(db, req.Tags)
+	if err != nil {
+		return err
 	}
 
 	// Create blog and tags references
 	err = createBlogTags(db, blogId, tagIds)
 	return err
-}
-
-// calculates the number of worker goroutines based on the number of jobs.
-func getNumWorkers(numJobs int) int {
-	numWorkers := int(math.Floor(math.Sqrt(float64(numJobs))))
-	if numWorkers > 10 {
-		return 10
-	}
-	return numWorkers
 }

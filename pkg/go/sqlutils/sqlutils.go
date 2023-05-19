@@ -86,6 +86,30 @@ func UpdateRecord(db *sql.DB, table string, record map[string]interface{}, id in
 	return nil
 }
 
+func UpdateRecordWithTransaction(tx *sql.Tx, table string, record map[string]interface{}, id int) error {
+	query := fmt.Sprintf("UPDATE %s SET", table)
+
+	args := make([]interface{}, 0)
+	i := 1
+	for key, value := range record {
+		if value == nil {
+			continue
+		}
+		query += fmt.Sprintf(" %s = $%d,", key, i)
+		args = append(args, value)
+		i++
+	}
+	query = query[:len(query)-1] + fmt.Sprintf(" WHERE id = $%d", i)
+	args = append(args, id)
+
+	_, err := tx.Exec(query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to update record: %v", err)
+	}
+
+	return nil
+}
+
 func IdExists(db *sql.DB, table, id any) (bool, error) {
 	query := `
         SELECT exists( SELECT 1 FROM %s WHERE id = $1)
