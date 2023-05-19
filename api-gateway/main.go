@@ -13,6 +13,7 @@ import (
 	"github.com/dailoi280702/se121/api-gateway/internal/service/auth"
 	"github.com/dailoi280702/se121/api-gateway/internal/service/user"
 	"github.com/dailoi280702/se121/api-gateway/protos"
+	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
@@ -29,6 +30,7 @@ var (
 	userServicePort = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
 	authServicePort = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
 	carServicePort  = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
+	blogServicePort = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
 	redisAddr       = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
@@ -59,6 +61,15 @@ func NewCarService(ctx context.Context) (*grpc.ClientConn, car.CarServiceClient)
 	return conn, car.NewCarServiceClient(conn)
 }
 
+func NewBlogService(ctx context.Context) (*grpc.ClientConn, blog.BlogServiceClient) {
+	conn, err := grpc.DialContext(ctx, *blogServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect auth service: %v", err)
+	}
+
+	return conn, blog.NewBlogServiceClient(conn)
+}
+
 func main() {
 	// grpc
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -72,6 +83,7 @@ func main() {
 	userServiceConn, userService := NewUserService(ctx)
 	authServiceConn, authService := NewAuthService(ctx)
 	carServiceConn, carService := NewCarService(ctx)
+	blogServiceConn, blogService := NewBlogService(ctx)
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -91,6 +103,7 @@ func main() {
 		userServiceConn.Close()
 		authServiceConn.Close()
 		carServiceConn.Close()
+		blogServiceConn.Close()
 	}()
 
 	// database migratetion
@@ -118,6 +131,11 @@ func main() {
 
 	// routes
 	router := chi.NewRouter()
-	router.Mount("/v1", api_v1.InitRouter(c, redisClient, db, userService, authService, carService))
+	router.Mount("/v1", api_v1.InitRouter(
+		c, redisClient, db,
+		userService,
+		authService,
+		carService,
+		blogService))
 	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }

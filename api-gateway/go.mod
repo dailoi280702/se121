@@ -3,6 +3,7 @@ module github.com/dailoi280702/se121/api-gateway
 go 1.20
 
 require (
+	github.com/dailoi280702/se121/blog-service v0.0.0-20230518135741-a63f385301a8
 	github.com/dailoi280702/se121/car-service v0.0.0-20230517131018-2ce86c3e9827
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1

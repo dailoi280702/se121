@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/dailoi280702/se121/pkg/go v0.0.0-20230519015156-0443d85d24fa // indirect
+	github.com/dailoi280702/se121/pkg/go v0.0.0-20230519020329-8e707e6dd415 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-github/v39 v39.2.0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
