@@ -3,6 +3,7 @@ package server
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"math"
 	"strings"
 	"sync"
@@ -29,10 +30,11 @@ type errorResponse struct {
 	Details  map[string]string `json:"details,omitempty"`
 }
 
-func insertTagIfNotExists(db *sql.DB, tag *blog.Tag) (int, error) {
+func insertTagIfNotExists(tx *sql.Tx, tag *blog.Tag) (int, error) {
 	if tag == nil {
 		return 0, nil
 	}
+	log.Println("connected")
 
 	// Clean the tag name by removing extra spaces and convert to lowercase
 	cleanTagName := strings.ToLower(strings.TrimSpace(tag.Name))
@@ -40,12 +42,12 @@ func insertTagIfNotExists(db *sql.DB, tag *blog.Tag) (int, error) {
 	// Check if the tag already exists (case-insensitive and space-insensitive)
 	query := "SELECT id FROM tags WHERE LOWER(TRIM(name)) = $1"
 	var id int
-	err := db.QueryRow(query, cleanTagName).Scan(&id)
+	err := tx.QueryRow(query, cleanTagName).Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// If the tag does not exist, insert a new record
 			insertQuery := "INSERT INTO tags (name, description) VALUES ($1, $2) RETURNING id"
-			err = db.QueryRow(insertQuery, tag.Name, tag.Description).Scan(&id)
+			err = tx.QueryRow(insertQuery, tag.Name, tag.Description).Scan(&id)
 			if err != nil {
 				return 0, fmt.Errorf("failed to insert tag: %v", err)
 			}
@@ -57,7 +59,7 @@ func insertTagIfNotExists(db *sql.DB, tag *blog.Tag) (int, error) {
 	return id, nil
 }
 
-func createBlogTags(db *sql.DB, blogId int, tags []int) error {
+func createBlogTags(tx *sql.Tx, blogId int, tags []int) error {
 	// Prepare the INSERT statement
 	insertQuery := "INSERT INTO blog_tags (tag_id, blog_id) VALUES "
 
@@ -73,7 +75,7 @@ func createBlogTags(db *sql.DB, blogId int, tags []int) error {
 	insertQuery += strings.Join(placeholders, ", ")
 
 	// Execute the INSERT statement
-	_, err := db.Exec(insertQuery, values...)
+	_, err := tx.Exec(insertQuery, values...)
 	if err != nil {
 		return fmt.Errorf("failed to insert into blog_tags: %v", err)
 	}
@@ -81,11 +83,11 @@ func createBlogTags(db *sql.DB, blogId int, tags []int) error {
 	return nil
 }
 
-func insertBlog(db *sql.DB, req *blog.CreateBlogReq) (int, error) {
+func insertBlog(tx *sql.Tx, req *blog.CreateBlogReq) (int, error) {
 	var id int
 
 	// Execute the INSERT statement and retrieve the ID of the newly inserted blog
-	err := db.QueryRow(`
+	err := tx.QueryRow(`
 		INSERT INTO blogs (title, body, author, tldr, image_url)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id
@@ -152,8 +154,9 @@ func updateBlogTags(tx *sql.Tx, blogID int, tagIDs []int) error {
 }
 
 // Insert new tag record if tag name not exists and return list of tags id
-func insertTagsIfNotExists(db *sql.DB, tags []*blog.Tag) ([]int, error) {
-	numsWorker := getNumWorkers(len(tags))
+func insertTagsIfNotExists(tx *sql.Tx, tags []*blog.Tag) ([]int, error) {
+	// numsWorker := getNumWorkers(len(tags))
+	numsWorker := 1
 	jobs := make(chan *blog.Tag, len(tags))
 	errCh := make(chan error)
 	var wg sync.WaitGroup
@@ -165,7 +168,7 @@ func insertTagsIfNotExists(db *sql.DB, tags []*blog.Tag) ([]int, error) {
 	worker := func() {
 		defer wg.Done()
 		for tag := range jobs {
-			tagId, err := insertTagIfNotExists(db, tag)
+			tagId, err := insertTagIfNotExists(tx, tag)
 			errCh <- err
 			tagIds = append(tagIds, tagId)
 		}

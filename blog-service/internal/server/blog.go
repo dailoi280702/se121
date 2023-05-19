@@ -35,9 +35,25 @@ func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog
 		return nil, err
 	}
 
+	// Create transaction
+	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, serverError(fmt.Errorf("failed to start transaction: %v", err))
+	}
+
 	// Insert blog into database
-	if err := createBlogWithTags(s.db, req); err != nil {
-		return nil, serverError(err)
+	if err := createBlogWithTags(tx, req); err != nil {
+		if err != nil {
+			log.Println("Insert blog failed, rooling back...")
+			_ = tx.Rollback()
+			return nil, serverError(err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		log.Println("Insert blog failed, rooling back...")
+		_ = tx.Rollback()
+		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
 	}
 
 	return &blog.Empty{}, nil
@@ -73,7 +89,7 @@ func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*blog
 	}()
 
 	go func() {
-		tagIDs, err := insertTagsIfNotExists(s.db, req.Tags)
+		tagIDs, err := insertTagsIfNotExists(tx, req.Tags)
 		errCh <- err
 		errCh <- updateBlogTags(tx, int(id), tagIDs)
 		wg.Done()
@@ -93,6 +109,8 @@ func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*blog
 	}
 
 	if err := tx.Commit(); err != nil {
+		log.Println("Update blog failed, rooling back...")
+		_ = tx.Rollback()
 		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
 	}
 
@@ -170,9 +188,9 @@ func validateBLog(db *sql.DB, title, body, trdl, author, imageUrl *string, tags 
 }
 
 // creates a blog record with associated tags in the database.
-func createBlogWithTags(db *sql.DB, req *blog.CreateBlogReq) error {
+func createBlogWithTags(tx *sql.Tx, req *blog.CreateBlogReq) error {
 	// Insert blog record
-	blogId, err := insertBlog(db, req)
+	blogId, err := insertBlog(tx, req)
 	if err != nil {
 		return err
 	}
@@ -180,12 +198,12 @@ func createBlogWithTags(db *sql.DB, req *blog.CreateBlogReq) error {
 		return nil
 	}
 
-	tagIds, err := insertTagsIfNotExists(db, req.Tags)
+	tagIds, err := insertTagsIfNotExists(tx, req.Tags)
 	if err != nil {
 		return err
 	}
 
 	// Create blog and tags references
-	err = createBlogTags(db, blogId, tagIds)
+	err = createBlogTags(tx, blogId, tagIds)
 	return err
 }
