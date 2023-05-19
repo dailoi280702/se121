@@ -126,8 +126,11 @@ func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog
 	}
 
 	// Delete blog record
+	if err := deleteBlog(s.db, int(id)); err != nil {
+		return nil, serverError(err)
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteBlog not implemented")
+	return &blog.Empty{}, nil
 }
 
 func (s *server) SearchForBlogs(ctx context.Context, req *blog.SearchReq) (*blog.SearchBlogsRes, error) {

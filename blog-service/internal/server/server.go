@@ -153,6 +153,57 @@ func updateBlogTags(tx *sql.Tx, blogID int, tagIDs []int) error {
 	return nil
 }
 
+func deleteBlog(db *sql.DB, blogID int) error {
+	// Start a transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %v", err)
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			// Rollback the transaction in case of a panic
+			_ = tx.Rollback()
+			panic(p) // Re-throw panic after rollback
+		} else if err != nil {
+			// Rollback the transaction in case of an error
+			_ = tx.Rollback()
+		} else {
+			// Commit the transaction if everything succeeded
+			err = tx.Commit()
+			if err != nil {
+				_ = tx.Rollback()
+				log.Println("failed to commit transaction:", err)
+			}
+		}
+	}()
+
+	// Delete associated records in blog_cars
+	_, err = tx.Exec("DELETE FROM blog_cars WHERE blog_id = $1", blogID)
+	if err != nil {
+		return fmt.Errorf("failed to delete blog_cars records: %v", err)
+	}
+
+	// Delete associated records in blog_tags
+	_, err = tx.Exec("DELETE FROM blog_tags WHERE blog_id = $1", blogID)
+	if err != nil {
+		return fmt.Errorf("failed to delete blog_tags records: %v", err)
+	}
+
+	// Delete associated records in blog_comments
+	_, err = tx.Exec("DELETE FROM blog_comments WHERE blog_id = $1", blogID)
+	if err != nil {
+		return fmt.Errorf("failed to delete blog_comments records: %v", err)
+	}
+
+	// Delete the blog record itself
+	_, err = tx.Exec("DELETE FROM blogs WHERE id = $1", blogID)
+	if err != nil {
+		return fmt.Errorf("failed to delete blog record: %v", err)
+	}
+
+	return nil
+}
+
 // Insert new tag record if tag name not exists and return list of tags id
 func insertTagsIfNotExists(tx *sql.Tx, tags []*blog.Tag) ([]int, error) {
 	// numsWorker := getNumWorkers(len(tags))
