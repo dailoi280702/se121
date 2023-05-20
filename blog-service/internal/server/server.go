@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -330,3 +331,77 @@ func insertTagsIfNotExists(tx *sql.Tx, tags []*blog.Tag) ([]int, error) {
 // 	}
 // 	return numWorkers
 // }
+
+func getBlogsByIds(db *sql.DB, ids []int) ([]*blog.Blog, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	rows, err := db.Query(fmt.Sprintf(`
+        SELECT id, title, body, tldr, author, image_url, created_at
+        FROM blogs
+        WHERE id IN ( %s )`, convertIntSliceToString(ids, ", ")))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	blogs := map[int]*blog.Blog{}
+	for rows.Next() {
+		var b blog.Blog
+		var t time.Time
+		err := rows.Scan(&b.Id, &b.Title, &b.Body, &b.Tldr, &b.Author, &b.ImageUrl, &t)
+		if err != nil {
+			return nil, err
+		}
+		b.CreatedAt = t.UnixMilli()
+		blogs[int(b.Id)] = &b
+	}
+	return getValuesFromMapByKeys(ids, blogs), nil
+}
+
+func getTagsByIds(db *sql.DB, ids []int) ([]*blog.Tag, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	rows, err := db.Query(fmt.Sprintf(`
+        SELECT id, name, description
+        FROM tags
+        WHERE id  IN ( %s)`, convertIntSliceToString(ids, ", ")))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	tags := map[int]*blog.Tag{}
+	for rows.Next() {
+		var t blog.Tag
+		err := rows.Scan(&t.Id, &t.Name, &t.Description)
+		if err != nil {
+			return nil, err
+		}
+		tags[int(t.Id)] = &t
+	}
+	return getValuesFromMapByKeys(ids, tags), nil
+}
+
+func convertIntSliceToString(slice []int, sep string) string {
+	stringSlice := make([]string, len(slice))
+	for i, num := range slice {
+		stringSlice[i] = strconv.Itoa(num)
+	}
+	return strings.Join(stringSlice, ", ")
+}
+
+func getValuesFromMapByKeys[K comparable, V any](keys []K, m map[K]V) []V {
+	values := make([]V, len(keys))
+	for i, key := range keys {
+		values[i] = m[key]
+	}
+	return values
+}

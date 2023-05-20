@@ -140,7 +140,69 @@ func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog
 
 // :TODO
 func (s *server) SearchForBlogs(ctx context.Context, req *blog.SearchReq) (*blog.SearchBlogsRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SearchForBlogs not implemented")
+	// Fetch list of blogs id and list of tags id
+	blogIds, tagsIds, mapBlogTags, err := getBlogIdsAndTagIds(s.db, req)
+	if err != nil {
+		return nil, serverError(err)
+	}
+
+	var res blog.SearchBlogsRes
+	var tags []*blog.Tag
+
+	errCh := make(chan error)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		// Fetach blogs
+		total, err := getNumsOfBlogs(s.db, req)
+		errCh <- err
+		res.Total = int32(total)
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		// Fetach tags
+		res.Blogs, err = getBlogsByIds(s.db, blogIds)
+		errCh <- err
+		wg.Done()
+	}()
+
+	wg.Add(1)
+	go func() {
+		tags, err = getTagsByIds(s.db, tagsIds)
+		errCh <- err
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err := range errCh {
+		if err != nil {
+			return nil, serverError(err)
+		}
+	}
+
+	mapTags := map[int]*blog.Tag{}
+	for _, t := range tags {
+		mapTags[int((*t).Id)] = t
+	}
+
+	// Combines blogs and tags
+	for _, b := range res.Blogs {
+		tagsOfBlog, ok := mapBlogTags[int((*b).Id)]
+		if ok {
+			for _, id := range tagsOfBlog {
+				b.Tags = append(b.Tags, mapTags[id])
+			}
+		}
+	}
+
+	return &res, nil
 }
 
 func (s *server) GetNumberOfBlogs(context.Context, *blog.Empty) (*blog.GetNumberOfBlogsRes, error) {
@@ -158,7 +220,7 @@ func checkBlogExistence(db *sql.DB, id int32) error {
 	return nil
 }
 
-func validateBLog(db *sql.DB, title, body, trdl, author, imageUrl *string, tags []*blog.Tag) error {
+func validateBLog(db *sql.DB, title, body, tldr, author, imageUrl *string, tags []*blog.Tag) error {
 	validationErrors := map[string]string{}
 
 	if title != nil {
@@ -171,9 +233,9 @@ func validateBLog(db *sql.DB, title, body, trdl, author, imageUrl *string, tags 
 			validationErrors["body"] = "Body can not be empty"
 		}
 	}
-	if trdl != nil {
-		if strings.TrimSpace(*trdl) == "" {
-			validationErrors["trdl"] = "TRDL can not be empty"
+	if tldr != nil {
+		if strings.TrimSpace(*tldr) == "" {
+			validationErrors["tldr"] = "TLDR can not be empty"
 		}
 	}
 	if author != nil {
@@ -215,4 +277,127 @@ func createBlogWithTags(tx *sql.Tx, req *blog.CreateBlogReq) error {
 	// Create blog and tags references
 	err = createBlogTags(tx, blogId, tagIds)
 	return err
+}
+
+// genreate sql query for searching blogs from grpc request as string
+func generateSearchBlogQuery(sel string, req *blog.SearchReq) string {
+	if sel == "" {
+		panic("can not select nothing")
+	}
+
+	query := fmt.Sprintf(`
+        SELECT %s 
+		FROM blogs AS b
+		LEFT JOIN blog_tags AS bt ON b.id = bt.blog_id
+		LEFT JOIN tags AS t ON bt.tag_id = t.id
+		`, sel)
+
+	if req.GetQuery() != "" {
+		query += fmt.Sprintf(`WHERE 1=1
+            AND (b.title ILIKE '%%%s%%'
+            OR b.body ILIKE '%%%s%%'
+            OR t.name ILIKE '%%%s%%')`,
+			req.GetQuery(), req.GetQuery(), req.GetQuery())
+	}
+
+	if req.GetOrderby() != "" {
+		orderBy := "b.created_at"
+		switch req.GetOrderby() {
+		case "date":
+			orderBy = "b.created_at"
+		case "title":
+			orderBy = "b.title"
+		case "body":
+			orderBy = "b.body"
+		case "tldr":
+			orderBy = "b.tldr"
+		}
+		query += fmt.Sprintf(" ORDER BY %s", orderBy)
+		if req.GetIsAscending() {
+			query += " ASC"
+		} else {
+			query += " DESC"
+		}
+	}
+
+	if req.GetStartAt() > 0 {
+		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
+	}
+
+	if req.GetLimit() > 0 {
+		query += fmt.Sprintf(" LIMIT %d", req.GetLimit())
+	}
+
+	return query
+}
+
+// return in order list of blog id, list of tag id and map of blog ids and its tags
+func getBlogIdsAndTagIds(db *sql.DB, req *blog.SearchReq) ([]int, []int, map[int][]int, error) {
+	blogIds := []int{}
+	tagsIds := []int{}
+	mapBlogTags := map[int][]int{}
+
+	query := generateSearchBlogQuery("b.id, t.id", req)
+	log.Println(query)
+	rows, err := db.Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return blogIds, tagsIds, mapBlogTags, nil
+		}
+		return nil, nil, nil, err
+	}
+
+	for rows.Next() {
+		var bId int
+		var tId *int
+		if err := rows.Scan(&bId, &tId); err != nil {
+			return nil, nil, nil, err
+		}
+		_, ok := mapBlogTags[bId]
+		if !ok {
+			mapBlogTags[bId] = []int{}
+			blogIds = append(blogIds, bId)
+		}
+		if tId != nil {
+			mapBlogTags[bId] = append(mapBlogTags[bId], *tId)
+			tagsIds = append(tagsIds, *tId)
+		}
+	}
+
+	return blogIds, removeDuplicates(tagsIds), mapBlogTags, nil
+}
+
+func getNumsOfBlogs(db *sql.DB, req *blog.SearchReq) (int, error) {
+	query := generateSearchBlogQuery("COUNT(DISTINCT b.id)", &blog.SearchReq{
+		Query:       req.Query,
+		Orderby:     nil,
+		IsAscending: nil,
+		StartAt:     nil,
+		Limit:       nil,
+	})
+	// query = fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS subquery", query)
+
+	var count int
+	if err := db.QueryRow(query).Scan(&count); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		}
+		return 0, err
+	}
+
+	return count, nil
+}
+
+func removeDuplicates(slice []int) []int {
+	seen := make(map[int]struct{})
+	result := make([]int, 0)
+
+	for _, value := range slice {
+		if _, ok := seen[value]; !ok {
+			seen[value] = struct{}{}
+			result = append(result, value)
+		}
+	}
+
+	return result
 }
