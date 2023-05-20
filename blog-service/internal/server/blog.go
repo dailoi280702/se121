@@ -338,24 +338,31 @@ func getBlogIdsAndTagIds(db *sql.DB, req *blog.SearchReq) ([]int, []int, map[int
 		return nil, nil, nil, err
 	}
 
-	c := 1
-	for rows.Next() && (c <= int(req.GetLimit()) || req.GetLimit() == 0) {
+	tempBlogs := map[int]struct{}{}
+	startAt := int(req.GetStartAt())
+	limit := int(req.GetLimit())
+
+	for rows.Next() {
 		var bId int
 		var tId *int
 		if err := rows.Scan(&bId, &tId); err != nil {
 			return nil, nil, nil, err
 		}
+		if limit != 0 && len(mapBlogTags) >= limit {
+			break
+		}
+		if len(tempBlogs)+1 < startAt {
+			tempBlogs[bId] = struct{}{}
+			continue
+		}
 		_, ok := mapBlogTags[bId]
-		if !ok && (c >= int(req.GetStartAt())) {
+		if !ok {
 			mapBlogTags[bId] = []int{}
 			blogIds = append(blogIds, bId)
-			c++
 		}
-		if c >= int(req.GetStartAt()) {
-			if tId != nil {
-				mapBlogTags[bId] = append(mapBlogTags[bId], *tId)
-				tagsIds = append(tagsIds, *tId)
-			}
+		if tId != nil {
+			mapBlogTags[bId] = append(mapBlogTags[bId], *tId)
+			tagsIds = append(tagsIds, *tId)
 		}
 	}
 
