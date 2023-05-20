@@ -15,6 +15,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// :TODO
 func (s *server) GetBlog(ctx context.Context, req *blog.GetBlogReq) (*blog.Blog, error) {
 	// Check for blog existence
 	id := req.GetId()
@@ -24,8 +25,12 @@ func (s *server) GetBlog(ctx context.Context, req *blog.GetBlogReq) (*blog.Blog,
 	}
 
 	// Fetch blog from database
+	blog, err := getBlog(s.db, id)
+	if err != nil {
+		return nil, serverError(err)
+	}
 
-	return nil, status.Errorf(codes.Unimplemented, "method GetBlog not implemented")
+	return blog, nil
 }
 
 func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog.Empty, error) {
@@ -133,6 +138,7 @@ func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog
 	return &blog.Empty{}, nil
 }
 
+// :TODO
 func (s *server) SearchForBlogs(ctx context.Context, req *blog.SearchReq) (*blog.SearchBlogsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SearchForBlogs not implemented")
 }

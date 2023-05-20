@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"math"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/pkg/go/sqlutils"
@@ -28,6 +28,76 @@ func serverError(err error) error {
 type errorResponse struct {
 	Messages []string          `json:"messages,omitempty"`
 	Details  map[string]string `json:"details,omitempty"`
+}
+
+func getBlog(db *sql.DB, id any) (*blog.Blog, error) {
+	var blog blog.Blog
+	errCh := make(chan error)
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// Fetch blog record
+	go func() {
+		var createdAt time.Time
+		errCh <- sqlutils.ScanRecordById(db, "blogs", id,
+			"id", &blog.Id,
+			"title", &blog.Title,
+			"body", &blog.Body,
+			"author", &blog.Author,
+			"image_url", &blog.ImageUrl,
+			"tldr", &blog.Tldr,
+			"created_at", &createdAt)
+		blog.CreatedAt = createdAt.UnixMilli()
+		wg.Done()
+	}()
+
+	// Fetch blog record
+	go func() {
+		wg.Done()
+	}()
+
+	// Stop listening for errors after resoures fetched
+	go func() {
+		wg.Wait()
+		var err error
+		blog.Tags, err = getTagsByBlog(db, id)
+		errCh <- err
+		close(errCh)
+	}()
+
+	// Listen for errors
+	for err := range errCh {
+		if err != nil {
+			return nil, fmt.Errorf("failed to get blog record: %v", err)
+		}
+	}
+	return &blog, nil
+}
+
+func getTagsByBlog(db *sql.DB, blogId any) ([]*blog.Tag, error) {
+	rows, err := db.Query(`
+        SELECT tags.id, tags.name, tags.description
+        FROM blog_tags JOIN tags on blog_tags.tag_id = tags.id
+        WHERE blog_tags.blog_id = $1
+        ORDER BY tags.name ASC
+        `, blogId)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	var tags []*blog.Tag
+	for rows.Next() {
+		var tag blog.Tag
+		err := rows.Scan(&tag.Id, &tag.Name, &tag.Description)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, &tag)
+	}
+	return tags, nil
 }
 
 func insertTagIfNotExists(tx *sql.Tx, tag *blog.Tag) (int, error) {
@@ -253,10 +323,10 @@ func insertTagsIfNotExists(tx *sql.Tx, tags []*blog.Tag) ([]int, error) {
 }
 
 // calculates the number of worker goroutines based on the number of jobs.
-func getNumWorkers(numJobs int) int {
-	numWorkers := int(math.Floor(math.Sqrt(float64(numJobs))))
-	if numWorkers > 10 {
-		return 10
-	}
-	return numWorkers
-}
+// func getNumWorkers(numJobs int) int {
+// 	numWorkers := int(math.Floor(math.Sqrt(float64(numJobs))))
+// 	if numWorkers > 10 {
+// 		return 10
+// 	}
+// 	return numWorkers
+// }
