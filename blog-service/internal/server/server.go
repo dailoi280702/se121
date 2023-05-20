@@ -105,7 +105,6 @@ func insertTagIfNotExists(tx *sql.Tx, tag *blog.Tag) (int, error) {
 	if tag == nil {
 		return 0, nil
 	}
-	log.Println("connected")
 
 	// Clean the tag name by removing extra spaces and convert to lowercase
 	cleanTagName := strings.ToLower(strings.TrimSpace(tag.Name))

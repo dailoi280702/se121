@@ -320,14 +320,6 @@ func generateSearchBlogQuery(sel string, req *blog.SearchReq) string {
 		}
 	}
 
-	if req.GetStartAt() > 0 {
-		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
-	}
-
-	if req.GetLimit() > 0 {
-		query += fmt.Sprintf(" LIMIT %d", req.GetLimit())
-	}
-
 	return query
 }
 
@@ -338,7 +330,6 @@ func getBlogIdsAndTagIds(db *sql.DB, req *blog.SearchReq) ([]int, []int, map[int
 	mapBlogTags := map[int][]int{}
 
 	query := generateSearchBlogQuery("b.id, t.id", req)
-	log.Println(query)
 	rows, err := db.Query(query)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -347,20 +338,24 @@ func getBlogIdsAndTagIds(db *sql.DB, req *blog.SearchReq) ([]int, []int, map[int
 		return nil, nil, nil, err
 	}
 
-	for rows.Next() {
+	c := 1
+	for rows.Next() && (c <= int(req.GetLimit()) || req.GetLimit() == 0) {
 		var bId int
 		var tId *int
 		if err := rows.Scan(&bId, &tId); err != nil {
 			return nil, nil, nil, err
 		}
 		_, ok := mapBlogTags[bId]
-		if !ok {
+		if !ok && (c >= int(req.GetStartAt())) {
 			mapBlogTags[bId] = []int{}
 			blogIds = append(blogIds, bId)
+			c++
 		}
-		if tId != nil {
-			mapBlogTags[bId] = append(mapBlogTags[bId], *tId)
-			tagsIds = append(tagsIds, *tId)
+		if c >= int(req.GetStartAt()) {
+			if tId != nil {
+				mapBlogTags[bId] = append(mapBlogTags[bId], *tId)
+				tagsIds = append(tagsIds, *tId)
+			}
 		}
 	}
 
@@ -375,7 +370,6 @@ func getNumsOfBlogs(db *sql.DB, req *blog.SearchReq) (int, error) {
 		StartAt:     nil,
 		Limit:       nil,
 	})
-	// query = fmt.Sprintf("SELECT COUNT(*) FROM (%s) AS subquery", query)
 
 	var count int
 	if err := db.QueryRow(query).Scan(&count); err != nil {
