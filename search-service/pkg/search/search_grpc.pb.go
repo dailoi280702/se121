@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: search.proto
 
-package car
+package search
 
 import (
 	context "context"

@@ -4,15 +4,17 @@
 // 	protoc        v3.21.12
 // source: search.proto
 
-package car
+package search
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	blog "github.com/dailoi280702/se121/blog-service/pkg/blog"
+	car "github.com/dailoi280702/se121/car-service/pkg/car"
 	utils "github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -27,9 +29,9 @@ type SearchRes struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Cars   *SearchForCarRes     `protobuf:"bytes,1,opt,name=cars,proto3" json:"cars,omitempty"`
-	Brands *SearchForBrandRes   `protobuf:"bytes,2,opt,name=brands,proto3" json:"brands,omitempty"`
-	Blogs  *blog.SearchBlogsRes `protobuf:"bytes,3,opt,name=blogs,proto3" json:"blogs,omitempty"`
+	Cars   *car.SearchForCarRes   `protobuf:"bytes,1,opt,name=cars,proto3" json:"cars,omitempty"`
+	Brands *car.SearchForBrandRes `protobuf:"bytes,2,opt,name=brands,proto3" json:"brands,omitempty"`
+	Blogs  *blog.SearchBlogsRes   `protobuf:"bytes,3,opt,name=blogs,proto3" json:"blogs,omitempty"`
 }
 
 func (x *SearchRes) Reset() {
@@ -64,14 +66,14 @@ func (*SearchRes) Descriptor() ([]byte, []int) {
 	return file_search_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *SearchRes) GetCars() *SearchForCarRes {
+func (x *SearchRes) GetCars() *car.SearchForCarRes {
 	if x != nil {
 		return x.Cars
 	}
 	return nil
 }
 
-func (x *SearchRes) GetBrands() *SearchForBrandRes {
+func (x *SearchRes) GetBrands() *car.SearchForBrandRes {
 	if x != nil {
 		return x.Brands
 	}
@@ -104,11 +106,11 @@ var file_search_proto_rawDesc = []byte{
 	0x65, 0x61, 0x72, 0x63, 0x68, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x2a, 0x0a, 0x06,
 	0x53, 0x65, 0x61, 0x72, 0x63, 0x68, 0x12, 0x10, 0x2e, 0x75, 0x74, 0x69, 0x6c, 0x73, 0x2e, 0x53,
 	0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x71, 0x1a, 0x0e, 0x2e, 0x63, 0x61, 0x72, 0x2e, 0x53,
-	0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x42, 0x33, 0x5a, 0x31, 0x67, 0x69, 0x74, 0x68,
+	0x65, 0x61, 0x72, 0x63, 0x68, 0x52, 0x65, 0x73, 0x42, 0x35, 0x5a, 0x33, 0x67, 0x69, 0x74, 0x68,
 	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x64, 0x61, 0x69, 0x6c, 0x6f, 0x69, 0x32, 0x38, 0x30,
 	0x37, 0x30, 0x32, 0x2f, 0x73, 0x65, 0x31, 0x32, 0x31, 0x2f, 0x63, 0x61, 0x72, 0x2d, 0x73, 0x65,
-	0x72, 0x76, 0x69, 0x63, 0x65, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x63, 0x61, 0x72, 0x62, 0x06, 0x70,
-	0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x61, 0x72, 0x63, 0x68, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x73, 0x65, 0x61, 0x72, 0x63, 0x68, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -123,14 +125,16 @@ func file_search_proto_rawDescGZIP() []byte {
 	return file_search_proto_rawDescData
 }
 
-var file_search_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_search_proto_goTypes = []interface{}{
-	(*SearchRes)(nil),           // 0: car.SearchRes
-	(*SearchForCarRes)(nil),     // 1: car.SearchForCarRes
-	(*SearchForBrandRes)(nil),   // 2: car.SearchForBrandRes
-	(*blog.SearchBlogsRes)(nil), // 3: blog.SearchBlogsRes
-	(*utils.SearchReq)(nil),     // 4: utils.SearchReq
-}
+var (
+	file_search_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_search_proto_goTypes  = []interface{}{
+		(*SearchRes)(nil),             // 0: car.SearchRes
+		(*car.SearchForCarRes)(nil),   // 1: car.SearchForCarRes
+		(*car.SearchForBrandRes)(nil), // 2: car.SearchForBrandRes
+		(*blog.SearchBlogsRes)(nil),   // 3: blog.SearchBlogsRes
+		(*utils.SearchReq)(nil),       // 4: utils.SearchReq
+	}
+)
 var file_search_proto_depIdxs = []int32{
 	1, // 0: car.SearchRes.cars:type_name -> car.SearchForCarRes
 	2, // 1: car.SearchRes.brands:type_name -> car.SearchForBrandRes
@@ -149,7 +153,6 @@ func file_search_proto_init() {
 	if File_search_proto != nil {
 		return
 	}
-	file_car_proto_init()
 	if !protoimpl.UnsafeEnabled {
 		file_search_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*SearchRes); i {
