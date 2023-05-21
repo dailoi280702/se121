@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"google.golang.org/grpc/codes"
@@ -9,11 +10,12 @@ import (
 )
 
 type server struct {
+	db *sql.DB
 	comment.UnimplementedCommentServiceServer
 }
 
-func NewServer() *server {
-	return &server{}
+func NewServer(db *sql.DB) *server {
+	return &server{db: db}
 }
 
 func (s *server) CreateComment(context.Context, *comment.CreateCommentReq) (*comment.Empty, error) {
