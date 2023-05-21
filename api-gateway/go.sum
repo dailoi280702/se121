@@ -350,6 +350,8 @@ github.com/dailoi280702/se121/blog-service v0.0.0-20230519072342-e81de68c454e h1
 github.com/dailoi280702/se121/blog-service v0.0.0-20230519072342-e81de68c454e/go.mod h1:djkbhWyuoUH/r7kd8car/N0AVCDucdQXf+p8ocwDttk=
 github.com/dailoi280702/se121/car-service v0.0.0-20230517131018-2ce86c3e9827 h1:bxC+83yUcHUi+mbHILc6LlpFkZlhzpFT62WCCjQjcV0=
 github.com/dailoi280702/se121/car-service v0.0.0-20230517131018-2ce86c3e9827/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
+github.com/dailoi280702/se121/comment-service v0.0.0-20230521113709-0f51d88fc19c h1:1fiJbOsfIWbKKyrqevXzLvAQ1Z5BPkvfGE2cI0CVaSM=
+github.com/dailoi280702/se121/comment-service v0.0.0-20230521113709-0f51d88fc19c/go.mod h1:Ck6vbxtDiKMQvBc7Jac/GSzC7rpoGVk7xiUWB4ljosQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
