@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package utils;
 
-option go_package = "github.com/dailoi280702/se121/pkg/go/grpc/utils";
+option go_package = "github.com/dailoi280702/se121/pkg/go/grpc/generated/utils";
 
 message SearchReq {
   optional string query = 1;

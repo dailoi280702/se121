@@ -7,12 +7,13 @@
 package car
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	blog "github.com/dailoi280702/se121/blog-service/pkg/blog"
 	utils "github.com/dailoi280702/se121/pkg/go/grpc/utils"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -123,14 +124,16 @@ func file_search_proto_rawDescGZIP() []byte {
 	return file_search_proto_rawDescData
 }
 
-var file_search_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
-var file_search_proto_goTypes = []interface{}{
-	(*SearchRes)(nil),           // 0: car.SearchRes
-	(*SearchForCarRes)(nil),     // 1: car.SearchForCarRes
-	(*SearchForBrandRes)(nil),   // 2: car.SearchForBrandRes
-	(*blog.SearchBlogsRes)(nil), // 3: blog.SearchBlogsRes
-	(*utils.SearchReq)(nil),     // 4: utils.SearchReq
-}
+var (
+	file_search_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
+	file_search_proto_goTypes  = []interface{}{
+		(*SearchRes)(nil),           // 0: car.SearchRes
+		(*SearchForCarRes)(nil),     // 1: car.SearchForCarRes
+		(*SearchForBrandRes)(nil),   // 2: car.SearchForBrandRes
+		(*blog.SearchBlogsRes)(nil), // 3: blog.SearchBlogsRes
+		(*utils.SearchReq)(nil),     // 4: utils.SearchReq
+	}
+)
 var file_search_proto_depIdxs = []int32{
 	1, // 0: car.SearchRes.cars:type_name -> car.SearchForCarRes
 	2, // 1: car.SearchRes.brands:type_name -> car.SearchForBrandRes
