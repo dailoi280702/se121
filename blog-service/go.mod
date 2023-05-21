@@ -3,7 +3,7 @@ module github.com/dailoi280702/se121/blog-service
 go 1.20
 
 require (
-	github.com/dailoi280702/se121/pkg/go v0.0.0-20230519141506-a72846b03f43
+	github.com/dailoi280702/se121/pkg/go v0.0.0-20230521135721-a682645da4cd
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/lib/pq v1.10.0
 	google.golang.org/grpc v1.55.0

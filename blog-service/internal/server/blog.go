@@ -9,8 +9,9 @@ import (
 	"sync"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/dailoi280702/se121/pkg/go/sqlutils"
-	"github.com/dailoi280702/se121/pkg/go/utils"
+	u "github.com/dailoi280702/se121/pkg/go/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,7 +34,7 @@ func (s *server) GetBlog(ctx context.Context, req *blog.GetBlogReq) (*blog.Blog,
 	return blog, nil
 }
 
-func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog.Empty, error) {
+func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*utils.Empty, error) {
 	// Validate and verify inputs
 	err := validateBLog(s.db, &req.Title, &req.Body, req.Tldr, &req.Author, req.ImageUrl, req.Tags)
 	if err != nil {
@@ -61,10 +62,10 @@ func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog
 		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
 	}
 
-	return &blog.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*blog.Empty, error) {
+func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*utils.Empty, error) {
 	// Check for blog existence
 	id := req.GetId()
 	err := checkBlogExistence(s.db, id)
@@ -119,10 +120,10 @@ func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*blog
 		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
 	}
 
-	return &blog.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog.Empty, error) {
+func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*utils.Empty, error) {
 	// Check for blog existence
 	id := req.GetId()
 	err := checkBlogExistence(s.db, id)
@@ -135,11 +136,11 @@ func (s *server) DeleteBlog(ctx context.Context, req *blog.DeleteBlogReq) (*blog
 		return nil, serverError(err)
 	}
 
-	return &blog.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
 // :TODO
-func (s *server) SearchForBlogs(ctx context.Context, req *blog.SearchReq) (*blog.SearchBlogsRes, error) {
+func (s *server) SearchForBlogs(ctx context.Context, req *utils.SearchReq) (*blog.SearchBlogsRes, error) {
 	// Fetch list of blogs id and list of tags id
 	blogIds, tagsIds, mapBlogTags, err := getBlogIdsAndTagIds(s.db, req)
 	if err != nil {
@@ -205,7 +206,7 @@ func (s *server) SearchForBlogs(ctx context.Context, req *blog.SearchReq) (*blog
 	return &res, nil
 }
 
-func (s *server) GetNumberOfBlogs(context.Context, *blog.Empty) (*blog.GetNumberOfBlogsRes, error) {
+func (s *server) GetNumberOfBlogs(context.Context, *utils.Empty) (*blog.GetNumberOfBlogsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNumberOfBlogs not implemented")
 }
 
@@ -215,7 +216,7 @@ func checkBlogExistence(db *sql.DB, id int32) error {
 		return serverError(err)
 	}
 	if !exists {
-		return utils.ConvertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Blog %d does not exist", id))
+		return u.ConvertGrpcToJsonError(codes.NotFound, fmt.Sprintf("Blog %d does not exist", id))
 	}
 	return nil
 }
@@ -250,7 +251,7 @@ func validateBLog(db *sql.DB, title, body, tldr, author, imageUrl *string, tags 
 	}
 
 	if len(validationErrors) > 0 {
-		return utils.ConvertGrpcToJsonError(codes.InvalidArgument, errorResponse{
+		return u.ConvertGrpcToJsonError(codes.InvalidArgument, errorResponse{
 			Details: validationErrors,
 		})
 	}
@@ -280,7 +281,7 @@ func createBlogWithTags(tx *sql.Tx, req *blog.CreateBlogReq) error {
 }
 
 // genreate sql query for searching blogs from grpc request as string
-func generateSearchBlogQuery(sel string, req *blog.SearchReq) string {
+func generateSearchBlogQuery(sel string, req *utils.SearchReq) string {
 	if sel == "" {
 		panic("can not select nothing")
 	}
@@ -324,7 +325,7 @@ func generateSearchBlogQuery(sel string, req *blog.SearchReq) string {
 }
 
 // return in order list of blog id, list of tag id and map of blog ids and its tags
-func getBlogIdsAndTagIds(db *sql.DB, req *blog.SearchReq) ([]int, []int, map[int][]int, error) {
+func getBlogIdsAndTagIds(db *sql.DB, req *utils.SearchReq) ([]int, []int, map[int][]int, error) {
 	blogIds := []int{}
 	tagsIds := []int{}
 	mapBlogTags := map[int][]int{}
@@ -369,8 +370,8 @@ func getBlogIdsAndTagIds(db *sql.DB, req *blog.SearchReq) ([]int, []int, map[int
 	return blogIds, removeDuplicates(tagsIds), mapBlogTags, nil
 }
 
-func getNumsOfBlogs(db *sql.DB, req *blog.SearchReq) (int, error) {
-	query := generateSearchBlogQuery("COUNT(DISTINCT b.id)", &blog.SearchReq{
+func getNumsOfBlogs(db *sql.DB, req *utils.SearchReq) (int, error) {
+	query := generateSearchBlogQuery("COUNT(DISTINCT b.id)", &utils.SearchReq{
 		Query:       req.Query,
 		Orderby:     nil,
 		IsAscending: nil,

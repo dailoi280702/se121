@@ -4,6 +4,8 @@ package blog;
 
 option go_package = "github.com/dailoi280702/se121/blog-service/pkg/blog";
 
+import "utils.proto";
+
 message Blog {
   int32 id = 1;
   string title = 2;
@@ -33,19 +35,19 @@ message Tag {
 }
 
 service BlogService {
-  rpc CreateBlog(CreateBlogReq) returns (Empty);
+  rpc CreateBlog(CreateBlogReq) returns (utils.Empty);
   rpc GetBlog(GetBlogReq) returns (Blog);
-  rpc UpdateBlog(UpdateBlogReq) returns (Empty);
-  rpc DeleteBlog(DeleteBlogReq) returns (Empty);
-  rpc SearchForBlogs(SearchReq) returns (SearchBlogsRes);
-  rpc GetNumberOfBlogs(Empty) returns (GetNumberOfBlogsRes);
+  rpc UpdateBlog(UpdateBlogReq) returns (utils.Empty);
+  rpc DeleteBlog(DeleteBlogReq) returns (utils.Empty);
+  rpc SearchForBlogs(utils.SearchReq) returns (SearchBlogsRes);
+  rpc GetNumberOfBlogs(utils.Empty) returns (GetNumberOfBlogsRes);
 
   // :TODO add method for tags
-  rpc CreateTag(CreateTagReq) returns (Empty);
-  rpc UpdateTag(UpdateTagReq) returns (Empty);
-  rpc DeleteTag(DeleteTagReq) returns (Empty);
+  rpc CreateTag(CreateTagReq) returns (utils.Empty);
+  rpc UpdateTag(UpdateTagReq) returns (utils.Empty);
+  rpc DeleteTag(DeleteTagReq) returns (utils.Empty);
   rpc GetTag(GetTagReq) returns (Tag);
-  rpc GetAllTag(Empty) returns (GetAllTagsRes);
+  rpc GetAllTag(utils.Empty) returns (GetAllTagsRes);
 }
 
 message GetTagReq {
@@ -71,8 +73,6 @@ message GetAllTagsRes {
   repeated Tag tags = 1;
 }
 
-message Empty {}
-
 message CreateBlogReq {
   string title = 1;
   string body = 2;
@@ -97,14 +97,6 @@ message UpdateBlogReq {
   optional string image_url = 4;
   optional string tldr = 6;
   repeated Tag tags = 7;
-}
-
-message SearchReq {
-  optional string query = 1;
-  optional string orderby = 2;
-  optional int32 startAt = 3;
-  optional int32 limit = 4;
-  optional bool isAscending = 5;
 }
 
 message SearchBlogsRes {

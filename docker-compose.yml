@@ -79,10 +79,11 @@ services:
 
   search-service:
     container_name: search-service
-    build: ./blog-search/
+    build: ./search-service/
+    networks:
       - grpc
     volumes:
-      - ./blog-search/:/app
+      - ./search-service/:/app
 
   python-backend:
     build: ./python-backend/
