@@ -11,13 +11,14 @@ import (
 	"github.com/dailoi280702/se121/api-gateway/protos"
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/redis/go-redis/v9"
 )
 
-func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient, authService auth.AuthServiceClient, carService car.CarServiceClient, blogService blog.BlogServiceClient) *chi.Mux {
+func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client, db *sql.DB, userService user.UserServiceClient, authService auth.AuthServiceClient, carService car.CarServiceClient, blogService blog.BlogServiceClient, commentService comment.CommentServiceClient) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
@@ -47,6 +48,7 @@ func InitRouter(gprcHelloClient protos.HelloClient, redisClient *redis.Client, d
 	router.Mount("/brand", handlers.NewBrandRoutes(carService))
 	router.Mount("/series", handlers.NewSeriesRoutes(carService))
 	router.Mount("/blog", handlers.NewBlogRoutes(blogService))
+	router.Mount("/comment", handlers.NewCommentRoutes(commentService))
 
 	return router
 }

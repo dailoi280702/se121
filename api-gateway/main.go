@@ -15,6 +15,7 @@ import (
 	"github.com/dailoi280702/se121/api-gateway/protos"
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -26,12 +27,13 @@ import (
 )
 
 var (
-	addr            = flag.String("addr", "python-backend:50051", "the address to connect to")
-	userServicePort = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
-	authServicePort = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
-	carServicePort  = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
-	blogServicePort = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
-	redisAddr       = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
+	addr               = flag.String("addr", "python-backend:50051", "the address to connect to")
+	userServicePort    = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
+	authServicePort    = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
+	carServicePort     = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
+	blogServicePort    = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
+	commentServicePort = flag.String("commentServicePort", "comment-service:50051", "the address to connect to comment service")
+	redisAddr          = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
 func NewUserService(ctx context.Context) (*grpc.ClientConn, user.UserServiceClient) {
@@ -55,7 +57,7 @@ func NewAuthService(ctx context.Context) (*grpc.ClientConn, auth.AuthServiceClie
 func NewCarService(ctx context.Context) (*grpc.ClientConn, car.CarServiceClient) {
 	conn, err := grpc.DialContext(ctx, *carServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("failed to connect auth service: %v", err)
+		log.Fatalf("failed to connect car service: %v", err)
 	}
 
 	return conn, car.NewCarServiceClient(conn)
@@ -64,10 +66,19 @@ func NewCarService(ctx context.Context) (*grpc.ClientConn, car.CarServiceClient)
 func NewBlogService(ctx context.Context) (*grpc.ClientConn, blog.BlogServiceClient) {
 	conn, err := grpc.DialContext(ctx, *blogServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("failed to connect auth service: %v", err)
+		log.Fatalf("failed to connect blog service: %v", err)
 	}
 
 	return conn, blog.NewBlogServiceClient(conn)
+}
+
+func NewCommentService(ctx context.Context) (*grpc.ClientConn, comment.CommentServiceClient) {
+	conn, err := grpc.DialContext(ctx, *commentServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect comment service: %v", err)
+	}
+
+	return conn, comment.NewCommentServiceClient(conn)
 }
 
 func main() {
@@ -84,6 +95,7 @@ func main() {
 	authServiceConn, authService := NewAuthService(ctx)
 	carServiceConn, carService := NewCarService(ctx)
 	blogServiceConn, blogService := NewBlogService(ctx)
+	commentServiceConn, commentService := NewCommentService(ctx)
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -104,6 +116,7 @@ func main() {
 		authServiceConn.Close()
 		carServiceConn.Close()
 		blogServiceConn.Close()
+		commentServiceConn.Close()
 	}()
 
 	// database migratetion
@@ -136,6 +149,7 @@ func main() {
 		userService,
 		authService,
 		carService,
-		blogService))
+		blogService,
+		commentService))
 	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }
