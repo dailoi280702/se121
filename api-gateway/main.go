@@ -16,6 +16,7 @@ import (
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
+	"github.com/dailoi280702/se121/search-service/pkg/search"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -33,6 +34,7 @@ var (
 	carServicePort     = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
 	blogServicePort    = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
 	commentServicePort = flag.String("commentServicePort", "comment-service:50051", "the address to connect to comment service")
+	searchServicePort  = flag.String("searchServicePort", "search-service:50051", "the address to connect to search service")
 	redisAddr          = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
@@ -81,6 +83,15 @@ func NewCommentService(ctx context.Context) (*grpc.ClientConn, comment.CommentSe
 	return conn, comment.NewCommentServiceClient(conn)
 }
 
+func NewSearchService(ctx context.Context) (*grpc.ClientConn, search.SearchServiceClient) {
+	conn, err := grpc.DialContext(ctx, *searchServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect search service: %v", err)
+	}
+
+	return conn, search.NewSearchServiceClient(conn)
+}
+
 func main() {
 	// grpc
 	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -96,6 +107,7 @@ func main() {
 	carServiceConn, carService := NewCarService(ctx)
 	blogServiceConn, blogService := NewBlogService(ctx)
 	commentServiceConn, commentService := NewCommentService(ctx)
+	searchServiceConn, searchService := NewSearchService(ctx)
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -117,6 +129,7 @@ func main() {
 		carServiceConn.Close()
 		blogServiceConn.Close()
 		commentServiceConn.Close()
+		searchServiceConn.Close()
 	}()
 
 	// database migratetion
@@ -136,12 +149,6 @@ func main() {
 		}
 	}
 
-	// // create table if it does not exist
-	// _, err = db.Exec("CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, name TEXT, email TEXT)")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	// routes
 	router := chi.NewRouter()
 	router.Mount("/v1", api_v1.InitRouter(
@@ -150,6 +157,7 @@ func main() {
 		authService,
 		carService,
 		blogService,
-		commentService))
+		commentService,
+		searchService))
 	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }

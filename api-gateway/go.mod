@@ -3,8 +3,8 @@ module github.com/dailoi280702/se121/api-gateway
 go 1.20
 
 require (
-	github.com/dailoi280702/se121/blog-service v0.0.0-20230519072342-e81de68c454e
-	github.com/dailoi280702/se121/car-service v0.0.0-20230517131018-2ce86c3e9827
+	github.com/dailoi280702/se121/blog-service v0.0.0-20230521124855-2e2f367e5406
+	github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
 	github.com/golang-migrate/migrate/v4 v4.15.2
@@ -18,6 +18,8 @@ require (
 require (
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dailoi280702/se121/comment-service v0.0.0-20230521113709-0f51d88fc19c // indirect
+	github.com/dailoi280702/se121/pkg/go v0.0.0-20230521135721-a682645da4cd // indirect
+	github.com/dailoi280702/se121/search-service v0.0.0-20230521145934-db0160fae8d9 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
