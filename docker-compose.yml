@@ -35,6 +35,7 @@ services:
     container_name: auth-service
     build: ./auth-service/
     networks:
+      - grpc
       - db
     volumes:
       - ./auth-service/:/app
@@ -45,6 +46,7 @@ services:
     environment:
       DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
+      - grpc
       - db
     volumes:
       - ./car-service/:/app
@@ -55,8 +57,8 @@ services:
     environment:
       DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
-      - blog-service
-      - db
+      - blog-db
+      - grpc
     volumes:
       - ./comment-service/:/app
     depends_on:
@@ -68,12 +70,19 @@ services:
     environment:
       DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
-      - blog-service
-      - db
+      - blog-db
+      - grpc
     volumes:
       - ./blog-service/:/app
     depends_on:
       - blog-db
+
+  search-service:
+    container_name: search-service
+    build: ./blog-search/
+      - grpc
+    volumes:
+      - ./blog-search/:/app
 
   python-backend:
     build: ./python-backend/
@@ -132,13 +141,13 @@ services:
     ports:
       - 5433:5432
     networks:
-      - blog-service
+      - blog-db
 
 networks:
   client: {}
   grpc: {}
   db: {}
-  blog-service: {}
+  blog-db: {}
 
 volumes:
   redis-data: {}
