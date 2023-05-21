@@ -53,11 +53,14 @@ services:
     container_name: comment-service
     build: ./comment-service/
     environment:
-      DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
+      DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
+      - blog-service
       - db
     volumes:
       - ./comment-service/:/app
+    depends_on:
+      - blog-db
 
   blog-service:
     container_name: blog-service

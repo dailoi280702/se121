@@ -23,7 +23,7 @@ func main() {
 
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
-		log.Fatal("failed to connect to databse: %v", err)
+		log.Fatalf("failed to connect to databse: %v", err)
 	}
 	defer db.Close()
 

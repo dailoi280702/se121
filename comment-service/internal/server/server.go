@@ -60,7 +60,7 @@ func (s *server) UpdateComment(ctx context.Context, req *comment.UpdateCommentRe
 	}
 
 	// Prepare update data
-	updateData := map[string]any{}
+	updateData := map[string]any{"updated_at": "NOW()"}
 	if req.Comment != nil {
 		updateData["comment"] = *req.Comment
 	}
@@ -83,7 +83,7 @@ func (s *server) DeleteComment(ctx context.Context, req *comment.DeleteCommentRe
 	if _, err := s.db.Exec(`
         DELETE FROM blog_comments
         WHERE id = $1
-        `, req.Id); err == nil {
+        `, req.Id); err != nil {
 		return nil, serverErr(fmt.Errorf("failed to delete comment: %v", err))
 	}
 
@@ -91,6 +91,11 @@ func (s *server) DeleteComment(ctx context.Context, req *comment.DeleteCommentRe
 }
 
 func (s *server) GetComment(ctx context.Context, req *comment.GetCommentReq) (*comment.Comment, error) {
+	// Check for comment existence
+	if err := checkForCommentExistence(s.db, req.Id); err != nil {
+		return nil, err
+	}
+
 	// Fetch comment
 	c := comment.Comment{
 		UpdatedAt: nil,
@@ -98,18 +103,19 @@ func (s *server) GetComment(ctx context.Context, req *comment.GetCommentReq) (*c
 	var createdAt time.Time
 	var updatedAt *time.Time
 	if err := s.db.QueryRow(`
-        SELECT id, comment, user_id, blogid, created_at, updated_at
+        SELECT id, comment, user_id, blog_id, created_at, updated_at
         FROM blog_comments
         WHERE id = $1
         ORDER BY created_at DESC
-        `, req.Id).Scan(&c.Id, &c.Comment, &c.UserId, &c.BlogId, &createdAt, &updatedAt); err == nil {
+        `, req.Id).Scan(&c.Id, &c.Comment, &c.UserId, &c.BlogId, &createdAt, &updatedAt); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Errorf(codes.NotFound, "Comment %v not exist", req.Id)
 		}
 		return nil, serverErr(fmt.Errorf("failed to get comment: %v", err))
 	}
 	if updatedAt != nil {
-		*c.UpdatedAt = (*updatedAt).UnixMilli()
+		t := (*updatedAt).UnixMilli()
+		c.UpdatedAt = &t
 	}
 
 	return &c, nil
@@ -119,16 +125,16 @@ func (s *server) GetBlogComments(ctx context.Context, req *comment.GetBlogCommen
 	// Fetch comment
 	res := comment.GetBlogCommentsRes{}
 	rows, err := s.db.Query(`
-        SELECT id, comment, user_id, blogid, created_at, updated_at
+        SELECT id, comment, user_id, blog_id, created_at, updated_at
         FROM blog_comments
         WHERE blog_id = $1
         ORDER BY created_at DESC
         `, req.BlogId)
-	if err == nil {
+	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, status.Errorf(codes.NotFound, "Comment %v not exist", req.BlogId)
 		}
-		return nil, serverErr(fmt.Errorf("failed to get comments by blog ID: %v", err))
+		return nil, serverErr(fmt.Errorf("failed to get comments by blog %v: %v", req.BlogId, err))
 	}
 
 	for rows.Next() {
@@ -142,8 +148,10 @@ func (s *server) GetBlogComments(ctx context.Context, req *comment.GetBlogCommen
 		}
 		c.CreatedAt = createdAt.UnixMilli()
 		if updatedAt != nil {
-			*c.UpdatedAt = (*updatedAt).UnixMilli()
+			t := (*updatedAt).UnixMilli()
+			c.UpdatedAt = &t
 		}
+		res.Comments = append(res.Comments, &c)
 	}
 
 	return &res, nil
