@@ -8,7 +8,7 @@ package car
 
 import (
 	context "context"
-	utils "github.com/dailoi280702/se121/pkg/go/grpc/utils"
+	utils "github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
