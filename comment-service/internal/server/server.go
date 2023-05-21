@@ -32,6 +32,6 @@ func (s *server) GetComment(context.Context, *comment.GetCommentReq) (*comment.C
 	return nil, status.Errorf(codes.Unimplemented, "method GetComment not implemented")
 }
 
-func (s *server) GetAllComment(*comment.Empty, comment.CommentService_GetAllCommentServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllComment not implemented")
+func (s *server) GetBlogComments(ctx context.Context, in *comment.GetBlogCommentsReq) (*comment.GetBlogCommentsRes, error) {
+	return nil, nil
 }
