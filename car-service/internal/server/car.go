@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -37,7 +38,7 @@ func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car
 	return car, nil
 }
 
-func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*car.Empty, error) {
+func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*utils.Empty, error) {
 	// Validate and verify inputs
 	err := validateCar(s.db, &req.Name, req.ImageUrl, req.Year, req.HorsePower, req.Torque, req.BrandId, req.SeriesId, req.FuelTypeId, req.TransmissionId)
 	if err != nil {
@@ -53,10 +54,10 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 		return nil, status.Errorf(codes.Internal, "car server got error while inserting car %v to db: %v", req, err)
 	}
 
-	return &car.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *carSerivceServer) UpdateCar(ctx context.Context, req *car.UpdateCarReq) (*car.Empty, error) {
+func (s *carSerivceServer) UpdateCar(ctx context.Context, req *car.UpdateCarReq) (*utils.Empty, error) {
 	// Check for car existence
 	if err := checkForCarExistence(s.db, int(req.GetId())); err != nil {
 		return nil, err
@@ -106,10 +107,10 @@ func (s *carSerivceServer) UpdateCar(ctx context.Context, req *car.UpdateCarReq)
 		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
 	}
 
-	return &car.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *carSerivceServer) DeleteCar(context context.Context, req *car.DeleteCarReq) (*car.Empty, error) {
+func (s *carSerivceServer) DeleteCar(context context.Context, req *car.DeleteCarReq) (*utils.Empty, error) {
 	// check for car existence
 	if err := checkForCarExistence(s.db, int(req.GetId())); err != nil {
 		return nil, err
@@ -121,10 +122,10 @@ func (s *carSerivceServer) DeleteCar(context context.Context, req *car.DeleteCar
 		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
 	}
 
-	return &car.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *carSerivceServer) SearchForCar(ctx context.Context, req *car.SearchReq) (*car.SearchForCarRes, error) {
+func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchReq) (*car.SearchForCarRes, error) {
 	query := generateSearchForCarQuery(req)
 	idList := []int{}
 
@@ -175,7 +176,7 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *car.SearchReq)
 	return &res, nil
 }
 
-func (s *carSerivceServer) GetCarMetadata(context.Context, *car.Empty) (*car.GetCarMetadataRes, error) {
+func (s *carSerivceServer) GetCarMetadata(context.Context, *utils.Empty) (*car.GetCarMetadataRes, error) {
 	brands, err := getAllBrandFromDb(s.db)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "car service err: %v", err)
@@ -338,7 +339,7 @@ verificationLoop:
 // generateSearchForCarQuery generates a SQL query for searching cars based on the provided search request.
 // The generated query performs a left join on various tables and applies search conditions, ordering, and pagination.
 // The query is returned as a string.
-func generateSearchForCarQuery(req *car.SearchReq) string {
+func generateSearchForCarQuery(req *utils.SearchReq) string {
 	query := `
     SELECT car_models.id 
     FROM  car_models

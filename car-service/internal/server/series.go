@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"google.golang.org/grpc/codes"
 )
 
@@ -29,7 +30,7 @@ func (s *carSerivceServer) GetSeries(ctx context.Context, req *car.GetSeriesReq)
 	return series, nil
 }
 
-func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeriesReq) (*car.Empty, error) {
+func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeriesReq) (*utils.Empty, error) {
 	// Validate and verify inputs
 	if err := validateSeries(s.db, &req.Name, &req.BrandId); err != nil {
 		return nil, err
@@ -44,10 +45,10 @@ func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeri
 		return nil, serverError(fmt.Errorf("failed to insert series: %v", err))
 	}
 
-	return &car.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeriesReq) (*car.Empty, error) {
+func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeriesReq) (*utils.Empty, error) {
 	// Check for series existence
 	id := req.GetId()
 	if err := checkSeriesExistence(s.db, id); err != nil {
@@ -73,10 +74,10 @@ func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeri
 		return nil, serverError(err)
 	}
 
-	return &car.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *carSerivceServer) SearchForSeries(ctx context.Context, req *car.SearchReq) (*car.SearchForSeriesRes, error) {
+func (s *carSerivceServer) SearchForSeries(ctx context.Context, req *utils.SearchReq) (*car.SearchForSeriesRes, error) {
 	res := car.SearchForSeriesRes{}
 	errCh := make(chan error)
 	var wg sync.WaitGroup
@@ -196,7 +197,7 @@ func validateSeries(db *sql.DB, name *string, brandID *int32) error {
 }
 
 // return SQL query string for get series from search request
-func generateSearchSeriesQuery(req *car.SearchReq) string {
+func generateSearchSeriesQuery(req *utils.SearchReq) string {
 	query := `
     SELECT car_series.id, car_series.name, car_series.brand_id
     FROM car_series
@@ -242,7 +243,7 @@ func generateSearchSeriesQuery(req *car.SearchReq) string {
 }
 
 // fetch series from database by SQL query
-func fetchSeriesDetails(db *sql.DB, req *car.SearchReq) ([]*car.SeriesDetail, error) {
+func fetchSeriesDetails(db *sql.DB, req *utils.SearchReq) ([]*car.SeriesDetail, error) {
 	query := generateSearchSeriesQuery(req)
 	brands := map[int]*car.Brand{}
 	brandIDs := []int{}
@@ -296,7 +297,7 @@ func fetchSeriesDetails(db *sql.DB, req *car.SearchReq) ([]*car.SeriesDetail, er
 }
 
 // fetch numbser of series from database by SQL query
-func fetchNumSeries(db *sql.DB, req *car.SearchReq) (int32, error) {
+func fetchNumSeries(db *sql.DB, req *utils.SearchReq) (int32, error) {
 	query := `
     SELECT COUNT(*)
     FROM car_series

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -27,7 +28,7 @@ func (s *carSerivceServer) GetBrand(ctx context.Context, req *car.GetBrandReq) (
 	return brand, nil
 }
 
-func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrandReq) (*car.Empty, error) {
+func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrandReq) (*utils.Empty, error) {
 	// Verify inputs
 	if err := validateBrand(&req.Name, req.CountryOfOrigin, req.WebsiteUrl, req.LogoUrl, req.FoundedYear); err != nil {
 		return nil, err
@@ -41,10 +42,10 @@ func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrand
 		return nil, serverError(err)
 	}
 
-	return &car.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *carSerivceServer) UpdateBrand(ctx context.Context, req *car.UpdateBrandReq) (*car.Empty, error) {
+func (s *carSerivceServer) UpdateBrand(ctx context.Context, req *car.UpdateBrandReq) (*utils.Empty, error) {
 	// Verify brand existence
 	if err := checkForBrandExistence(s.db, req.GetId()); err != nil {
 		return nil, err
@@ -78,10 +79,10 @@ func (s *carSerivceServer) UpdateBrand(ctx context.Context, req *car.UpdateBrand
 		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
 	}
 
-	return &car.Empty{}, nil
+	return &utils.Empty{}, nil
 }
 
-func (s *carSerivceServer) SearchForBrand(ctx context.Context, req *car.SearchReq) (*car.SearchForBrandRes, error) {
+func (s *carSerivceServer) SearchForBrand(ctx context.Context, req *utils.SearchReq) (*car.SearchForBrandRes, error) {
 	res := car.SearchForBrandRes{}
 	errCh := make(chan error)
 	var wg sync.WaitGroup
@@ -167,7 +168,7 @@ func checkForBrandExistence(db *sql.DB, id int32) error {
 }
 
 // genreate sql query for searching brands from grpc request as string
-func generateSearchForBrandsQuery(req *car.SearchReq) string {
+func generateSearchForBrandsQuery(req *utils.SearchReq) string {
 	query := `
     SELECT id, name, country_of_origin, founded_year ,website_url, logo_url
     FROM car_brands

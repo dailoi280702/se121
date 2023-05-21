@@ -4,24 +4,26 @@ package car;
 
 option go_package = "github.com/dailoi280702/se121/car-service/pkg/car";
 
+import "utils.proto";
+
 service CarService {
   rpc GetCar(GetCarReq) returns (Car);
-  rpc CreateCar(CreateCarReq) returns (Empty);
-  rpc UpdateCar(UpdateCarReq) returns (Empty);
-  rpc DeleteCar(DeleteCarReq) returns (Empty);
-  rpc SearchForCar(SearchReq) returns (SearchForCarRes);
+  rpc CreateCar(CreateCarReq) returns (utils.Empty);
+  rpc UpdateCar(UpdateCarReq) returns (utils.Empty);
+  rpc DeleteCar(DeleteCarReq) returns (utils.Empty);
+  rpc SearchForCar(utils.SearchReq) returns (SearchForCarRes);
 
   rpc GetBrand(GetBrandReq) returns (Brand);
-  rpc CreateBrand(CreateBrandReq) returns (Empty);
-  rpc UpdateBrand(UpdateBrandReq) returns (Empty);
-  rpc SearchForBrand(SearchReq) returns (SearchForBrandRes);
+  rpc CreateBrand(CreateBrandReq) returns (utils.Empty);
+  rpc UpdateBrand(UpdateBrandReq) returns (utils.Empty);
+  rpc SearchForBrand(utils.SearchReq) returns (SearchForBrandRes);
 
   rpc GetSeries(GetSeriesReq) returns (Series);
-  rpc CreateSeries(CreateSeriesReq) returns (Empty);
-  rpc UpdateSeries(UpdateSeriesReq) returns (Empty);
-  rpc SearchForSeries(SearchReq) returns (SearchForSeriesRes);
+  rpc CreateSeries(CreateSeriesReq) returns (utils.Empty);
+  rpc UpdateSeries(UpdateSeriesReq) returns (utils.Empty);
+  rpc SearchForSeries(utils.SearchReq) returns (SearchForSeriesRes);
 
-  rpc GetCarMetadata(Empty) returns (GetCarMetadataRes);
+  rpc GetCarMetadata(utils.Empty) returns (GetCarMetadataRes);
 }
 
 message Car {
@@ -70,8 +72,6 @@ message FuelType {
   string name = 2;
   optional string description = 3;
 }
-
-message Empty {}
 
 message GetCarReq {
   int32 id = 1;
@@ -164,12 +164,4 @@ message GetCarMetadataRes {
   repeated Series series = 2;
   repeated FuelType fuelType = 3;
   repeated Transmission transmission = 4;
-}
-
-message SearchReq {
-  optional string query = 1;
-  optional string orderby = 2;
-  optional int32 startAt = 3;
-  optional int32 limit = 4;
-  optional bool isAscending = 5;
 }
