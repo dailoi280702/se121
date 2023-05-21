@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/dailoi280702/se121/search-service/pkg/search"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/status"
 )
 
 var (
@@ -37,7 +36,43 @@ func newServer(carService car.CarServiceClient, blogService blog.BlogServiceClie
 }
 
 func (s *server) Search(ctx context.Context, req *utils.SearchReq) (*search.SearchRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Search not implemented")
+	res := search.SearchRes{}
+
+	errCh := make(chan error)
+	var err error
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	go func() {
+		res.Blogs, err = s.blogService.SearchForBlogs(ctx, req)
+		errCh <- err
+		wg.Done()
+	}()
+
+	go func() {
+		res.Cars, err = s.carService.SearchForCar(ctx, req)
+		errCh <- err
+		wg.Done()
+	}()
+
+	go func() {
+		res.Brands, err = s.carService.SearchForBrand(ctx, req)
+		errCh <- err
+		wg.Done()
+	}()
+
+	go func() {
+		wg.Wait()
+		close(errCh)
+	}()
+
+	for err := range errCh {
+		if err != nil {
+			log.Panicf("Search service got and err: %v", err)
+		}
+	}
+
+	return &res, nil
 }
 
 func main() {

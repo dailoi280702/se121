@@ -1,7 +1,11 @@
 github.com/dailoi280702/se121/blog-service v0.0.0-20230521124855-2e2f367e5406 h1:t+m4jcrdOn9ErgJNQkYono5yMfPdDzFqy1Hm0+dCI4Y=
 github.com/dailoi280702/se121/blog-service v0.0.0-20230521124855-2e2f367e5406/go.mod h1:jzCR8QW/XhiOJ1AL7Uzu6dZESTw9ATD1p6DBNPpshgc=
+github.com/dailoi280702/se121/blog-service v0.0.0-20230521151341-5f4174f2d760 h1:Jw0exSZLz7PAhSJpNQ8URVtMkHc2VyVsmvB/4qvSWUQ=
+github.com/dailoi280702/se121/blog-service v0.0.0-20230521151341-5f4174f2d760/go.mod h1:WbUpL9WRrLzkr5JkY50LxgeKxqVfmz2SgeQu0BgngnE=
 github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231 h1:RXqNIJZ2YtO4SqkF3/wMtIvRB4zqOEDjEv1chTPosXM=
 github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
+github.com/dailoi280702/se121/car-service v0.0.0-20230521151341-5f4174f2d760 h1:ymQS4vBxO+Ka4gWkX1ZJcxjjnyuYwP4bQrp6G1YXO/c=
+github.com/dailoi280702/se121/car-service v0.0.0-20230521151341-5f4174f2d760/go.mod h1:ud2s3zzvKXjxIY4LMMvYyHw4RojjIKKWj+iYk8md/uA=
 github.com/dailoi280702/se121/pkg/go v0.0.0-20230521135721-a682645da4cd h1:pAUc47hfwHwIXvBH+CvzHx60vSOOxKE+wk1IiiDzFW0=
 github.com/dailoi280702/se121/pkg/go v0.0.0-20230521135721-a682645da4cd/go.mod h1:oxqNpTiyBhvZrJNrPC7kTfenjVdVw/ZwHat7WTBFrOs=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
