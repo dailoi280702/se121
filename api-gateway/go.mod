@@ -6,7 +6,7 @@ require (
 	github.com/dailoi280702/se121/blog-service v0.0.0-20230521140836-b781d226a231
 	github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231
 	github.com/dailoi280702/se121/comment-service v0.0.0-20230521140836-b781d226a231
-	github.com/dailoi280702/se121/pkg/go v0.0.0-20230521140836-b781d226a231
+	github.com/dailoi280702/se121/pkg/go v0.0.0-20230524173832-57e3ee089ca3
 	github.com/dailoi280702/se121/search-service v0.0.0-20230521145934-db0160fae8d9
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
