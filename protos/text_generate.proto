@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package text_generate;
+
+service TextGenerateService {
+  rpc GenerateCarReview(GenerateReviewReq) returns (ResString);
+  rpc GenerateBlogSummarization(GenerateBlogSummarizationReq) returns (ResString);
+}
+
+message GenerateReviewReq {
+  string name = 1;
+  string brand = 2;
+  string series = 3;
+  int32 horsePower = 4;
+  int32 torque = 5;
+  string transmission = 6;
+  string fuelType = 7;
+}
+
+message GenerateBlogSummarizationReq {
+  string title = 1;
+  string body = 2;
+}
+
+message ResString {
+  string text = 1;
+}
