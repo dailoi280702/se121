@@ -11,8 +11,8 @@ import (
 func NewTextGenerateRoutes(tgc tg.TextGenerateServiceClient) chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/car-review/", handleGetCarReview(tgc))
-	r.Get("/car-review/", handleSummarizeBlog(tgc))
+	r.Get("/car-review", handleGetCarReview(tgc))
+	r.Get("/blog-summarize", handleSummarizeBlog(tgc))
 
 	return r
 }

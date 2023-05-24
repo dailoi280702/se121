@@ -8,10 +8,10 @@ import (
 	"github.com/dailoi280702/se121/api-gateway/api/v1/handlers"
 	"github.com/dailoi280702/se121/api-gateway/internal/service/auth"
 	"github.com/dailoi280702/se121/api-gateway/internal/service/user"
-	"github.com/dailoi280702/se121/api-gateway/protos"
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/text_generate"
 	"github.com/dailoi280702/se121/search-service/pkg/search"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -20,7 +20,6 @@ import (
 )
 
 func InitRouter(
-	gprcHelloClient protos.HelloClient,
 	redisClient *redis.Client,
 	db *sql.DB,
 	userService user.UserServiceClient,
@@ -29,6 +28,7 @@ func InitRouter(
 	blogService blog.BlogServiceClient,
 	commentService comment.CommentServiceClient,
 	searchService search.SearchServiceClient,
+	textGenerateService text_generate.TextGenerateServiceClient,
 ) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
@@ -53,7 +53,7 @@ func InitRouter(
 		}
 	})
 
-	router.Mount("/say-hello", handlers.NewHelloRouter(gprcHelloClient).Routes())
+	// router.Mount("/say-hello", handlers.NewHelloRouter(gprcHelloClient).Routes())
 	router.Mount("/auth", handlers.NewAuthHandler(redisClient, db, authService).Routes())
 	router.Mount("/car", handlers.NewCarRoutes(carService))
 	router.Mount("/brand", handlers.NewBrandRoutes(carService))
@@ -61,6 +61,7 @@ func InitRouter(
 	router.Mount("/blog", handlers.NewBlogRoutes(blogService))
 	router.Mount("/comment", handlers.NewCommentRoutes(commentService))
 	router.Mount("/search", handlers.NewSearchRoutes(searchService))
+	router.Mount("/text-generate", handlers.NewTextGenerateRoutes(textGenerateService))
 
 	return router
 }

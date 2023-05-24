@@ -12,10 +12,10 @@ import (
 	api_v1 "github.com/dailoi280702/se121/api-gateway/api/v1/router"
 	"github.com/dailoi280702/se121/api-gateway/internal/service/auth"
 	"github.com/dailoi280702/se121/api-gateway/internal/service/user"
-	"github.com/dailoi280702/se121/api-gateway/protos"
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/text_generate"
 	"github.com/dailoi280702/se121/search-service/pkg/search"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
@@ -28,14 +28,14 @@ import (
 )
 
 var (
-	addr               = flag.String("addr", "python-backend:50051", "the address to connect to")
-	userServicePort    = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
-	authServicePort    = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
-	carServicePort     = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
-	blogServicePort    = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
-	commentServicePort = flag.String("commentServicePort", "comment-service:50051", "the address to connect to comment service")
-	searchServicePort  = flag.String("searchServicePort", "search-service:50051", "the address to connect to search service")
-	redisAddr          = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
+	textGenerateServicePort = flag.String("textGenerateServicePort", "text-generate-service:50051", "the address to connect to text generate service")
+	userServicePort         = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
+	authServicePort         = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
+	carServicePort          = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
+	blogServicePort         = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
+	commentServicePort      = flag.String("commentServicePort", "comment-service:50051", "the address to connect to comment service")
+	searchServicePort       = flag.String("searchServicePort", "search-service:50051", "the address to connect to search service")
+	redisAddr               = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
 func NewUserService(ctx context.Context) (*grpc.ClientConn, user.UserServiceClient) {
@@ -74,6 +74,15 @@ func NewBlogService(ctx context.Context) (*grpc.ClientConn, blog.BlogServiceClie
 	return conn, blog.NewBlogServiceClient(conn)
 }
 
+func NewTextGenerateService(ctx context.Context) (*grpc.ClientConn, text_generate.TextGenerateServiceClient) {
+	conn, err := grpc.DialContext(ctx, *textGenerateServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect text generate service: %v", err)
+	}
+
+	return conn, text_generate.NewTextGenerateServiceClient(conn)
+}
+
 func NewCommentService(ctx context.Context) (*grpc.ClientConn, comment.CommentServiceClient) {
 	conn, err := grpc.DialContext(ctx, *commentServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -94,12 +103,6 @@ func NewSearchService(ctx context.Context) (*grpc.ClientConn, search.SearchServi
 
 func main() {
 	// grpc
-	conn, err := grpc.Dial(*addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalf("failed to connect grpc: %v", err)
-	}
-	c := protos.NewHelloClient(conn)
-
 	ctx := context.Background()
 
 	userServiceConn, userService := NewUserService(ctx)
@@ -108,6 +111,7 @@ func main() {
 	blogServiceConn, blogService := NewBlogService(ctx)
 	commentServiceConn, commentService := NewCommentService(ctx)
 	searchServiceConn, searchService := NewSearchService(ctx)
+	textGenerateServiceConn, textGenerateService := NewTextGenerateService(ctx)
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -123,13 +127,13 @@ func main() {
 
 	defer func() {
 		db.Close()
-		conn.Close()
 		userServiceConn.Close()
 		authServiceConn.Close()
 		carServiceConn.Close()
 		blogServiceConn.Close()
 		commentServiceConn.Close()
 		searchServiceConn.Close()
+		textGenerateServiceConn.Close()
 	}()
 
 	// database migratetion
@@ -152,12 +156,14 @@ func main() {
 	// routes
 	router := chi.NewRouter()
 	router.Mount("/v1", api_v1.InitRouter(
-		c, redisClient, db,
+		redisClient, db,
 		userService,
 		authService,
 		carService,
 		blogService,
 		commentService,
-		searchService))
+		searchService,
+		textGenerateService,
+	))
 	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }
