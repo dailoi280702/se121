@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package text_generate;
 
+option go_package = "github.com/dailoi280702/se121/pkg/go/grpc/generated/text_generate";
+
 service TextGenerateService {
   rpc GenerateCarReview(GenerateReviewReq) returns (ResString);
   rpc GenerateBlogSummarization(GenerateBlogSummarizationReq) returns (ResString);
