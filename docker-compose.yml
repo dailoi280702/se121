@@ -85,9 +85,9 @@ services:
     volumes:
       - ./search-service/:/app
 
-  python-backend:
-    build: ./python-backend/
-    container_name: python-backend
+  text-generate-service:
+    build: ./text-generate-service/
+    container_name: text-generate-service
     stop_signal: SIGINT
     networks:
       - grpc
