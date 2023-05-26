@@ -1,7 +1,7 @@
 import grpc
 import logging
 import asyncio
-from concurrent import futures
+# from concurrent import futures
 
 from protos import text_generate_pb2
 from protos import text_generate_pb2_grpc

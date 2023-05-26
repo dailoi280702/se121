@@ -13,19 +13,20 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13text_generate.proto\x12\rtext_generate\"\x8c\x01\n\x11GenerateReviewReq\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05\x62rand\x18\x02 \x01(\t\x12\x0e\n\x06series\x18\x03 \x01(\t\x12\x12\n\nhorsePower\x18\x04 \x01(\x05\x12\x0e\n\x06torque\x18\x05 \x01(\x05\x12\x14\n\x0ctransmission\x18\x06 \x01(\t\x12\x10\n\x08\x66uelType\x18\x07 \x01(\t\";\n\x1cGenerateBlogSummarizationReq\x12\r\n\x05title\x18\x01 \x01(\t\x12\x0c\n\x04\x62ody\x18\x02 \x01(\t\"\x19\n\tResString\x12\x0c\n\x04text\x18\x01 \x01(\t2\xca\x01\n\x13TextGenerateService\x12O\n\x11GenerateCarReview\x12 .text_generate.GenerateReviewReq\x1a\x18.text_generate.ResString\x12\x62\n\x19GenerateBlogSummarization\x12+.text_generate.GenerateBlogSummarizationReq\x1a\x18.text_generate.ResStringb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13text_generate.proto\x12\rtext_generate\"\xf7\x01\n\x11GenerateReviewReq\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x12\n\x05\x62rand\x18\x02 \x01(\tH\x00\x88\x01\x01\x12\x13\n\x06series\x18\x03 \x01(\tH\x01\x88\x01\x01\x12\x17\n\nhorsePower\x18\x04 \x01(\x05H\x02\x88\x01\x01\x12\x13\n\x06torque\x18\x05 \x01(\x05H\x03\x88\x01\x01\x12\x19\n\x0ctransmission\x18\x06 \x01(\tH\x04\x88\x01\x01\x12\x15\n\x08\x66uelType\x18\x07 \x01(\tH\x05\x88\x01\x01\x42\x08\n\x06_brandB\t\n\x07_seriesB\r\n\x0b_horsePowerB\t\n\x07_torqueB\x0f\n\r_transmissionB\x0b\n\t_fuelType\";\n\x1cGenerateBlogSummarizationReq\x12\r\n\x05title\x18\x01 \x01(\t\x12\x0c\n\x04\x62ody\x18\x02 \x01(\t\"\x19\n\tResString\x12\x0c\n\x04text\x18\x01 \x01(\t2\xca\x01\n\x13TextGenerateService\x12O\n\x11GenerateCarReview\x12 .text_generate.GenerateReviewReq\x1a\x18.text_generate.ResString\x12\x62\n\x19GenerateBlogSummarization\x12+.text_generate.GenerateBlogSummarizationReq\x1a\x18.text_generate.ResStringBCZAgithub.com/dailoi280702/se121/pkg/go/grpc/generated/text_generateb\x06proto3')
 
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, globals())
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'text_generate_pb2', globals())
 if _descriptor._USE_C_DESCRIPTORS == False:
 
   DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'ZAgithub.com/dailoi280702/se121/pkg/go/grpc/generated/text_generate'
   _GENERATEREVIEWREQ._serialized_start=39
-  _GENERATEREVIEWREQ._serialized_end=179
-  _GENERATEBLOGSUMMARIZATIONREQ._serialized_start=181
-  _GENERATEBLOGSUMMARIZATIONREQ._serialized_end=240
-  _RESSTRING._serialized_start=242
-  _RESSTRING._serialized_end=267
-  _TEXTGENERATESERVICE._serialized_start=270
-  _TEXTGENERATESERVICE._serialized_end=472
+  _GENERATEREVIEWREQ._serialized_end=286
+  _GENERATEBLOGSUMMARIZATIONREQ._serialized_start=288
+  _GENERATEBLOGSUMMARIZATIONREQ._serialized_end=347
+  _RESSTRING._serialized_start=349
+  _RESSTRING._serialized_end=374
+  _TEXTGENERATESERVICE._serialized_start=377
+  _TEXTGENERATESERVICE._serialized_end=579
 # @@protoc_insertion_point(module_scope)

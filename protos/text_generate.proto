@@ -11,12 +11,12 @@ service TextGenerateService {
 
 message GenerateReviewReq {
   string name = 1;
-  string brand = 2;
-  string series = 3;
-  int32 horsePower = 4;
-  int32 torque = 5;
-  string transmission = 6;
-  string fuelType = 7;
+  optional string brand = 2;
+  optional string series = 3;
+  optional int32 horsePower = 4;
+  optional int32 torque = 5;
+  optional string transmission = 6;
+  optional string fuelType = 7;
 }
 
 message GenerateBlogSummarizationReq {
