@@ -1,6 +1,7 @@
 import grpc
 import logging
 import asyncio
+
 # from concurrent import futures
 
 from protos import text_generate_pb2
@@ -23,9 +24,8 @@ class TextGenerateServicer:
         context: grpc.aio.ServicerContext,
     ) -> text_generate_pb2.ResString:
         return text_generate_pb2.ResString(text="fugg")
-        # context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        # context.set_details("Method not implemented!")
-        # raise NotImplementedError("Method not implemented!")
+        # context.set_code(grpc.StatusCode.INTERNAL)
+        # context.set_details("Text generate server error")
 
     async def GenerateBlogSummarization(
         self,
@@ -33,8 +33,8 @@ class TextGenerateServicer:
         context: grpc.aio.ServicerContext,
     ) -> text_generate_pb2.ResString:
         return text_generate_pb2.ResString(text="fugg")
-        # context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        # context.set_details("Method not implemented!")
+        # context.set_code(grpc.StatusCode.INTERNAL)
+        # context.set_details("Text generate server error")
         # raise NotImplementedError("Method not implemented!")
 
 
