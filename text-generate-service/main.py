@@ -1,20 +1,37 @@
 import grpc
 import logging
 import asyncio
-
-# from concurrent import futures
-
+import openai
+import os
+import random
 from protos import text_generate_pb2
 from protos import text_generate_pb2_grpc
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-# class HelloServicer(hello_pb2_grpc.HelloServicer):
-#     async def SayHello(
-#         self, request: hello_pb2.HelloRequest, context: grpc.aio.ServicerContext
-#     ) -> hello_pb2.HelloResponse:
-#         return hello_pb2.HelloResponse(
-#             message="hello %s from python!" % request.message
-#         )
+def generate_tldr(blog_title, blog_content):
+    prompt = f"{blog_title}\n\n{blog_content}\n\nSummarization under 150 words:"
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=prompt,
+        max_tokens=200,
+        temperature=0.5,
+        top_p=1.0,
+        frequency_penalty=0.0,
+        presence_penalty=0.0,
+        n=1,
+        stop=None,
+        echo=False,
+    )
+    tldr = (
+        response.choices[0]
+        .text.strip()
+        .replace("Summarization under 150 words:", "")
+        .strip()
+    )
+    return tldr
 
 
 class TextGenerateServicer:
@@ -23,7 +40,39 @@ class TextGenerateServicer:
         request: text_generate_pb2.GenerateReviewReq,
         context: grpc.aio.ServicerContext,
     ) -> text_generate_pb2.ResString:
-        return text_generate_pb2.ResString(text="fugg")
+        # Format the input prompt
+        prompt = f"Write a review withot subject for the {request.brand} {request.series} {request.name}."
+
+        info_list = []
+        if request.fuelType != None:
+            info_list.append(f"\n fuel type: {request.fuelType}")
+        if request.transmission != None:
+            info_list.append(f"\n transmission: {request.transmission}")
+        if request.horsePower != None:
+            info_list.append(f"\n horse powser: {request.horsePower}")
+        if request.torque != None:
+            info_list.append(f"\n torque: {request.torque}")
+
+        # Randomly select and include an information in the prompt
+        if info_list:
+            random_info = random.choice(info_list)
+            prompt += f" It has {random_info}."
+
+        # Generate the review using OpenAI API
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=100,
+            n=1,
+            stop=None,
+            temperature=0.7,
+        )
+
+        # Extract the generated review from the API response
+        generated_review = response["choices"][0]["text"].strip()
+
+        return text_generate_pb2.ResString(text=generated_review)
+
         # context.set_code(grpc.StatusCode.INTERNAL)
         # context.set_details("Text generate server error")
 
@@ -32,7 +81,8 @@ class TextGenerateServicer:
         request: text_generate_pb2.GenerateBlogSummarizationReq,
         context: grpc.aio.ServicerContext,
     ) -> text_generate_pb2.ResString:
-        return text_generate_pb2.ResString(text="fugg")
+        generated_tldr = generate_tldr(request.title, request.body)
+        return text_generate_pb2.ResString(text=generated_tldr)
         # context.set_code(grpc.StatusCode.INTERNAL)
         # context.set_details("Text generate server error")
         # raise NotImplementedError("Method not implemented!")
@@ -52,6 +102,8 @@ async def serveGrpc() -> None:
 
 
 def main():
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    logging.info(openai.api_key)
     logging.basicConfig(level=logging.INFO)
     asyncio.get_event_loop().run_until_complete(serveGrpc())
 
