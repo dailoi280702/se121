@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package utils;
+
+option go_package = "github.com/dailoi280702/se121/pkg/go/grpc/generated/utils";
+
+message SearchReq {
+  optional string query = 1;
+  optional string orderby = 2;
+  optional int32 startAt = 3;
+  optional int32 limit = 4;
+  optional bool isAscending = 5;
+}
+
+message Empty {}

@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package text_generate;
+
+option go_package = "github.com/dailoi280702/se121/pkg/go/grpc/generated/text_generate";
+
+service TextGenerateService {
+  rpc GenerateCarReview(GenerateReviewReq) returns (ResString);
+  rpc GenerateBlogSummarization(GenerateBlogSummarizationReq) returns (ResString);
+}
+
+message GenerateReviewReq {
+  string name = 1;
+  optional string brand = 2;
+  optional string series = 3;
+  optional int32 horsePower = 4;
+  optional int32 torque = 5;
+  optional string transmission = 6;
+  optional string fuelType = 7;
+}
+
+message GenerateBlogSummarizationReq {
+  string title = 1;
+  string body = 2;
+}
+
+message ResString {
+  string text = 1;
+}

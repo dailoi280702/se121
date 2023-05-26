@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package comment;
 
-option go_package = "github.com/dailoi280702/se121/comment-service/pkg/blog";
+option go_package = "github.com/dailoi280702/se121/comment-service/pkg/comment";
 
 message Comment {
   int32 id = 1;
@@ -10,7 +10,7 @@ message Comment {
   string userId = 3;
   string comment = 4;
   int64 createdAt = 5;
-  int64 updatedAt = 6;
+  optional int64 updatedAt = 6;
 }
 
 message Empty {}
@@ -20,7 +20,7 @@ service CommentService {
   rpc UpdateComment(UpdateCommentReq) returns (Empty);
   rpc DeleteComment(DeleteCommentReq) returns (Empty);
   rpc GetComment(GetCommentReq) returns (Comment);
-  rpc GetAllComment(Empty) returns (stream Comment);
+  rpc GetBlogComments(GetBlogCommentsReq) returns (GetBlogCommentsRes);
 }
 
 message GetCommentReq {
@@ -37,9 +37,15 @@ message UpdateCommentReq {
 }
 
 message CreateCommentReq {
-  int32 blogId = 2;
+  int32 blogId = 1;
   string userId = 3;
   string comment = 4;
-  int64 createdAt = 5;
-  int64 updatedAt = 6;
+}
+
+message GetBlogCommentsReq {
+  int32 blogId = 1;
+}
+
+message GetBlogCommentsRes {
+  repeated Comment comments = 1;
 }

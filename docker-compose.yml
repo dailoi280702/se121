@@ -1,9 +1,9 @@
 version: "3.9"
 
 services:
-  go-backend:
-    container_name: go-backend
-    build: ./go-backend/
+  api-gateway:
+    container_name: api-gateway
+    build: ./api-gateway/
     environment:
       DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
@@ -13,7 +13,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./go-backend/:/app
+      - ./api-gateway/:/app
     depends_on:
       - redis
       - db
@@ -35,6 +35,7 @@ services:
     container_name: auth-service
     build: ./auth-service/
     networks:
+      - grpc
       - db
     volumes:
       - ./auth-service/:/app
@@ -42,14 +43,51 @@ services:
   car-service:
     container_name: car-service
     build: ./car-service/
+    environment:
+      DATABASE_URL: "host=db user=postgres password=postgres dbname=postgres sslmode=disable"
     networks:
+      - grpc
       - db
     volumes:
       - ./car-service/:/app
 
-  python-backend:
-    build: ./python-backend/
-    container_name: python-backend
+  comment-service:
+    container_name: comment-service
+    build: ./comment-service/
+    environment:
+      DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
+    networks:
+      - blog-db
+      - grpc
+    volumes:
+      - ./comment-service/:/app
+    depends_on:
+      - blog-db
+
+  blog-service:
+    container_name: blog-service
+    build: ./blog-service/
+    environment:
+      DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
+    networks:
+      - blog-db
+      - grpc
+    volumes:
+      - ./blog-service/:/app
+    depends_on:
+      - blog-db
+
+  search-service:
+    container_name: search-service
+    build: ./search-service/
+    networks:
+      - grpc
+    volumes:
+      - ./search-service/:/app
+
+  text-generate-service:
+    build: ./text-generate-service/
+    container_name: text-generate-service
     stop_signal: SIGINT
     networks:
       - grpc
@@ -92,11 +130,27 @@ services:
     networks:
       - db
 
+  blog-db:
+    container_name: blog-db
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - blogdata:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    networks:
+      - blog-db
+
 networks:
   client: {}
   grpc: {}
   db: {}
+  blog-db: {}
 
 volumes:
   redis-data: {}
   pgdata: {}
+  blogdata: {}

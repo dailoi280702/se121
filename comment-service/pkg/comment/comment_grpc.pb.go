@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: comment.proto
 
-package blog
+package comment
 
 import (
 	context "context"
@@ -26,7 +26,7 @@ type CommentServiceClient interface {
 	UpdateComment(ctx context.Context, in *UpdateCommentReq, opts ...grpc.CallOption) (*Empty, error)
 	DeleteComment(ctx context.Context, in *DeleteCommentReq, opts ...grpc.CallOption) (*Empty, error)
 	GetComment(ctx context.Context, in *GetCommentReq, opts ...grpc.CallOption) (*Comment, error)
-	GetAllComment(ctx context.Context, in *Empty, opts ...grpc.CallOption) (CommentService_GetAllCommentClient, error)
+	GetBlogComments(ctx context.Context, in *GetBlogCommentsReq, opts ...grpc.CallOption) (*GetBlogCommentsRes, error)
 }
 
 type commentServiceClient struct {
@@ -73,36 +73,13 @@ func (c *commentServiceClient) GetComment(ctx context.Context, in *GetCommentReq
 	return out, nil
 }
 
-func (c *commentServiceClient) GetAllComment(ctx context.Context, in *Empty, opts ...grpc.CallOption) (CommentService_GetAllCommentClient, error) {
-	stream, err := c.cc.NewStream(ctx, &CommentService_ServiceDesc.Streams[0], "/comment.CommentService/GetAllComment", opts...)
+func (c *commentServiceClient) GetBlogComments(ctx context.Context, in *GetBlogCommentsReq, opts ...grpc.CallOption) (*GetBlogCommentsRes, error) {
+	out := new(GetBlogCommentsRes)
+	err := c.cc.Invoke(ctx, "/comment.CommentService/GetBlogComments", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &commentServiceGetAllCommentClient{stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
-	return x, nil
-}
-
-type CommentService_GetAllCommentClient interface {
-	Recv() (*Comment, error)
-	grpc.ClientStream
-}
-
-type commentServiceGetAllCommentClient struct {
-	grpc.ClientStream
-}
-
-func (x *commentServiceGetAllCommentClient) Recv() (*Comment, error) {
-	m := new(Comment)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
+	return out, nil
 }
 
 // CommentServiceServer is the server API for CommentService service.
@@ -113,7 +90,7 @@ type CommentServiceServer interface {
 	UpdateComment(context.Context, *UpdateCommentReq) (*Empty, error)
 	DeleteComment(context.Context, *DeleteCommentReq) (*Empty, error)
 	GetComment(context.Context, *GetCommentReq) (*Comment, error)
-	GetAllComment(*Empty, CommentService_GetAllCommentServer) error
+	GetBlogComments(context.Context, *GetBlogCommentsReq) (*GetBlogCommentsRes, error)
 	mustEmbedUnimplementedCommentServiceServer()
 }
 
@@ -133,8 +110,8 @@ func (UnimplementedCommentServiceServer) DeleteComment(context.Context, *DeleteC
 func (UnimplementedCommentServiceServer) GetComment(context.Context, *GetCommentReq) (*Comment, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetComment not implemented")
 }
-func (UnimplementedCommentServiceServer) GetAllComment(*Empty, CommentService_GetAllCommentServer) error {
-	return status.Errorf(codes.Unimplemented, "method GetAllComment not implemented")
+func (UnimplementedCommentServiceServer) GetBlogComments(context.Context, *GetBlogCommentsReq) (*GetBlogCommentsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBlogComments not implemented")
 }
 func (UnimplementedCommentServiceServer) mustEmbedUnimplementedCommentServiceServer() {}
 
@@ -221,25 +198,22 @@ func _CommentService_GetComment_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CommentService_GetAllComment_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(Empty)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
+func _CommentService_GetBlogComments_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetBlogCommentsReq)
+	if err := dec(in); err != nil {
+		return nil, err
 	}
-	return srv.(CommentServiceServer).GetAllComment(m, &commentServiceGetAllCommentServer{stream})
-}
-
-type CommentService_GetAllCommentServer interface {
-	Send(*Comment) error
-	grpc.ServerStream
-}
-
-type commentServiceGetAllCommentServer struct {
-	grpc.ServerStream
-}
-
-func (x *commentServiceGetAllCommentServer) Send(m *Comment) error {
-	return x.ServerStream.SendMsg(m)
+	if interceptor == nil {
+		return srv.(CommentServiceServer).GetBlogComments(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/comment.CommentService/GetBlogComments",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CommentServiceServer).GetBlogComments(ctx, req.(*GetBlogCommentsReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 // CommentService_ServiceDesc is the grpc.ServiceDesc for CommentService service.
@@ -265,13 +239,11 @@ var CommentService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetComment",
 			Handler:    _CommentService_GetComment_Handler,
 		},
-	},
-	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "GetAllComment",
-			Handler:       _CommentService_GetAllComment_Handler,
-			ServerStreams: true,
+			MethodName: "GetBlogComments",
+			Handler:    _CommentService_GetBlogComments_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "comment.proto",
 }

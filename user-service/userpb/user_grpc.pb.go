@@ -8,6 +8,7 @@ package user
 
 import (
 	context "context"
+
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -141,21 +142,24 @@ type UserServiceServer interface {
 }
 
 // UnimplementedUserServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedUserServiceServer struct {
-}
+type UnimplementedUserServiceServer struct{}
 
 func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserReq) (*GetUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
+
 func (UnimplementedUserServiceServer) VerifyUser(context.Context, *VerifyUserReq) (*User, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VerifyUser not implemented")
 }
+
 func (UnimplementedUserServiceServer) GetUsers(*GetUsersReq, UserService_GetUsersServer) error {
 	return status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
 }
+
 func (UnimplementedUserServiceServer) CreateUser(*CreateUserReq, UserService_CreateUserServer) error {
 	return status.Errorf(codes.Unimplemented, "method CreateUser not implemented")
 }
+
 func (UnimplementedUserServiceServer) UpdateUser(context.Context, *User) (*UpdateUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
 }

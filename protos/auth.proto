@@ -35,7 +35,7 @@ message SignUpReq {
     string name = 1;
     string email = 2;
     string password = 3;
-    string rePasssword = 4; 
+    string rePassword = 4; 
 }
 
 message SignUpRes {

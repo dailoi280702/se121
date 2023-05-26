@@ -11,9 +11,9 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/dailoi280702/se121/auth_service/internal/service"
-	"github.com/dailoi280702/se121/auth_service/internal/service/auth"
-	"github.com/dailoi280702/se121/auth_service/internal/service/user"
+	"github.com/dailoi280702/se121/auth-service/internal/service"
+	"github.com/dailoi280702/se121/auth-service/internal/service/auth"
+	"github.com/dailoi280702/se121/auth-service/internal/service/user"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -115,7 +115,7 @@ func (s *AuthServiceServer) SignUp(ctx context.Context, req *auth.SignUpReq) (*a
 		Messages []string          `json:"messages"`
 		Details  map[string]string `json:"details"`
 	}{[]string{}, map[string]string{}}
-	name, email, password, rePassword := req.GetName(), req.GetEmail(), req.GetPassword(), req.GetRePasssword()
+	name, email, password, rePassword := req.GetName(), req.GetEmail(), req.GetPassword(), req.GetRePassword()
 
 	if err := ValidateField("name", name, true, regexp.MustCompile(UsernameRegex)); err != nil {
 		errorsRes.Details["name"] = err.Error()

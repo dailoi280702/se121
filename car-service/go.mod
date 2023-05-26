@@ -1,8 +1,10 @@
-module github.com/dailoi280702/se121/car_service
+module github.com/dailoi280702/se121/car-service
 
 go 1.20
 
 require (
+	github.com/dailoi280702/se121/pkg/go v0.0.0-20230521135721-a682645da4cd
+	github.com/lib/pq v1.10.9
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 )

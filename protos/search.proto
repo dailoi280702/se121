@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package car;
+
+option go_package = "github.com/dailoi280702/se121/car-search/pkg/search";
+
+import "utils.proto";
+import "car.proto";
+import "blog.proto";
+
+service SearchService {
+  rpc Search(utils.SearchReq) returns (SearchRes);
+}
+
+message SearchRes {
+    car.SearchForCarRes cars = 1;
+    car.SearchForBrandRes brands = 2;
+    blog.SearchBlogsRes blogs = 3;
+}
