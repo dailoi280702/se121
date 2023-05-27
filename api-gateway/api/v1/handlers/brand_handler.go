@@ -70,7 +70,7 @@ func handleSearchForBrand(carService car.CarServiceClient) http.HandlerFunc {
 				res, err = carService.SearchForBrand(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))

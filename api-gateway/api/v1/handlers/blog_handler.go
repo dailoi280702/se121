@@ -83,7 +83,7 @@ func handleSearchBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 				res, err = blogService.SearchForBlogs(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))

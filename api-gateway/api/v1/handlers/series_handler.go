@@ -70,7 +70,7 @@ func handleSearchSeries(carService car.CarServiceClient) http.HandlerFunc {
 				res, err = carService.SearchForSeries(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))

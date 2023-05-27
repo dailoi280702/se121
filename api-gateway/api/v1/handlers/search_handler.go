@@ -28,7 +28,7 @@ func handleSearch(searchService search.SearchServiceClient) http.HandlerFunc {
 				res, err = searchService.Search(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}),
