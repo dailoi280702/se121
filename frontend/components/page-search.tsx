@@ -59,8 +59,9 @@ export default function PageSearch({
     <form
       className="bg-neutral-100 focus-within:bg-neutral-200 transition-colors
         h-10 flex items-center rounded-md overflow-hidden px-2"
-      onSubmit={() => {
+      onSubmit={(e) => {
         if (query) {
+          e.preventDefault()
           submit(query)
         }
       }}

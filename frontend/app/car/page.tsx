@@ -4,11 +4,16 @@ import PageProgressBar from '@/components/page-progress-bar'
 import PageSearch from '@/components/page-search'
 import { objectToQuery } from '@/utils'
 
+const SEARCH_LIMIT = 20
+
 async function fetchCars(req: SearchReq) {
   try {
     const fetchURL =
       'http://api-gateway:8000/v1/car/search?' + objectToQuery(req)
-    const res = await fetch(fetchURL, { cache: 'no-store' })
+    const res = await fetch(
+      fetchURL
+      // { cache: 'no-store' }
+    )
     if (!res.ok) {
       console.log(res.text())
       return
@@ -28,9 +33,7 @@ async function Cars({ promise }: { promise: Promise<SearchCarRes> }) {
         {carList && carList.cars ? (
           <>
             {carList.cars.map((car) => (
-              <div className="text-ellipsis overflow-hidden" key={car.id}>
-                {JSON.stringify(car)}
-              </div>
+              <div key={car.id}>{JSON.stringify(car)}</div>
             ))}
           </>
         ) : (
@@ -38,13 +41,11 @@ async function Cars({ promise }: { promise: Promise<SearchCarRes> }) {
         )}
       </ul>
       {carList && carList.total && carList.total > 0 && (
-        <PageProgressBar total={carList.total} />
+        <PageProgressBar total={Math.ceil(carList.total / SEARCH_LIMIT)} />
       )}
     </>
   )
 }
-
-const SEARCH_LIMIT = 20
 
 export default async function Page({
   searchParams,
@@ -56,7 +57,7 @@ export default async function Page({
     query: search ? decodeURIComponent(search) : '',
     orderby: orderby ? decodeURIComponent(orderby) : 'year',
     limit: SEARCH_LIMIT,
-    startAt: page ? SEARCH_LIMIT * (page - 1) + 1 : 1,
+    startAt: page ? SEARCH_LIMIT * (page - 1) : 1,
   }
   const filterOptions = new Map([
     ['Date', 'date'],
