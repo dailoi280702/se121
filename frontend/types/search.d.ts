@@ -17,12 +17,17 @@ interface SearchCarRes {
   total: number
 }
 
+interface SearchBrandRes {
+  brands: Brand[]
+  total: number
+}
+
 interface SearchBlogRes {
-  cars: Blog[]
+  blogs: Blog[]
   total: number
 }
 
 interface SearchSeries {
-  cars: Series[]
+  series: Series[]
   total: number
 }

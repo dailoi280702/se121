@@ -6,10 +6,10 @@ import { objectToQuery } from '@/utils'
 
 const SEARCH_LIMIT = 20
 
-async function fetchBlogs(req: SearchReq) {
+async function fetchBrands(req: SearchReq) {
   try {
     const fetchURL =
-      'http://api-gateway:8000/v1/blog/search?' + objectToQuery(req)
+      'http://api-gateway:8000/v1/brand/search?' + objectToQuery(req)
     const res = await fetch(fetchURL)
     if (!res.ok) {
       console.log(res.text())
@@ -21,24 +21,24 @@ async function fetchBlogs(req: SearchReq) {
   }
 }
 
-async function Blogs({ promise }: { promise: Promise<SearchBlogRes> }) {
-  const blogs: SearchBlogRes = await promise
+async function Brands({ promise }: { promise: Promise<SearchBrandRes> }) {
+  const brands: SearchBrandRes = await promise
 
   return (
     <>
       <ul className="flex flex-col items-center space-y-4">
-        {blogs && blogs.blogs ? (
+        {brands && brands.brands ? (
           <>
-            {blogs.blogs.map((blog) => (
-              <div key={blog.id}>{JSON.stringify(blog)}</div>
+            {brands.brands.map((brand) => (
+              <div key={brand.id}>{JSON.stringify(brand)}</div>
             ))}
           </>
         ) : (
           <div>No Result Found</div>
         )}
       </ul>
-      {blogs && blogs.total && blogs.total > 0 && (
-        <PageProgressBar total={Math.ceil(blogs.total / SEARCH_LIMIT)} />
+      {brands && brands.total && brands.total > 0 && (
+        <PageProgressBar total={Math.ceil(brands.total / SEARCH_LIMIT)} />
       )}
     </>
   )
@@ -52,23 +52,23 @@ export default async function Page({
   const { search, orderby, page } = searchParams
   const searchRequest = {
     query: search ? decodeURIComponent(search) : '',
-    orderby: orderby ? decodeURIComponent(orderby) : 'date',
+    orderby: orderby ? decodeURIComponent(orderby) : 'year',
     limit: SEARCH_LIMIT,
     startAt: page ? SEARCH_LIMIT * (page - 1) : 1,
   }
   const filterOptions = new Map([
     ['Date', 'date'],
-    ['Title', 'title'],
-    ['Content', 'body'],
-    ['Summarization', 'tldr'],
+    ['Name', 'name'],
+    ['Year', 'year'],
+    ['Country', 'country'],
   ])
 
-  const blogs = fetchBlogs(searchRequest)
+  const brands = fetchBrands(searchRequest)
 
   return (
     <div className="mx-auto sm:max-w-6xl p-4">
-      <PageSearch filterOptions={filterOptions} defaultOption={'Date'} />
-      <Blogs promise={blogs} />
+      <PageSearch filterOptions={filterOptions} defaultOption={'Year'} />
+      <Brands promise={brands} />
     </div>
   )
 }

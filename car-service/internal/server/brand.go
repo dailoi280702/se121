@@ -97,7 +97,8 @@ func (s *carSerivceServer) SearchForBrand(ctx context.Context, req *utils.Search
 	}()
 
 	go func() {
-		total, err := dbCountRecords(s.db, "car_brands")
+		// total, err := dbCountRecords(s.db, "car_brands")
+		total, err := countBrandsFromQuery(s.db, req)
 		errCh <- err
 		res.Total = int32(total)
 		defer wg.Done()
@@ -258,4 +259,27 @@ func fetchBrandsByIDs(db *sql.DB, ids ...int) ([]*car.Brand, error) {
 
 	// Fetch brands
 	return fetchBrands(db, query)
+}
+
+func countBrandsFromQuery(db *sql.DB, req *utils.SearchReq) (int, error) {
+	query := `
+    SELECT COUNT(*)
+    FROM car_brands
+    WHERE 1=1`
+
+	// Add search conditions if a query is provided
+	if req.GetQuery() != "" {
+		query += fmt.Sprintf(` 
+            AND (name ILIKE '%%%s%%'
+            OR country_of_origin ILIKE '%%%s%%')`,
+			req.GetQuery(), req.GetQuery())
+	}
+
+	var count int
+	err := db.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count records: %v", err)
+	}
+
+	return count, nil
 }
