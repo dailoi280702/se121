@@ -58,7 +58,7 @@ export default function PageSearch({
   return (
     <form
       className="bg-neutral-100 focus-within:bg-neutral-200 transition-colors
-        h-10 flex items-center rounded-md overflow-hidden px-2"
+        h-10 flex items-center rounded-md overflow-hidden px-2 mx-2"
       onSubmit={(e) => {
         if (query) {
           e.preventDefault()

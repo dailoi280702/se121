@@ -230,7 +230,7 @@ func fetchBrands(db *sql.DB, query string) ([]*car.Brand, error) {
 
 	for rows.Next() {
 		var brand car.Brand
-		err := rows.Scan(&brand.Id, &brand.Name, &brand.CountryOfOrigin, &brand.FoundedYear, &brand.LogoUrl, &brand.WebsiteUrl)
+		err := rows.Scan(&brand.Id, &brand.Name, &brand.CountryOfOrigin, &brand.FoundedYear, &brand.WebsiteUrl, &brand.LogoUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get record: %v", err)
 		}

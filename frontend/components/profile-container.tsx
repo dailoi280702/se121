@@ -1,4 +1,3 @@
-import { Shade } from '@/components/shade'
 import DrawerCloseButton from './buttons/drawer-close-button'
 import {
   ArrowLeftOnRectangleIcon,
@@ -10,7 +9,6 @@ import {
 import { cloneElement, ReactElement } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAtom, useAtomValue } from 'jotai'
-import useCloseShade from './hooks/use-close-shade'
 import { profileVisisibilyAtom } from '@/components/Header'
 import { UserAtom } from './providers/user-provider'
 
@@ -138,16 +136,21 @@ const Divider = ({ className = '' }: { className?: string }) => {
 }
 
 export default function ProfileContainer() {
-  const [profileVisisibily] = useAtom(profileVisisibilyAtom)
-  const closeProfile = useCloseShade(profileVisisibilyAtom, true)
+  const [profileVisisibily, setProfileVisibility] = useAtom(
+    profileVisisibilyAtom
+  )
+  const closeProfile = () => {
+    if (profileVisisibily) {
+      setProfileVisibility(false)
+    }
+  }
 
   return (
     <>
       {profileVisisibily && (
         <>
-          <Shade onClose={closeProfile} className="z-[8]" />
           <div
-            className="fixed right-0 top-0 h-full w-56 flex flex-col z-[8] space-y-4 px-2
+            className="fixed z-[6] right-0 top-0 h-full w-56 flex flex-col space-y-4 px-2
             sm:absolute sm:h-fit sm:top-full sm:rounded-lg sm:py-4
             bg-neutral-50 shadow shadow-neutral-200"
           >

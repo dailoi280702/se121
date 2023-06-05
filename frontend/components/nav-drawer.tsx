@@ -53,16 +53,16 @@ export default function NavDrawer() {
     <>
       {navDrawerVisisibily && (
         <>
-          <Shade onClose={closeDrawer} className="md:hidden" />
-          <div
-            className="absolute left-0 top-0 h-full w-56 flex flex-col z-[8] md:static
-            bg-neutral-50 shadow shadow-neutral-400"
+          <nav
+            className="fixed md:static left-0 top-0 h-full flex flex-col 
+            bg-neutral-50 shadow shadow-neutral-400 z-[6] md:z-auto"
           >
             <DrawerHeader onClose={closeDrawer} />
             <DrawerBody />
-            <div className="flex-grow" />
+            <span className="flex-grow w-56" />
             <div>Nav footer</div>
-          </div>
+          </nav>
+          <Shade onClose={closeDrawer} className="md:hidden" />
         </>
       )}
     </>
