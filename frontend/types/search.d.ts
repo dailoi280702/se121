@@ -31,3 +31,9 @@ interface SearchSeries {
   series: Series[]
   total: number
 }
+
+interface SearchRes {
+  cars?: SearchCarRes
+  brands?: SearchBrandRes
+  blogs?: SearchBlogRes
+}

@@ -9,6 +9,9 @@ import { atom, useAtom, useSetAtom } from 'jotai'
 import { useRouter } from 'next/navigation'
 import { navDrawerVisisibilyAtom } from '@/components/nav-drawer'
 import ProfileContainer from '../profile-container'
+import GlobalSearch from '../global-search'
+import { Shade } from '../shade'
+import useCloseShade from '../hooks/use-close-shade'
 
 export const profileVisisibilyAtom = atom<boolean>(false)
 
@@ -29,7 +32,7 @@ export const Logo = () => {
 
   return (
     <p
-      className="text-lg font-semibold cursor-pointer"
+      className="text-lg font-semibold cursor-pointer hidden sm:inline-block mr-4"
       onClick={() => {
         router.push('/')
       }}
@@ -66,7 +69,7 @@ const User = () => {
   }
 
   return (
-    <div className="sm:relative grid-flow-col-dense grid">
+    <div className="sm:relative z-[9] grid-flow-col-dense grid">
       <ProfileContainer />
       <button onClick={openMenu}>
         <UserCircleIcon className="h-10 w-10 stroke-1"></UserCircleIcon>
@@ -79,23 +82,29 @@ const Header = () => {
   const [navDrawerVisisibily, setNavDrawerVisiblity] = useAtom(
     navDrawerVisisibilyAtom
   )
+  const closeProfile = useCloseShade(profileVisisibilyAtom, true)
   const openDrawer = () => setNavDrawerVisiblity(true)
+  const [profileVisisibily] = useAtom(profileVisisibilyAtom)
 
   return (
-    <div className="sticky top-0 w-full h-16 bg-neutral-50 shadow-neutral-300 shadow flex items-center justify-center">
-      <div className="max-w-6xl w-full flex items-center px-4">
-        {!navDrawerVisisibily && (
-          <>
-            <NavButton onClick={openDrawer} />
-            <Logo />
-          </>
-        )}
-        <div className="flex-grow" />
-        <Search />
-        <p className="ml-2" />
-        <User />
+    <>
+      <div className="sticky z-[1] top-0 w-full h-16 bg-neutral-50 shadow-neutral-300 shadow flex items-center justify-center">
+        <div className="max-w-6xl w-full flex items-center px-4">
+          {!navDrawerVisisibily && (
+            <>
+              <NavButton onClick={openDrawer} />
+              <Logo />
+            </>
+          )}
+          <GlobalSearch />
+          <p className="ml-2" />
+          {profileVisisibily && (
+            <Shade onClose={closeProfile} className="z-[8]" />
+          )}
+          <User />
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
