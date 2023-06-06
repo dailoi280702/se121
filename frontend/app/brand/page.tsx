@@ -1,9 +1,14 @@
 'use server'
 
+import AddBrandFromWithFab from '@/components/forms/add-brand-form-with-fab'
 import PageProgressBar from '@/components/page-progress-bar'
 import PageSearch from '@/components/page-search'
 import { objectToQuery } from '@/utils'
 import Image from 'next/image'
+// import dynamic from 'next/dynamic'
+// const AddBrandFromWithFab = dynamic(
+//   () => import('@/components/forms/add-brand-form-with-fab')
+// )
 
 const SEARCH_LIMIT = 16
 
@@ -34,7 +39,6 @@ const BrandComponent = ({ brand }: { brand: Brand }) => {
             className="mx-auto mb-4"
             src={logoUrl}
             alt={`${name} logo`}
-            object-contain
             width={200}
             height={200}
           />
@@ -104,9 +108,10 @@ export default async function Page({
   const brands = fetchBrands(searchRequest)
 
   return (
-    <div className="mx-auto sm:max-w-6xl py-8 px-4 h-full bg-red-100">
+    <div className="mx-auto sm:max-w-6xl py-8 px-4 h-full">
       <PageSearch filterOptions={filterOptions} defaultOption={'Year'} />
       <Brands promise={brands} />
+      <AddBrandFromWithFab />
     </div>
   )
 }
