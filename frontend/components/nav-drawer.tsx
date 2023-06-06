@@ -55,7 +55,7 @@ export default function NavDrawer() {
         <>
           <nav
             className="fixed md:static left-0 top-0 h-full flex flex-col 
-            bg-neutral-50 shadow shadow-neutral-400 z-[6] md:z-auto"
+            bg-neutral-100 shadow shadow-neutral-400 z-[6] md:z-auto"
           >
             <DrawerHeader onClose={closeDrawer} />
             <DrawerBody />
