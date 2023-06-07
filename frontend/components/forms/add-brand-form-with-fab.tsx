@@ -10,15 +10,19 @@ import AdminOnlyWrapper from '../admin-only-wrapper'
 import { PencilIcon } from '@heroicons/react/24/outline'
 import dynamic from 'next/dynamic'
 import Loading from '@/app/loading'
+import useAddBrand from '../hooks/use-add-brand'
+import { triggerFormUsingRef } from '@/utils'
 
 const Fab = dynamic(() => import('../buttons/fab'))
 const DialogFormLayout = dynamic(
   () => import('../dialogs/dialog-form-layout'),
-  { loading: Loading }
+  { loading: Loading, ssr: false }
 )
-const AddBrandFrom = dynamic(() => import('./add-brand-forms'))
+const AddBrandForm = dynamic(() => import('./add-brand-forms'))
 
 const AddBrandFromWithFab = () => {
+  const hook = useAddBrand()
+
   return (
     <AdminOnlyWrapper>
       <Fab
@@ -28,10 +32,10 @@ const AddBrandFromWithFab = () => {
             title="Add brand"
             buttonLabel="Done"
             disabled={false}
-            onDone={() => {}}
+            onDone={() => triggerFormUsingRef(hook.formRef)}
             onClose={closeFab}
           >
-            <AddBrandFrom />
+            <AddBrandForm hook={hook} />
           </DialogFormLayout>
         )}
       />
