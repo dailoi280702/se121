@@ -5,10 +5,6 @@ import PageProgressBar from '@/components/page-progress-bar'
 import PageSearch from '@/components/page-search'
 import { objectToQuery } from '@/utils'
 import Image from 'next/image'
-// import dynamic from 'next/dynamic'
-// const AddBrandFromWithFab = dynamic(
-//   () => import('@/components/forms/add-brand-form-with-fab')
-// )
 
 const SEARCH_LIMIT = 16
 
@@ -36,7 +32,7 @@ const BrandComponent = ({ brand }: { brand: Brand }) => {
         <h2 className="text-2xl font-bold mb-4">{name}</h2>
         {logoUrl && (
           <Image
-            className="mx-auto mb-4"
+            className="mx-auto mb-4 w-auto"
             src={logoUrl}
             alt={`${name} logo`}
             width={200}

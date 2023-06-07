@@ -1,8 +1,6 @@
-'use client'
-
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
-const DialogFormLayout = ({
+export default function DialogFormLayout({
   children,
   disabled,
   title,
@@ -16,7 +14,7 @@ const DialogFormLayout = ({
   buttonLabel: string
   onClose: () => void
   onDone: () => void
-}) => {
+}) {
   return (
     <div
       className={[
@@ -41,5 +39,3 @@ const DialogFormLayout = ({
     </div>
   )
 }
-
-export default DialogFormLayout

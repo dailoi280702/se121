@@ -74,7 +74,7 @@ export default function PageSearch({
         className="bg-transparent flex-grow outline-none mx-2 placeholder:text-neutral-700"
         placeholder="Search"
         onChange={(e) => onInputChange(e.target.value)}
-        value={query ? query.search : ''}
+        value={query ? (query.search ? query.search : '') : ''}
       />
       <select
         className="bg-transparent outline-none text-right pr-2"
@@ -84,7 +84,11 @@ export default function PageSearch({
         }}
       >
         {Array.from(options).map(([v, k]) => (
-          <option key={k} value={v} selected={v === option}>
+          <option
+            key={k}
+            value={v}
+            // selected={v === option}
+          >
             {v}
           </option>
         ))}

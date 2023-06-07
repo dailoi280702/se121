@@ -12,6 +12,8 @@
 //   return params.toString()
 // }
 
+import { RefObject } from 'react'
+
 export function objectToQuery(obj: Object) {
   const params = new URLSearchParams()
 
@@ -30,4 +32,16 @@ export function objectToQuery(obj: Object) {
   })
 
   return params.toString()
+}
+
+export function triggerFormUsingRef(ref?: RefObject<HTMLFormElement>) {
+  if (ref && ref.current) {
+    if (ref.current.reportValidity()) {
+      const submitEvent = new Event('submit', {
+        bubbles: true,
+        cancelable: true,
+      })
+      ref.current.dispatchEvent(submitEvent)
+    }
+  }
 }
