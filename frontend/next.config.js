@@ -10,6 +10,7 @@ const nextConfig = {
       'www.ramtrucks.com',
       'www.tesla.com',
       'www.carlogos.org',
+      'firebasestorage.googleapis.com',
     ],
   },
 }
