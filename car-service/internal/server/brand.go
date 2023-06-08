@@ -140,7 +140,7 @@ func validateBrand(name, countryOfOrigin, webSiteUrl, logoUrl *string, foundedYe
 	}
 	if webSiteUrl != nil {
 		if strings.TrimSpace(*webSiteUrl) == "" || !regexp.MustCompile(httpRegex).MatchString(*webSiteUrl) {
-			validationErrors["webSiteUrl"] = "Websiate URL is not valid"
+			validationErrors["websiteUrl"] = "Website URL is not valid"
 		}
 	}
 	if logoUrl != nil {

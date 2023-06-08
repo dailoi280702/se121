@@ -24,7 +24,7 @@ const Fab = ({
       {isFabOpen && (
         <div
           id="fab-shad"
-          className="absolute z-[2] top-0 bottom-0 left-0 right-0 bg-black/40 h-screen flex items-center"
+          className="absolute z-[2] top-0 bottom-0 left-0 right-0 h-screen bg-black/40 flex items-center overflow-y-scroll"
           onClick={(e) => {
             if (e.currentTarget === e.target) {
               closeFab()

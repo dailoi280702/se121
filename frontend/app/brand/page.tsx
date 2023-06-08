@@ -12,7 +12,7 @@ async function fetchBrands(req: SearchReq) {
   try {
     const fetchURL =
       'http://api-gateway:8000/v1/brand/search?' + objectToQuery(req)
-    const res = await fetch(fetchURL)
+    const res = await fetch(fetchURL, { cache: 'no-cache' })
     if (!res.ok) {
       console.log(res.text())
       return

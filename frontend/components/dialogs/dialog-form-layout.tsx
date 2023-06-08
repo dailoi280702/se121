@@ -18,16 +18,16 @@ export default function DialogFormLayout({
   return (
     <div
       className={[
-        'w-full h-full m-auto my-auto',
-        'bg-neutral-50',
-        'sm:rounded-3xl sm:max-w-sm sm:h-fit',
+        'w-full min-h-screen pb-20 m-auto',
+        'bg-neutral-50 sm:min-h-max',
+        'sm:rounded-3xl sm:max-w-sm sm:h-fit sm:my-6 sm:pb-0',
       ].join(' ')}
     >
-      <div className="h-14 className = flex items-center sticky">
+      <div className="h-14 flex items-center">
         <XMarkIcon className="mx-4 w-6 h-6 stroke-2" onClick={onClose} />
         <p className="text-[1.375rem]">{title}</p>
         <button
-          className="ml-auto mr-6 rounded-[2.5rem] text-sm font-medium h-10 px-3 outline-none 
+          className="ml-auto mr-6 rounded-full text-sm font-medium h-10 px-3 outline-none 
           text-teal-600 enabled:hover:bg-teal-600/10"
           disabled={disabled}
           onClick={onDone}
