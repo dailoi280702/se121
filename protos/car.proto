@@ -28,16 +28,16 @@ service CarService {
 
 message Car {
   int32 id = 1;
-  optional Brand brand = 2;
-  optional Series series = 3;
-  string name = 4;
-  optional int32 year = 5;
-  optional int32 horsePower = 6;
-  optional int32 torque = 7;
-  optional Transmission transmission = 8;
-  optional FuelType fuelType = 9;
-  optional string imageUrl = 10;
-  optional string review = 11;
+  string name = 2;
+  optional int32 year = 3;
+  optional int32 horsePower = 4;
+  optional int32 torque = 5;
+  optional Transmission transmission = 6;
+  optional FuelType fuelType = 7;
+  optional string imageUrl = 8;
+  optional string review = 9;
+  optional Brand brand = 10;
+  optional Series series = 11;
 }
 
 message Brand {

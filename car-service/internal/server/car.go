@@ -16,7 +16,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-const httpRegex = `/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/`
+// const httpRegex = `/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/`
+const httpRegex = `/(((ftp|http|https):\/\/)|(\/)|(..\/))(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?`
 
 func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car.Car, error) {
 	id := int(req.GetId())
@@ -156,7 +157,8 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 	}()
 
 	go func() {
-		total, err := dbCountRecords(s.db, "car_models")
+		// total, err := dbCountRecords(s.db, "car_models")
+		total, err := countCarsFromQuery(s.db, req)
 		res.Total = int32(total)
 		errCh <- err
 		wg.Done()
@@ -383,14 +385,14 @@ func generateSearchForCarQuery(req *utils.SearchReq) string {
 		}
 	}
 
-	// Add pagination if startAt field is provided
-	if req.GetStartAt() > 0 {
-		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
-	}
-
 	// Add limit if limit field is provided
 	if req.GetLimit() > 0 {
 		query += fmt.Sprintf(" LIMIT %d", req.GetLimit())
+	}
+
+	// Add pagination if startAt field is provided
+	if req.GetStartAt() > 0 {
+		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
 	}
 
 	return query
@@ -461,4 +463,34 @@ func getCarsFromIds(db *sql.DB, numWorkers int, ids ...int) ([]*car.Car, error) 
 	}
 
 	return cars, nil
+}
+
+func countCarsFromQuery(db *sql.DB, req *utils.SearchReq) (int, error) {
+	query := `
+    SELECT COUNT(*)
+    FROM  car_models
+    LEFT JOIN car_brands on car_models.brand_id = car_brands.id
+    LEFT JOIN car_series on car_models.series_id = car_series.id
+    LEFT JOIN fuel_types on car_models.fuel_type = fuel_types.id
+    LEFT JOIN car_transmissions on car_models.transmission = car_transmissions.id
+    WHERE 1=1`
+
+	// Add search conditions if a query is provided
+	if req.GetQuery() != "" {
+		query += fmt.Sprintf(` 
+            AND (car_models.name ILIKE '%%%s%%'
+            OR car_brands.name ILIKE '%%%s%%'
+            OR car_series.name ILIKE '%%%s%%'
+            OR fuel_types.name ILIKE '%%%s%%'
+            OR car_transmissions.name ILIKE '%%%s%%')`,
+			req.GetQuery(), req.GetQuery(), req.GetQuery(), req.GetQuery(), req.GetQuery())
+	}
+
+	var count int
+	err := db.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count records: %v", err)
+	}
+
+	return count, nil
 }

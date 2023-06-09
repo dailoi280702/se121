@@ -68,7 +68,7 @@ func handleGetCarById(carService car.CarServiceClient) http.HandlerFunc {
 				res, err = carService.GetCar(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))
@@ -109,7 +109,7 @@ func handleSearchCar(carService car.CarServiceClient) http.HandlerFunc {
 				res, err = carService.SearchForCar(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))

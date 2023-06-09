@@ -97,7 +97,8 @@ func (s *carSerivceServer) SearchForBrand(ctx context.Context, req *utils.Search
 	}()
 
 	go func() {
-		total, err := dbCountRecords(s.db, "car_brands")
+		// total, err := dbCountRecords(s.db, "car_brands")
+		total, err := countBrandsFromQuery(s.db, req)
 		errCh <- err
 		res.Total = int32(total)
 		defer wg.Done()
@@ -139,7 +140,7 @@ func validateBrand(name, countryOfOrigin, webSiteUrl, logoUrl *string, foundedYe
 	}
 	if webSiteUrl != nil {
 		if strings.TrimSpace(*webSiteUrl) == "" || !regexp.MustCompile(httpRegex).MatchString(*webSiteUrl) {
-			validationErrors["webSiteUrl"] = "Websiate URL is not valid"
+			validationErrors["websiteUrl"] = "Website URL is not valid"
 		}
 	}
 	if logoUrl != nil {
@@ -229,7 +230,7 @@ func fetchBrands(db *sql.DB, query string) ([]*car.Brand, error) {
 
 	for rows.Next() {
 		var brand car.Brand
-		err := rows.Scan(&brand.Id, &brand.Name, &brand.CountryOfOrigin, &brand.FoundedYear, &brand.LogoUrl, &brand.WebsiteUrl)
+		err := rows.Scan(&brand.Id, &brand.Name, &brand.CountryOfOrigin, &brand.FoundedYear, &brand.WebsiteUrl, &brand.LogoUrl)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get record: %v", err)
 		}
@@ -258,4 +259,27 @@ func fetchBrandsByIDs(db *sql.DB, ids ...int) ([]*car.Brand, error) {
 
 	// Fetch brands
 	return fetchBrands(db, query)
+}
+
+func countBrandsFromQuery(db *sql.DB, req *utils.SearchReq) (int, error) {
+	query := `
+    SELECT COUNT(*)
+    FROM car_brands
+    WHERE 1=1`
+
+	// Add search conditions if a query is provided
+	if req.GetQuery() != "" {
+		query += fmt.Sprintf(` 
+            AND (name ILIKE '%%%s%%'
+            OR country_of_origin ILIKE '%%%s%%')`,
+			req.GetQuery(), req.GetQuery())
+	}
+
+	var count int
+	err := db.QueryRow(query).Scan(&count)
+	if err != nil {
+		return 0, fmt.Errorf("failed to count records: %v", err)
+	}
+
+	return count, nil
 }

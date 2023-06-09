@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/dailoi280702/se121/api-gateway/internal/utils"
 	"google.golang.org/grpc/codes"
@@ -61,6 +62,7 @@ type convertOpt struct {
 	after    *func()
 	actions  map[codes.Code]func()
 	reqData  interface{}
+	parseUrl bool
 }
 
 type convertOptFunc func(*convertOpt)
@@ -72,6 +74,7 @@ func defaultConvertOpt(callback func() error) *convertOpt {
 		after:    nil,
 		actions:  map[codes.Code]func(){},
 		reqData:  nil,
+		parseUrl: false,
 	}
 }
 
@@ -99,6 +102,13 @@ func convertWithJsonReqData(data interface{}) convertOptFunc {
 	}
 }
 
+func convertWithUrlQuery(data interface{}) convertOptFunc {
+	return func(opt *convertOpt) {
+		opt.reqData = data
+		opt.parseUrl = true
+	}
+}
+
 func convertJsonApiToGrpc(w http.ResponseWriter, r *http.Request, callback func() error, opts ...convertOptFunc) {
 	opt := defaultConvertOpt(callback)
 	for _, fn := range opts {
@@ -107,15 +117,28 @@ func convertJsonApiToGrpc(w http.ResponseWriter, r *http.Request, callback func(
 
 	w.Header().Set("Content-Type", "application/json")
 	if opt.reqData != nil {
-		err := utils.DecodeJSONBody(w, r, opt.reqData)
-		if err != nil {
-			var mr *utils.MalformedRequest
-			if errors.As(err, &mr) {
-				http.Error(w, mr.Msg, mr.Status)
-			} else {
+		if opt.parseUrl {
+			err := utils.ConvertQueryParams(r.URL.Query(), opt.reqData)
+			if err != nil {
+				if errors.Is(err, strconv.ErrSyntax) {
+					http.Error(w, err.Error(), http.StatusBadRequest)
+					return
+				}
 				MustSendError(err, w)
+				return
 			}
-			return
+		} else {
+			err := utils.DecodeJSONBody(w, r, opt.reqData)
+			if err != nil {
+				var mr *utils.MalformedRequest
+				if errors.As(err, &mr) {
+					http.Error(w, mr.Msg, mr.Status)
+				} else {
+					MustSendError(err, w)
+				}
+				return
+			}
+
 		}
 	}
 
