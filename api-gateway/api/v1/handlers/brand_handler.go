@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -39,12 +40,19 @@ func handleGetBrand(carService car.CarServiceClient) http.HandlerFunc {
 func handleCreateBrand(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req car.CreateBrandReq
-		convertJsonApiToGrpc(w, r,
+		var res *car.CreateBrandRes
+		convertJsonApiToGrpc(
+			w, r,
 			func() error {
-				_, err := carService.CreateBrand(context.Background(), &req)
+				var err error
+				res, err = carService.CreateBrand(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req))
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}),
+		)
 	}
 }
 
@@ -62,7 +70,7 @@ func handleUpdateBrand(carService car.CarServiceClient) http.HandlerFunc {
 
 func handleSearchForBrand(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.SearchReq
+		var req utils.SearchReq
 		var res *car.SearchForBrandRes
 		convertJsonApiToGrpc(w, r,
 			func() error {

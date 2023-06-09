@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -80,7 +81,7 @@ func handleGetCarMetaData(carService car.CarServiceClient) http.HandlerFunc {
 		var res *car.GetCarMetadataRes
 		convertJsonApiToGrpc(w, r, func() error {
 			var err error
-			res, err = carService.GetCarMetadata(context.Background(), &car.Empty{})
+			res, err = carService.GetCarMetadata(context.Background(), &utils.Empty{})
 			return err
 		}, convertWithPostFunc(func() {
 			SendJson(w, res)
@@ -91,17 +92,25 @@ func handleGetCarMetaData(carService car.CarServiceClient) http.HandlerFunc {
 func handleCreateCar(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req car.CreateCarReq
-		convertJsonApiToGrpc(w, r, func() error {
-			var err error
-			_, err = carService.CreateCar(context.Background(), &req)
-			return err
-		}, convertWithJsonReqData(&req))
+		var res *car.CreateCarRes
+		convertJsonApiToGrpc(
+			w, r,
+			func() error {
+				var err error
+				res, err = carService.CreateCar(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}),
+		)
 	}
 }
 
 func handleSearchCar(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.SearchReq
+		var req utils.SearchReq
 		var res *car.SearchForCarRes
 		convertJsonApiToGrpc(w, r,
 			func() error {

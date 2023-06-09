@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -51,18 +52,25 @@ func handleUpdateSeries(carService car.CarServiceClient) http.HandlerFunc {
 func handleCreateSeries(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req car.CreateSeriesReq
-		convertJsonApiToGrpc(w, r,
+		var res *car.CreateSeriesRes
+		convertJsonApiToGrpc(
+			w, r,
 			func() error {
-				_, err := carService.CreateSeries(context.Background(), &req)
+				var err error
+				res, err = carService.CreateSeries(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req))
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}),
+		)
 	}
 }
 
 func handleSearchSeries(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.SearchReq
+		var req utils.SearchReq
 		var res *car.SearchForSeriesRes
 		convertJsonApiToGrpc(w, r,
 			func() error {
