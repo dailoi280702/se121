@@ -30,22 +30,23 @@ func (s *carSerivceServer) GetSeries(ctx context.Context, req *car.GetSeriesReq)
 	return series, nil
 }
 
-func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeriesReq) (*utils.Empty, error) {
+func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeriesReq) (*car.CreateSeriesRes, error) {
 	// Validate and verify inputs
 	if err := validateSeries(s.db, &req.Name, &req.BrandId); err != nil {
 		return nil, err
 	}
 
 	// Insert series into database
-	_, err := s.db.Exec(`
+	var id int32
+	err := s.db.QueryRow(`
         INSERT INTO car_series (name, brand_id)
         VALUES ($1, $2)
-        `, req.Name, req.BrandId)
+        `, req.Name, req.BrandId).Scan(id)
 	if err != nil {
 		return nil, serverError(fmt.Errorf("failed to insert series: %v", err))
 	}
 
-	return &utils.Empty{}, nil
+	return &car.CreateSeriesRes{Id: id}, nil
 }
 
 func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeriesReq) (*utils.Empty, error) {

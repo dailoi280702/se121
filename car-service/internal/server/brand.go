@@ -28,21 +28,23 @@ func (s *carSerivceServer) GetBrand(ctx context.Context, req *car.GetBrandReq) (
 	return brand, nil
 }
 
-func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrandReq) (*utils.Empty, error) {
+func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrandReq) (*car.CreateBrandRes, error) {
 	// Verify inputs
 	if err := validateBrand(&req.Name, req.CountryOfOrigin, req.WebsiteUrl, req.LogoUrl, req.FoundedYear); err != nil {
 		return nil, err
 	}
 
 	// Insert brand into database
-	if _, err := s.db.Exec(`
+	var id int32
+	if err := s.db.QueryRow(`
         INSERT INTO car_brands (name, country_of_origin, founded_year, website_url, logo_url)
         VALUES ($1, $2, $3, $4, $5)
-        `, req.Name, req.CountryOfOrigin, req.FoundedYear, req.WebsiteUrl, req.LogoUrl); err != nil {
+        RETURING id
+        `, req.Name, req.CountryOfOrigin, req.FoundedYear, req.WebsiteUrl, req.LogoUrl).Scan(&id); err != nil {
 		return nil, serverError(err)
 	}
 
-	return &utils.Empty{}, nil
+	return &car.CreateBrandRes{Id: id}, nil
 }
 
 func (s *carSerivceServer) UpdateBrand(ctx context.Context, req *car.UpdateBrandReq) (*utils.Empty, error) {

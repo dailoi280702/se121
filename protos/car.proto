@@ -2,24 +2,24 @@ syntax = "proto3";
 
 package car;
 
-option go_package = "github.com/dailoi280702/se121/car-service/pkg/car";
-
 import "utils.proto";
+
+option go_package = "github.com/dailoi280702/se121/car-service/pkg/car";
 
 service CarService {
   rpc GetCar(GetCarReq) returns (Car);
-  rpc CreateCar(CreateCarReq) returns (utils.Empty);
+  rpc CreateCar(CreateCarReq) returns (CreateCarRes);
   rpc UpdateCar(UpdateCarReq) returns (utils.Empty);
   rpc DeleteCar(DeleteCarReq) returns (utils.Empty);
   rpc SearchForCar(utils.SearchReq) returns (SearchForCarRes);
 
   rpc GetBrand(GetBrandReq) returns (Brand);
-  rpc CreateBrand(CreateBrandReq) returns (utils.Empty);
+  rpc CreateBrand(CreateBrandReq) returns (CreateBrandRes);
   rpc UpdateBrand(UpdateBrandReq) returns (utils.Empty);
   rpc SearchForBrand(utils.SearchReq) returns (SearchForBrandRes);
 
   rpc GetSeries(GetSeriesReq) returns (Series);
-  rpc CreateSeries(CreateSeriesReq) returns (utils.Empty);
+  rpc CreateSeries(CreateSeriesReq) returns (CreateSeriesRes);
   rpc UpdateSeries(UpdateSeriesReq) returns (utils.Empty);
   rpc SearchForSeries(utils.SearchReq) returns (SearchForSeriesRes);
 
@@ -164,4 +164,16 @@ message GetCarMetadataRes {
   repeated Series series = 2;
   repeated FuelType fuelType = 3;
   repeated Transmission transmission = 4;
+}
+
+message CreateBrandRes {
+  int32 id = 1;
+}
+
+message CreateCarRes {
+  int32 id = 1;
+}
+
+message CreateSeriesRes {
+  int32 id = 1;
 }

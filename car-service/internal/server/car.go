@@ -39,7 +39,7 @@ func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car
 	return car, nil
 }
 
-func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*utils.Empty, error) {
+func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*car.CreateCarRes, error) {
 	// Validate and verify inputs
 	err := validateCar(s.db, &req.Name, req.ImageUrl, req.Year, req.HorsePower, req.Torque, req.BrandId, req.SeriesId, req.FuelTypeId, req.TransmissionId)
 	if err != nil {
@@ -47,15 +47,17 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 	}
 
 	// Insert car into the database
-	_, err = s.db.Exec(`
+	var id int32
+	err = s.db.QueryRow(`
     insert into car_models (brand_id, series_id, name, year, horsepower, torque, transmission, fuel_type, review, image_url)
     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
-    `, req.BrandId, req.SeriesId, req.Name, req.Year, req.HorsePower, req.Torque, req.TransmissionId, req.FuelTypeId, req.Review, req.ImageUrl)
+    RETURNING id
+    `, req.BrandId, req.SeriesId, req.Name, req.Year, req.HorsePower, req.Torque, req.TransmissionId, req.FuelTypeId, req.Review, req.ImageUrl).Scan(&id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "car server got error while inserting car %v to db: %v", req, err)
 	}
 
-	return &utils.Empty{}, nil
+	return &car.CreateCarRes{Id: id}, nil
 }
 
 func (s *carSerivceServer) UpdateCar(ctx context.Context, req *car.UpdateCarReq) (*utils.Empty, error) {
