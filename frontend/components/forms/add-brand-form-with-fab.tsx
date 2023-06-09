@@ -10,8 +10,9 @@ import AdminOnlyWrapper from '../admin-only-wrapper'
 import { PencilIcon } from '@heroicons/react/24/outline'
 import dynamic from 'next/dynamic'
 import Loading from '@/app/loading'
-import useAddBrand from '../hooks/use-add-brand'
+import useAddEditBrand from '../hooks/use-add-brand'
 import { triggerFormUsingRef } from '@/utils'
+import { useState } from 'react'
 
 const Fab = dynamic(() => import('../buttons/fab'))
 const DialogFormLayout = dynamic(
@@ -21,24 +22,29 @@ const DialogFormLayout = dynamic(
 const AddBrandForm = dynamic(() => import('./add-brand-forms'))
 
 const AddBrandFromWithFab = () => {
-  const hook = useAddBrand()
+  const [isFabOpen, setIsFabOpen] = useState(false)
+  const hook = useAddEditBrand({
+    type: 'update',
+    onSuccess: () => setIsFabOpen(false),
+  })
 
   return (
     <AdminOnlyWrapper>
       <Fab
         icon={<PencilIcon />}
-        child={(closeFab) => (
-          <DialogFormLayout
-            title="Add brand"
-            buttonLabel="Done"
-            disabled={false}
-            onDone={() => triggerFormUsingRef(hook.formRef)}
-            onClose={closeFab}
-          >
-            <AddBrandForm hook={hook} />
-          </DialogFormLayout>
-        )}
-      />
+        isFabOpen={isFabOpen}
+        setIsFabOpen={setIsFabOpen}
+      >
+        <DialogFormLayout
+          title="Add brand"
+          buttonLabel="Done"
+          disabled={false}
+          onDone={() => triggerFormUsingRef(hook.formRef)}
+          onClose={() => setIsFabOpen(false)}
+        >
+          <AddBrandForm hook={hook} />
+        </DialogFormLayout>
+      </Fab>
     </AdminOnlyWrapper>
   )
 }

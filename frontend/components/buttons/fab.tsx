@@ -1,18 +1,14 @@
-'use client'
-
-import { atom, useAtom } from 'jotai'
-
-export const isFabOpenAtom = atom(false)
-
-const Fab = ({
-  child,
+export default function Fab({
+  children,
   icon,
+  isFabOpen,
+  setIsFabOpen,
 }: {
-  child: (closeFab: () => void) => React.ReactNode
+  children: React.ReactNode
   icon: React.ReactNode
-}) => {
-  const [isFabOpen, setIsFabOpen] = useAtom(isFabOpenAtom)
-
+  isFabOpen: boolean
+  setIsFabOpen: (value: boolean) => void
+}) {
   const handleFabClick = () => {
     setIsFabOpen(!isFabOpen)
   }
@@ -31,7 +27,7 @@ const Fab = ({
             }
           }}
         >
-          {child(closeFab)}
+          {children}
         </div>
       )}
       <div className="fixed z-[2] bottom-4 right-4">
@@ -45,5 +41,3 @@ const Fab = ({
     </>
   )
 }
-
-export default Fab

@@ -39,7 +39,7 @@ func (s *carSerivceServer) CreateBrand(ctx context.Context, req *car.CreateBrand
 	if err := s.db.QueryRow(`
         INSERT INTO car_brands (name, country_of_origin, founded_year, website_url, logo_url)
         VALUES ($1, $2, $3, $4, $5)
-        RETURING id
+        RETURNING id
         `, req.Name, req.CountryOfOrigin, req.FoundedYear, req.WebsiteUrl, req.LogoUrl).Scan(&id); err != nil {
 		return nil, serverError(err)
 	}

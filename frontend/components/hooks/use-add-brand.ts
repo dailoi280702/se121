@@ -7,7 +7,17 @@ import { v4 as uuidv4 } from 'uuid'
 import { getDownloadURL, ref, uploadString } from 'firebase/storage'
 import { storage } from '@/firebase/config'
 
-export default function useAddBrand() {
+type actionType = 'update' | 'create'
+
+export default function useAddEditBrand({
+  initData,
+  onSuccess,
+  type,
+}: {
+  initData?: Brand
+  onSuccess?: () => void
+  type: actionType
+}) {
   const router = useRouter()
   const path = usePathname()
   const formRef = useRef<HTMLFormElement>(null)
@@ -15,7 +25,7 @@ export default function useAddBrand() {
     string | null | ArrayBuffer
   >()
 
-  const initBrand = {
+  const emptyInitData = {
     name: '',
     countryOfOrigin: '',
     foundedYear: new Date().getFullYear(),
@@ -33,8 +43,20 @@ export default function useAddBrand() {
   const [errors, setErrors] = useState(initErrors)
 
   const resetState = () => {
-    setValues(initBrand)
+    setValues(initData ? initData : emptyInitData)
     setSelectedImage(null)
+  }
+
+  const addImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const reader = new FileReader()
+    if (e.target.files && e.target.files[0]) {
+      reader.readAsDataURL(e.target.files[0])
+    }
+    reader.onload = (readerEvent) => {
+      if (readerEvent.target) {
+        setSelectedImage(readerEvent.target.result)
+      }
+    }
   }
 
   const validate = () => {
@@ -56,50 +78,71 @@ export default function useAddBrand() {
     return true
   }
 
-  const submit = async () => {
-    // Validte form data
+  const handleFailure = async (response: Response) => {
+    if (response.status === 400 || response.status === 403) {
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.indexOf('application/json') !== -1) {
+        const data = await response.json()
+        if (data.details) {
+          setErrors(data.details)
+        }
+        return
+      }
+    }
+    console.log(await response.text())
+  }
+
+  const create = async () => {
     if (validate()) {
-      // Upload image
+      const data = {
+        name: brand.name.trim(),
+        countryOfOrigin: brand.countryOfOrigin?.trim(),
+        foundedYear: Number(brand.foundedYear!),
+        websiteUrl: brand.websiteUrl?.trim(),
+      }
+
+      // Post data
+      const response = await fetch('http://localhost:8000/v1/brand', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        await handleFailure(response)
+        return
+      }
+
+      // Retrive id
+      const { id } = await response.json()
       const imgID = uuidv4()
       const imageRef = ref(storage, `brand/${imgID}/image`)
+
+      // Upload image
       await uploadString(imageRef, selectedImage!.toString(), 'data_url')
         .then(async (_) => {
           // Retrive image URL
-          const downloadURL = await getDownloadURL(imageRef)
-
-          // Preprare data
-          const data = {
-            name: brand.name.trim(),
-            countryOfOrigin: brand.countryOfOrigin?.trim(),
-            foundedYear: Number(brand.foundedYear!),
-            websiteUrl: brand.websiteUrl?.trim(),
-            logoUrl: downloadURL,
-          }
+          const imageUrl = await getDownloadURL(imageRef)
 
           // Update image URL
-          const response = await fetch('http://localhost:8000/v1/brand', {
-            method: 'POST',
+          const response = await fetch(`http://localhost:8000/v1/brand/`, {
+            method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(data),
+            body: JSON.stringify({ id: id as Number, logoUrl: imageUrl }),
           })
 
-          // Handle failure
-          if (response.status === 400 || response.status === 403) {
-            const data = await response.json()
-            console.log(data.details)
-            if (data.details) {
-              setErrors(data.details)
-            }
-            console.log(errors)
-            return
-          } else if (!response.ok) {
-            window.alert(data)
+          if (!response.ok) {
+            await handleFailure(response)
             return
           }
 
-          // Refresh page, reset state
+          if (onSuccess) {
+            onSuccess()
+          }
           resetState()
           router.replace(path)
         })
@@ -107,15 +150,10 @@ export default function useAddBrand() {
     }
   }
 
-  const addImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const reader = new FileReader()
-    if (e.target.files && e.target.files[0]) {
-      reader.readAsDataURL(e.target.files[0])
-    }
-    reader.onload = (readerEvent) => {
-      if (readerEvent.target) {
-        setSelectedImage(readerEvent.target.result)
-      }
+  const update = async () => {
+    // Update brand
+    if (onSuccess) {
+      onSuccess()
     }
   }
 
@@ -124,7 +162,10 @@ export default function useAddBrand() {
     setValues,
     onChange,
     onSubmit,
-  } = useForm(submit, initBrand)
+  } = useForm(
+    type === 'create' ? create : update,
+    initData ? initData : emptyInitData
+  )
 
   return {
     brand,

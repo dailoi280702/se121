@@ -1,10 +1,10 @@
 import { CameraIcon } from '@heroicons/react/24/outline'
 import { useRef } from 'react'
-import useAddBrand from '../hooks/use-add-brand'
+import useAddEditBrand from '../hooks/use-add-brand'
 import OutLineInput from '../inputs/outline-input'
 import OutLineOptionMenu from '../menu/OutlineOptionMenu'
 
-const AddBrandForm = ({ hook }: { hook: ReturnType<typeof useAddBrand> }) => {
+const AddBrandForm = ({ hook }: { hook: ReturnType<typeof useAddEditBrand> }) => {
   const {
     brand,
     errors,
