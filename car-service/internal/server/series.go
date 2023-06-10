@@ -259,15 +259,15 @@ func generateGetAllSeriesQuery(req *car.GetAllSeriesReq) string {
     WHERE 1=1`
 
 	if req.Id != nil {
-		query += fmt.Sprint(" brand_id = %", *req.Id)
+		query += fmt.Sprintf(" AND id = %v", *req.Id)
 	}
 
 	if req.Name != nil {
-		query += fmt.Sprint(" name = %", *req.Name)
+		query += fmt.Sprintf(" AND name = %v", *req.Name)
 	}
 
 	if req.BrandId != nil {
-		query += fmt.Sprint(" brand_id = %", *req.BrandId)
+		query += fmt.Sprintf(" AND brand_id = %v", *req.BrandId)
 	}
 
 	return query

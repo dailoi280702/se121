@@ -453,14 +453,15 @@ func generateGetCarIDs(req *car.GetCarsReq) string {
 	}
 
 	for k, v := range updateData {
-		var value any
-		if reflect.TypeOf(v).Kind() == reflect.Pointer {
-			value = reflect.ValueOf(v).Elem().Interface()
-		} else {
-			value = v
-		}
-		if value != nil {
-			query += fmt.Sprintf(" %s = %v", k, value)
+		var data any
+		value := reflect.ValueOf(v)
+		if !value.IsNil() {
+			if value.Kind() == reflect.Pointer {
+				data = reflect.ValueOf(v).Elem().Interface()
+			} else {
+				data = v
+			}
+			query += fmt.Sprintf(" AND %s = %v", k, data)
 		}
 	}
 

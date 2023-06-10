@@ -351,6 +351,8 @@ github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231 h1:
 github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
 github.com/dailoi280702/se121/car-service v0.0.0-20230609092232-af0341bd6ff2 h1:y5+jWZUE3sjDZJ9tzdddlCPLnO0zvCCu84bQHak1Fpk=
 github.com/dailoi280702/se121/car-service v0.0.0-20230609092232-af0341bd6ff2/go.mod h1:ud2s3zzvKXjxIY4LMMvYyHw4RojjIKKWj+iYk8md/uA=
+github.com/dailoi280702/se121/car-service v0.0.0-20230610154115-68f1b103c15b h1:0hEces60bt0AHwFVR3W1luBZtoEwPAqrX4F+vf+dsDk=
+github.com/dailoi280702/se121/car-service v0.0.0-20230610154115-68f1b103c15b/go.mod h1:ud2s3zzvKXjxIY4LMMvYyHw4RojjIKKWj+iYk8md/uA=
 github.com/dailoi280702/se121/comment-service v0.0.0-20230521113709-0f51d88fc19c h1:1fiJbOsfIWbKKyrqevXzLvAQ1Z5BPkvfGE2cI0CVaSM=
 github.com/dailoi280702/se121/comment-service v0.0.0-20230521113709-0f51d88fc19c/go.mod h1:Ck6vbxtDiKMQvBc7Jac/GSzC7rpoGVk7xiUWB4ljosQ=
 github.com/dailoi280702/se121/comment-service v0.0.0-20230521140836-b781d226a231 h1:Gblv/fze8RKj2pds3vVLNCKiXkUhDNaK07EYvHivk3E=
