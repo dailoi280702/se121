@@ -104,10 +104,10 @@ export default async function Page({
   const brands = fetchBrands(searchRequest)
 
   return (
-    <div className="mx-auto sm:max-w-6xl py-8 px-4 h-full">
+    <>
       <PageSearch filterOptions={filterOptions} defaultOption={'Year'} />
       <Brands promise={brands} />
       <AddBrandFromWithFab />
-    </div>
+    </>
   )
 }
