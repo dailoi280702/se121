@@ -8,6 +8,7 @@ option go_package = "github.com/dailoi280702/se121/car-service/pkg/car";
 
 service CarService {
   rpc GetCar(GetCarReq) returns (Car);
+  rpc GetCars(GetCarsReq) returns (GetCarsRes);
   rpc CreateCar(CreateCarReq) returns (CreateCarRes);
   rpc UpdateCar(UpdateCarReq) returns (utils.Empty);
   rpc DeleteCar(DeleteCarReq) returns (utils.Empty);
@@ -19,6 +20,7 @@ service CarService {
   rpc SearchForBrand(utils.SearchReq) returns (SearchForBrandRes);
 
   rpc GetSeries(GetSeriesReq) returns (Series);
+  rpc GetAllSeries(GetAllSeriesReq) returns (GetAllSeriesRes);
   rpc CreateSeries(CreateSeriesReq) returns (CreateSeriesRes);
   rpc UpdateSeries(UpdateSeriesReq) returns (utils.Empty);
   rpc SearchForSeries(utils.SearchReq) returns (SearchForSeriesRes);
@@ -176,4 +178,30 @@ message CreateCarRes {
 
 message CreateSeriesRes {
   int32 id = 1;
+}
+
+message GetCarsRes {
+  repeated Car cars = 1;
+}
+
+message GetCarsReq {
+  optional int32 id = 1;
+  optional string name = 2;
+  optional int32 year = 3;
+  optional int32 horsePower = 4;
+  optional int32 torque = 5;
+  optional int32 transmissionID = 6;
+  optional int32 fuelTypeID = 7;
+  optional int32 brandID = 9;
+  optional int32 seriesID = 10;
+}
+
+message GetAllSeriesRes {
+  repeated Series series = 1;
+}
+
+message GetAllSeriesReq {
+  optional int32 id = 1;
+  optional string name = 2;
+  optional int32 brandId = 3;
 }

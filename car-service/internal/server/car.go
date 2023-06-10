@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
@@ -134,6 +135,9 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 
 	rows, err := s.db.Query(query)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return &car.SearchForCarRes{Cars: []*car.Car{}, Total: 0}, nil
+		}
 		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
 	}
 	defer rows.Close()
@@ -204,6 +208,36 @@ func (s *carSerivceServer) GetCarMetadata(context.Context, *utils.Empty) (*car.G
 		Transmission: transmissions,
 	}
 	return &res, nil
+}
+
+func (s *carSerivceServer) GetCars(context context.Context, req *car.GetCarsReq) (*car.GetCarsRes, error) {
+	query := generateGetCarIDs(req)
+	idList := []int{}
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &car.GetCarsRes{Cars: []*car.Car{}}, nil
+		}
+		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		err := rows.Scan(&id)
+		idList = append(idList, id)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+		}
+	}
+
+	cars, err := getCarsFromIds(s.db, int(math.Ceil(math.Sqrt(float64(len(idList))))), idList...)
+	if err != nil {
+		return nil, serverError(err)
+	}
+
+	return &car.GetCarsRes{Cars: cars}, nil
 }
 
 func checkForCarExistence(db *sql.DB, id int) error {
@@ -395,6 +429,39 @@ func generateSearchForCarQuery(req *utils.SearchReq) string {
 	// Add pagination if startAt field is provided
 	if req.GetStartAt() > 0 {
 		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
+	}
+
+	return query
+}
+
+// generate a SQL query for get cars from request
+func generateGetCarIDs(req *car.GetCarsReq) string {
+	query := `
+    SELECT id 
+    FROM car_models
+    WHERE 1=1`
+
+	updateData := map[string]any{
+		"id":           req.Id,
+		"name":         req.Name,
+		"year":         req.Year,
+		"torque":       req.Torque,
+		"transmission": req.TransmissionID,
+		"fueltype":     req.FuelTypeID,
+		"brand_id":     req.BrandID,
+		"series_id":    req.SeriesID,
+	}
+
+	for k, v := range updateData {
+		var value any
+		if reflect.TypeOf(v).Kind() == reflect.Pointer {
+			value = reflect.ValueOf(v).Elem().Interface()
+		} else {
+			value = v
+		}
+		if value != nil {
+			query += fmt.Sprintf(" %s = %v", k, value)
+		}
 	}
 
 	return query
