@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
@@ -12,7 +13,7 @@ import (
 func NewBrandRoutes(carService car.CarServiceClient) chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", handleGetBrand(carService))
+	r.Get("/{id}", handleGetBrand(carService))
 	r.Post("/", handleCreateBrand(carService))
 	r.Put("/", handleUpdateBrand(carService))
 	r.Get("/search", handleSearchForBrand(carService))
@@ -22,7 +23,13 @@ func NewBrandRoutes(carService car.CarServiceClient) chi.Router {
 
 func handleGetBrand(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.GetBrandReq
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := car.GetBrandReq{Id: int32(id)}
 		var res *car.Brand
 		convertJsonApiToGrpc(w, r,
 			func() error {
@@ -30,7 +37,7 @@ func handleGetBrand(carService car.CarServiceClient) http.HandlerFunc {
 				res, err = carService.GetBrand(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			// convertWithJsonReqData(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))
