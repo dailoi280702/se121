@@ -20,7 +20,7 @@ export default function Fab({
       {isFabOpen && (
         <div
           id="fab-shad"
-          className="absolute z-[2] top-0 bottom-0 left-0 right-0 h-screen bg-black/40 flex items-center overflow-y-scroll"
+          className="absolute inset-0 z-[2] flex h-screen items-center overflow-y-scroll bg-black/40"
           onClick={(e) => {
             if (e.currentTarget === e.target) {
               closeFab()
@@ -30,9 +30,9 @@ export default function Fab({
           {children}
         </div>
       )}
-      <div className="fixed z-[2] bottom-4 right-4">
+      <div className="fixed bottom-4 right-4 z-[2]">
         <button
-          className="bg-teal-600 w-14 h-14 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded-2xl shadow shadow-neutral-900"
+          className="h-14 w-14 rounded-2xl bg-teal-600 px-4 py-2 font-bold text-white shadow shadow-neutral-900 hover:bg-teal-700"
           onClick={handleFabClick}
         >
           {icon}

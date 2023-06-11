@@ -30,15 +30,25 @@ const useGlobalSearch = () => {
       }
 
       // Start a new timeout to delay the API request
-      timeoutId = setTimeout(() => {
-        const fetchURL = `http://localhost:8000/v1/search?${objectToQuery({
-          query: text,
-          limit: 5,
-        } as SearchReq)}`
-        fetch(fetchURL)
-          .then((res) => res.json())
-          .then((data: SearchRes) => setData(data))
-          .catch((error) => console.error('Error:', error))
+      timeoutId = setTimeout(async () => {
+        try {
+          const fetchURL = `http://localhost:8000/v1/search?${objectToQuery({
+            query: text,
+            limit: 5,
+          } as SearchReq)}`
+          const res = await fetch(fetchURL)
+
+          if (res.ok) {
+            const contentType = res.headers.get('content-type')
+            if (contentType === 'application/json') {
+              setData(await res.json())
+            } else {
+              console.log(await res.text())
+            }
+          }
+        } catch (err) {
+          console.log(err)
+        }
       }, 300) // Delay of 0.3 second before making the API request
     }
 

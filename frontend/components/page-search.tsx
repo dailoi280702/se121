@@ -57,8 +57,8 @@ export default function PageSearch({
 
   return (
     <form
-      className="bg-neutral-100 focus-within:bg-neutral-200 transition-colors
-        h-10 flex items-center rounded-md overflow-hidden px-2 mx-2"
+      className="mx-2 flex h-10
+        items-center overflow-hidden rounded-md bg-neutral-100 px-2 transition-colors focus-within:bg-neutral-200"
       onSubmit={(e) => {
         if (query) {
           e.preventDefault()
@@ -67,17 +67,17 @@ export default function PageSearch({
       }}
     >
       <MagnifyingGlassIcon
-        className="h-5 w-5 ml-1 stroke-2 stroke-neutral-600"
+        className="ml-1 h-5 w-5 stroke-neutral-600 stroke-2"
         type="submit"
       />
       <input
-        className="bg-transparent flex-grow outline-none mx-2 placeholder:text-neutral-700"
+        className="mx-2 grow bg-transparent outline-none placeholder:text-neutral-700"
         placeholder="Search"
         onChange={(e) => onInputChange(e.target.value)}
         value={query ? (query.search ? query.search : '') : ''}
       />
       <select
-        className="bg-transparent outline-none text-right pr-2"
+        className="bg-transparent pr-2 text-right outline-none"
         value={option}
         onChange={(e) => {
           submit({ ...query, orderby: options.get(e.target.value) })

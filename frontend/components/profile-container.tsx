@@ -26,8 +26,8 @@ const MenuButton = ({
   return (
     <button
       className={
-        `flex items-center text-sm h-8 rounded-md gap-x-2
-      text-black-600 hover:bg-neutral-600/[0.08] px-2 ` + className
+        `text-black-600 flex h-8 items-center gap-x-2 rounded-md
+      px-2 text-sm hover:bg-neutral-600/[0.08] ` + className
       }
       onClick={onClick}
     >
@@ -117,14 +117,11 @@ const Info = () => {
   const user = useAtomValue(UserAtom)
 
   return (
-    <button
-      className="rounded-md
-      text-black-600 hover:bg-neutral-600/[0.08] px-4 py-1 sm:!mt-0"
-    >
-      <div className="w-28 sm:w-20 rouned-full mx-auto">
+    <button className="rounded-md px-4 py-1 text-neutral-600 hover:bg-neutral-600/[0.08] sm:!mt-0">
+      <div className="mx-auto w-28 rounded-full sm:w-20">
         <UserCircleIcon className="stroke-[0.6]" />
       </div>
-      <p className="text-ellipsis overflow-hidden hover:break-words">
+      <p className="overflow-hidden text-ellipsis hover:break-words">
         {user ? user.name : 'guest'}
       </p>
     </button>
@@ -132,7 +129,7 @@ const Info = () => {
 }
 
 const Divider = ({ className = '' }: { className?: string }) => {
-  return <hr className={'border-neutral-200 border-0 border-t ' + className} />
+  return <hr className={'border-0 border-t border-neutral-200 ' + className} />
 }
 
 export default function ProfileContainer() {
@@ -150,11 +147,11 @@ export default function ProfileContainer() {
       {profileVisisibily && (
         <>
           <div
-            className="fixed z-[6] right-0 top-0 h-full w-56 flex flex-col space-y-4 px-2
-            sm:absolute sm:h-fit sm:top-full sm:rounded-lg sm:py-4
-            bg-neutral-50 shadow shadow-neutral-200"
+            className="fixed right-0 top-0 z-[6] flex h-full w-56 flex-col space-y-4 bg-neutral-50
+            px-2 shadow shadow-neutral-200 sm:absolute sm:top-full
+            sm:h-fit sm:rounded-lg sm:py-4"
           >
-            <div className="flex items-center justify-between sm:hidden h-16 w-full pr-4 pl-2">
+            <div className="flex h-16 w-full items-center justify-between pl-2 pr-4 sm:hidden">
               <DrawerCloseButton onClose={closeProfile} />
             </div>
             <Divider className="!mt-0 sm:hidden" />

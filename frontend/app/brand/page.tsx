@@ -5,6 +5,7 @@ import PageProgressBar from '@/components/page-progress-bar'
 import PageSearch from '@/components/page-search'
 import { objectToQuery } from '@/utils'
 import Image from 'next/image'
+import BrandCardOverlay from './brand-card-overlay'
 
 const SEARCH_LIMIT = 16
 
@@ -24,12 +25,15 @@ async function fetchBrands(req: SearchReq) {
 }
 
 const BrandComponent = ({ brand }: { brand: Brand }) => {
-  const { name, countryOfOrigin, foundedYear, logoUrl } = brand
+  const { id, name, countryOfOrigin, foundedYear, logoUrl } = brand
 
   return (
-    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 p-2">
-      <div className="p-4 bg-white shadow-lg rounded-md h-full max-w-[300px] mx-auto">
-        <h2 className="text-2xl font-bold mb-4">{name}</h2>
+    <div className="w-1/2 p-2 sm:w-1/3 md:w-1/4 lg:w-1/5">
+      <div
+        className="group relative mx-auto h-full max-w-[300px] overflow-hidden 
+        rounded-md bg-white p-4 shadow-lg"
+      >
+        <h2 className="mb-4 text-2xl font-bold">{name}</h2>
         {logoUrl && (
           <Image
             className="mx-auto mb-4 w-auto"
@@ -40,18 +44,12 @@ const BrandComponent = ({ brand }: { brand: Brand }) => {
           />
         )}
         {countryOfOrigin && (
-          <p className="text-gray-600 mb-2">Origin: {countryOfOrigin}</p>
+          <p className="mb-2 text-gray-600">Origin: {countryOfOrigin}</p>
         )}
         {foundedYear && (
-          <p className="text-gray-600 mb-2">Founded year: {foundedYear}</p>
+          <p className="mb-2 text-gray-600">Founded year: {foundedYear}</p>
         )}
-        {/*
-          {websiteUrl && (
-            <p className="text-blue-500 mb-2">
-              <a href={websiteUrl}>Official site</a>
-            </p>
-          )}
-        */}
+        <BrandCardOverlay id={id} />
       </div>
     </div>
   )
@@ -63,7 +61,7 @@ async function Brands({ promise }: { promise: Promise<SearchBrandRes> }) {
   return (
     <>
       {/* <ul className="flex flex-col items-center space-y-4"> */}
-      <ul className="flex flex-wrap justify-center my-4">
+      <ul className="my-4 flex flex-wrap justify-center">
         {brands && brands.brands ? (
           <>
             {brands.brands.map((brand) => (

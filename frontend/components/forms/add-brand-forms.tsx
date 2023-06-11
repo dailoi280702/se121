@@ -4,7 +4,11 @@ import useAddEditBrand from '../hooks/use-add-brand'
 import OutLineInput from '../inputs/outline-input'
 import OutLineOptionMenu from '../menu/OutlineOptionMenu'
 
-const AddBrandForm = ({ hook }: { hook: ReturnType<typeof useAddEditBrand> }) => {
+const AddBrandForm = ({
+  hook,
+}: {
+  hook: ReturnType<typeof useAddEditBrand>
+}) => {
   const {
     brand,
     errors,
@@ -25,7 +29,7 @@ const AddBrandForm = ({ hook }: { hook: ReturnType<typeof useAddEditBrand> }) =>
 
   return (
     <form
-      className="w-full max-w-sm mx-auto space-y-2 z-[3]"
+      className="z-[3] mx-auto w-full max-w-sm space-y-2"
       ref={formRef}
       onSubmit={onSubmit}
     >
@@ -75,12 +79,12 @@ const AddBrandForm = ({ hook }: { hook: ReturnType<typeof useAddEditBrand> }) =>
       />
       {selectedImage ? (
         <div className="space-y-2">
-          <label className="text-xs bg-inherit focus-within:text-teal-50 font-medium">
+          <label className="bg-inherit text-xs font-medium focus-within:text-teal-50">
             Logo
           </label>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            className="w-full object-contain rounded-md cursor-pointer"
+            className="w-full cursor-pointer rounded-md object-contain"
             src={selectedImage.toString()}
             alt=""
             onClick={() => imageUpLoadRef!.current?.click()}
@@ -88,32 +92,32 @@ const AddBrandForm = ({ hook }: { hook: ReturnType<typeof useAddEditBrand> }) =>
         </div>
       ) : (
         <button
-          className="flex items-center p-3 mx-auto hover:bg-neutral-600/10 rounded-full h-10 outline-none"
+          className="mx-auto flex h-10 items-center rounded-full p-3 outline-none hover:bg-neutral-600/10"
           onClick={() => imageUpLoadRef!.current?.click()}
           type="button"
         >
-          <CameraIcon className="w-6 h-6 mr-1" />
+          <CameraIcon className="mr-1 h-6 w-6" />
           Chose a logo
         </button>
       )}
       <div
-        className="text-xs text-red-600 text-center"
+        className="text-center text-xs text-red-600"
         dangerouslySetInnerHTML={{
           __html: errors.logoUrl ? errors.logoUrl : '\u2000',
         }}
       />
       <div className="flex items-center">
         <button
-          className="ml-auto mr-3 rounded-full text-sm font-medium h-10 px-3 outline-none 
-          text-red-600 enabled:hover:bg-red-600/10"
+          className="ml-auto mr-3 h-10 rounded-full px-3 text-sm font-medium text-red-600 
+          outline-none enabled:hover:bg-red-600/10"
           type="button"
           onClick={() => resetState()}
         >
           Clear
         </button>
         <button
-          className="focus:outline-none text-white bg-teal-600 hover:bg-teal-700 h-10 outline-none
-          font-medium text-sm px-5 py-2.5 mb-2 rounded-full"
+          className="mb-2 h-10 rounded-full bg-teal-600 px-5 py-2.5
+          text-sm font-medium text-white outline-none hover:bg-teal-700 focus:outline-none"
           type="submit"
         >
           Create Brand

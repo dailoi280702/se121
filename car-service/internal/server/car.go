@@ -153,7 +153,7 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 
 	errCh := make(chan error, 2)
 	var wg sync.WaitGroup
-	var res car.SearchForCarRes
+	res := &car.SearchForCarRes{}
 	wg.Add(2)
 
 	go func() {
@@ -165,8 +165,8 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 	go func() {
 		// total, err := dbCountRecords(s.db, "car_models")
 		total, err := countCarsFromQuery(s.db, req)
-		res.Total = int32(total)
 		errCh <- err
+		res.Total = int32(total)
 		wg.Done()
 	}()
 
@@ -181,7 +181,7 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 		}
 	}
 
-	return &res, nil
+	return res, nil
 }
 
 func (s *carSerivceServer) GetCarMetadata(context.Context, *utils.Empty) (*car.GetCarMetadataRes, error) {

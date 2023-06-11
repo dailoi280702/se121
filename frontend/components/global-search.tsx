@@ -34,12 +34,12 @@ export default function GlobalSearch() {
       {showGlobalSearch && <Shade onClose={closeSearch} className="z-[7]" />}
       <div
         className={
-          `z-[7] relative flex items-center justify-center
-          bg-neutral-100 px-2 h-9 sm:w-min rounded-lg
-          focus-within:ring-2 ring-neutral-600 transition-all ` +
+          `relative z-[7] flex h-9 items-center
+          justify-center rounded-lg bg-neutral-100 px-2 ring-neutral-600
+          transition-all focus-within:ring-2 sm:w-min ` +
           `${
             showGlobalSearch
-              ? 'flex-grow ml-auto'
+              ? 'ml-auto flex-grow'
               : 'ml-auto rounded-full sm:rounded-lg'
           }`
         }
@@ -48,17 +48,20 @@ export default function GlobalSearch() {
           placeholder="Search"
           className={
             `${!showGlobalSearch ? 'hidden sm:inline-block' : ''}` +
-            ` bg-transparent outline-none placeholder:text-neutral-600 flex-grow`
+            ` flex-grow bg-transparent outline-none placeholder:text-neutral-600`
           }
           onFocus={openSearch}
           onChange={(e) => search(e.target.value)}
         />
         <MagnifyingGlassIcon
-          className="h-5 w-5 ml-1 stroke-2"
+          className="ml-1 h-5 w-5 stroke-2"
           onClick={openSearch}
         />
         {data && showGlobalSearch && (
-          <div className="bg-neutral-100 absolute left-0 right-0 h-100 top-12 space-y-4 rounded-md p-4">
+          <div
+            className="absolute  inset-x-0 top-12 space-y-4 rounded-md
+            bg-neutral-100 p-4"
+          >
             {data.blogs && data.blogs.blogs && (
               <section>
                 Blogs

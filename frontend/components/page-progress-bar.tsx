@@ -44,7 +44,7 @@ export default function PageProgressBar({ total: t }: { total: number }) {
           }
         }}
       >
-        <ArrowLeftIcon className="w-5 h-5 mx-auto stroke-2" />
+        <ArrowLeftIcon className="mx-auto h-5 w-5 stroke-2" />
       </ProgressButton>
       {Array.from({ length: t }, (_, i) => i + 1).map((i) => (
         <ProgressButton
@@ -64,7 +64,7 @@ export default function PageProgressBar({ total: t }: { total: number }) {
           }
         }}
       >
-        <ArrowRightIcon className="w-5 h-5 mx-auto stroke-2" />
+        <ArrowRightIcon className="mx-auto h-5 w-5 stroke-2" />
       </ProgressButton>
     </ul>
   )
@@ -88,7 +88,7 @@ const ProgressButton = ({
       className={
         `${
           isCurrent
-            ? 'bg-teal-600 hover:bg-teal-700 text-neutral-100 '
+            ? 'bg-teal-600 text-neutral-100 hover:bg-teal-700 '
             : 'hover:bg-neutral-200 disabled:text-neutral-400 disabled:hover:bg-transparent '
         }` + 'h-10 w-10 min-w-[40] rounded-md font-medium transition-colors'
       }

@@ -3,10 +3,10 @@ import Image from 'next/image'
 export default function BrandDetail({ brand }: { brand: Brand }) {
   return (
     <div>
-      <div className="relative overflow-x-auto shadow-md sm:rounded-lg bg-white max-w-lg">
-        <div className="p-5 text-lg font-semibold text-left text-neurtal-900 bg-white flex items-center">
+      <div className="relative max-w-lg overflow-x-auto bg-white shadow-md sm:rounded-lg">
+        <div className="flex items-center bg-white p-5 text-left text-lg font-semibold text-neutral-900">
           {brand.logoUrl && (
-            <div className="h-32 relative w-96 mr-4">
+            <div className="relative mr-4 h-32 w-96">
               <Image
                 className="object-contain"
                 fill
@@ -17,20 +17,21 @@ export default function BrandDetail({ brand }: { brand: Brand }) {
           )}
           <div>
             {brand.name}
-            <p className="mt-1 text-sm font-normal text-neurtal-500">
+            <p className="mt-1 text-sm font-normal text-neutral-500">
               Browse a list of Flowbite products designed to help you work and
               play, stay organized, get answers, keep in touch, grow your
               business, and more.
             </p>
           </div>
         </div>
-        <table className="w-full text-sm text-left text-neurtal-500">
+        <hr />
+        <table className="w-full text-left text-sm text-neutral-500">
           <tbody>
             {brand.countryOfOrigin && (
-              <tr className="bg-white border-b">
+              <tr className="border-b bg-white">
                 <th
                   scope="row"
-                  className="px-6 py-4 font-medium text-neurtal-900 whitespace-nowrap"
+                  className="whitespace-nowrap px-6 py-4 font-medium text-neutral-900"
                 >
                   Origin
                 </th>
@@ -38,10 +39,10 @@ export default function BrandDetail({ brand }: { brand: Brand }) {
               </tr>
             )}
             {brand.foundedYear && (
-              <tr className="bg-white border-b">
+              <tr className="border-b bg-white">
                 <th
                   scope="row"
-                  className="px-6 py-4 font-medium text-neurtal-900 whitespace-nowrap"
+                  className="whitespace-nowrap px-6 py-4 font-medium text-neutral-900"
                 >
                   Founded year
                 </th>
@@ -52,7 +53,7 @@ export default function BrandDetail({ brand }: { brand: Brand }) {
               <tr className="bg-white">
                 <th
                   scope="row"
-                  className="px-6 py-4 font-medium text-neurtal-900 whitespace-nowrap"
+                  className="whitespace-nowrap px-6 py-4 font-medium text-neutral-900"
                 >
                   Official site
                 </th>
