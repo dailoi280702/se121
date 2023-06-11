@@ -3,8 +3,10 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/dailoi280702/se121/car-service/pkg/car"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -21,7 +23,8 @@ func NewCarHandler(carService car.CarServiceClient) *CarHandler {
 func NewCarRoutes(carService car.CarServiceClient) chi.Router {
 	r := chi.NewRouter()
 
-	r.Get("/", handleGetCarById(carService))
+	r.Get("/{id}", handleGetCarById(carService))
+	r.Get("/", handleGetCars(carService))
 	r.Delete("/", handleDeleteCarById(carService))
 	r.Put("/", handleUpdateCar(carService))
 	r.Post("/", handleCreateCar(carService))
@@ -60,12 +63,34 @@ func handleDeleteCarById(carService car.CarServiceClient) http.HandlerFunc {
 
 func handleGetCarById(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.GetCarReq
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := car.GetCarReq{Id: int32(id)}
 		var res *car.Car
 		convertJsonApiToGrpc(w, r,
 			func() error {
 				var err error
 				res, err = carService.GetCar(context.Background(), &req)
+				return err
+			},
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}))
+	}
+}
+
+func handleGetCars(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req car.GetCarsReq
+		var res *car.GetCarsRes
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				res, err = carService.GetCars(context.Background(), &req)
 				return err
 			},
 			convertWithUrlQuery(&req),
@@ -80,7 +105,7 @@ func handleGetCarMetaData(carService car.CarServiceClient) http.HandlerFunc {
 		var res *car.GetCarMetadataRes
 		convertJsonApiToGrpc(w, r, func() error {
 			var err error
-			res, err = carService.GetCarMetadata(context.Background(), &car.Empty{})
+			res, err = carService.GetCarMetadata(context.Background(), &utils.Empty{})
 			return err
 		}, convertWithPostFunc(func() {
 			SendJson(w, res)
@@ -91,17 +116,25 @@ func handleGetCarMetaData(carService car.CarServiceClient) http.HandlerFunc {
 func handleCreateCar(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req car.CreateCarReq
-		convertJsonApiToGrpc(w, r, func() error {
-			var err error
-			_, err = carService.CreateCar(context.Background(), &req)
-			return err
-		}, convertWithJsonReqData(&req))
+		var res *car.CreateCarRes
+		convertJsonApiToGrpc(
+			w, r,
+			func() error {
+				var err error
+				res, err = carService.CreateCar(context.Background(), &req)
+				return err
+			},
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}),
+		)
 	}
 }
 
 func handleSearchCar(carService car.CarServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req car.SearchReq
+		var req utils.SearchReq
 		var res *car.SearchForCarRes
 		convertJsonApiToGrpc(w, r,
 			func() error {

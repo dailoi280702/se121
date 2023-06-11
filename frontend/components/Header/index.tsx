@@ -18,7 +18,7 @@ export const profileVisisibilyAtom = atom<boolean>(false)
 const NavButton = ({ onClick }: { onClick: () => void }) => {
   return (
     <button
-      className="h-10 w-10 flex items-center justify-center mr-2 rounded-full font-bold
+      className="mr-2 flex h-10 w-10 items-center justify-center rounded-full font-bold
       hover:bg-neutral-700 hover:bg-opacity-[0.08]"
       onClick={onClick}
     >
@@ -32,7 +32,7 @@ export const Logo = () => {
 
   return (
     <p
-      className="text-lg font-semibold cursor-pointer hidden sm:inline-block mr-4"
+      className="mr-4 hidden cursor-pointer text-lg font-semibold sm:inline-block"
       onClick={() => {
         router.push('/')
       }}
@@ -45,15 +45,15 @@ export const Logo = () => {
 const Search = () => (
   <div className="">
     <form
-      className="z-[6] relative flex items-center justify-center
-      sm:bg-neutral-100 sm:px-2 h-9 w-9 sm:w-min rounded-lg
-      focus-within:ring-2 ring-neutral-600"
+      className="relative z-[6] flex h-9 w-9
+      items-center justify-center rounded-lg ring-neutral-600 focus-within:ring-2 sm:w-min
+      sm:bg-neutral-100 sm:px-2"
     >
       <input
         placeholder="Search"
-        className="bg-transparent outline-none placeholder:text-neutral-600 hidden sm:inline-block"
+        className="hidden bg-transparent outline-none placeholder:text-neutral-600 sm:inline-block"
       />
-      <MagnifyingGlassIcon className="h-5 w-5 ml-1 stroke-2" />
+      <MagnifyingGlassIcon className="ml-1 h-5 w-5 stroke-2" />
     </form>
 
     {/* shader */}
@@ -69,7 +69,7 @@ const User = () => {
   }
 
   return (
-    <div className="sm:relative z-[9] grid-flow-col-dense grid">
+    <div className="z-[9] grid grid-flow-col-dense sm:relative">
       <ProfileContainer />
       <button onClick={openMenu}>
         <UserCircleIcon className="h-10 w-10 stroke-1"></UserCircleIcon>
@@ -88,8 +88,8 @@ const Header = () => {
 
   return (
     <>
-      <div className="sticky z-[1] top-0 w-full h-16 bg-neutral-50 shadow-neutral-300 shadow flex items-center justify-center">
-        <div className="max-w-6xl w-full flex items-center px-4">
+      <div className="sticky top-0 z-[1] flex h-16 w-full items-center justify-center bg-neutral-50 shadow shadow-neutral-300">
+        <div className="flex w-full max-w-6xl items-center px-4">
           {!navDrawerVisisibily && (
             <>
               <NavButton onClick={openDrawer} />

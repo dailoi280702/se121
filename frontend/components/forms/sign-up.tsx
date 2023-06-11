@@ -180,7 +180,7 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
 
   return (
     <form
-      className="flex flex-col px-6 space-y-2 text-left text-sm sm:mb-14"
+      className="flex flex-col space-y-2 px-6 text-left text-sm sm:mb-14"
       onSubmit={onSubmit}
     >
       {inputFields.map((input) => (
@@ -196,7 +196,7 @@ export default function RegisterForm({ callbackUrl = '/' }: Props) {
         />
       ))}
       <button
-        className="w-full h-10 rounded-md bg-teal-600 text-teal-50 !mt-8 font-medium"
+        className="!mt-8 h-10 w-full rounded-md bg-teal-600 font-medium text-teal-50"
         type="submit"
       >
         Sign up

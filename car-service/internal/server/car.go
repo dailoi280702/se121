@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"math"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
@@ -39,7 +40,7 @@ func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car
 	return car, nil
 }
 
-func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*utils.Empty, error) {
+func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq) (*car.CreateCarRes, error) {
 	// Validate and verify inputs
 	err := validateCar(s.db, &req.Name, req.ImageUrl, req.Year, req.HorsePower, req.Torque, req.BrandId, req.SeriesId, req.FuelTypeId, req.TransmissionId)
 	if err != nil {
@@ -47,15 +48,17 @@ func (s *carSerivceServer) CreateCar(ctx context.Context, req *car.CreateCarReq)
 	}
 
 	// Insert car into the database
-	_, err = s.db.Exec(`
+	var id int32
+	err = s.db.QueryRow(`
     insert into car_models (brand_id, series_id, name, year, horsepower, torque, transmission, fuel_type, review, image_url)
     values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10 )
-    `, req.BrandId, req.SeriesId, req.Name, req.Year, req.HorsePower, req.Torque, req.TransmissionId, req.FuelTypeId, req.Review, req.ImageUrl)
+    RETURNING id
+    `, req.BrandId, req.SeriesId, req.Name, req.Year, req.HorsePower, req.Torque, req.TransmissionId, req.FuelTypeId, req.Review, req.ImageUrl).Scan(&id)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "car server got error while inserting car %v to db: %v", req, err)
 	}
 
-	return &utils.Empty{}, nil
+	return &car.CreateCarRes{Id: id}, nil
 }
 
 func (s *carSerivceServer) UpdateCar(ctx context.Context, req *car.UpdateCarReq) (*utils.Empty, error) {
@@ -132,6 +135,9 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 
 	rows, err := s.db.Query(query)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return &car.SearchForCarRes{Cars: []*car.Car{}, Total: 0}, nil
+		}
 		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
 	}
 	defer rows.Close()
@@ -147,7 +153,7 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 
 	errCh := make(chan error, 2)
 	var wg sync.WaitGroup
-	var res car.SearchForCarRes
+	res := &car.SearchForCarRes{}
 	wg.Add(2)
 
 	go func() {
@@ -159,8 +165,8 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 	go func() {
 		// total, err := dbCountRecords(s.db, "car_models")
 		total, err := countCarsFromQuery(s.db, req)
-		res.Total = int32(total)
 		errCh <- err
+		res.Total = int32(total)
 		wg.Done()
 	}()
 
@@ -175,7 +181,7 @@ func (s *carSerivceServer) SearchForCar(ctx context.Context, req *utils.SearchRe
 		}
 	}
 
-	return &res, nil
+	return res, nil
 }
 
 func (s *carSerivceServer) GetCarMetadata(context.Context, *utils.Empty) (*car.GetCarMetadataRes, error) {
@@ -202,6 +208,36 @@ func (s *carSerivceServer) GetCarMetadata(context.Context, *utils.Empty) (*car.G
 		Transmission: transmissions,
 	}
 	return &res, nil
+}
+
+func (s *carSerivceServer) GetCars(context context.Context, req *car.GetCarsReq) (*car.GetCarsRes, error) {
+	query := generateGetCarIDs(req)
+	idList := []int{}
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &car.GetCarsRes{Cars: []*car.Car{}}, nil
+		}
+		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		err := rows.Scan(&id)
+		idList = append(idList, id)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+		}
+	}
+
+	cars, err := getCarsFromIds(s.db, int(math.Ceil(math.Sqrt(float64(len(idList))))), idList...)
+	if err != nil {
+		return nil, serverError(err)
+	}
+
+	return &car.GetCarsRes{Cars: cars}, nil
 }
 
 func checkForCarExistence(db *sql.DB, id int) error {
@@ -393,6 +429,40 @@ func generateSearchForCarQuery(req *utils.SearchReq) string {
 	// Add pagination if startAt field is provided
 	if req.GetStartAt() > 0 {
 		query += fmt.Sprintf(" OFFSET %d", req.GetStartAt())
+	}
+
+	return query
+}
+
+// generate a SQL query for get cars from request
+func generateGetCarIDs(req *car.GetCarsReq) string {
+	query := `
+    SELECT id 
+    FROM car_models
+    WHERE 1=1`
+
+	updateData := map[string]any{
+		"id":           req.Id,
+		"name":         req.Name,
+		"year":         req.Year,
+		"torque":       req.Torque,
+		"transmission": req.TransmissionID,
+		"fueltype":     req.FuelTypeID,
+		"brand_id":     req.BrandID,
+		"series_id":    req.SeriesID,
+	}
+
+	for k, v := range updateData {
+		var data any
+		value := reflect.ValueOf(v)
+		if !value.IsNil() {
+			if value.Kind() == reflect.Pointer {
+				data = reflect.ValueOf(v).Elem().Interface()
+			} else {
+				data = v
+			}
+			query += fmt.Sprintf(" AND %s = %v", k, data)
+		}
 	}
 
 	return query

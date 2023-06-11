@@ -13,13 +13,13 @@ const OutLineInput = ({
   ...props
 }: ExtendsInputProps) => {
   return (
-    <div className="w-full space-y-2 min-h-min">
-      <label className="text-xs bg-inherit focus-within:text-teal-50 font-medium">
+    <div className="min-h-min w-full space-y-2">
+      <label className="bg-inherit text-xs font-medium focus-within:text-teal-50">
         {label}
       </label>
       <input
-        className="w-full h-10 rounded-md indent-4 outline outline-1 text-base
-        bg-transparent outline-neutral-200 placeholder-neutral-700
+        className="h-10 w-full rounded-md bg-transparent indent-4 text-base outline
+        outline-1 outline-neutral-200 placeholder:text-neutral-700
         focus:bg-neutral-100 focus:outline-2 focus:outline-teal-500"
         name={name}
         {...props}

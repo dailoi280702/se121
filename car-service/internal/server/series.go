@@ -30,22 +30,23 @@ func (s *carSerivceServer) GetSeries(ctx context.Context, req *car.GetSeriesReq)
 	return series, nil
 }
 
-func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeriesReq) (*utils.Empty, error) {
+func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeriesReq) (*car.CreateSeriesRes, error) {
 	// Validate and verify inputs
 	if err := validateSeries(s.db, &req.Name, &req.BrandId); err != nil {
 		return nil, err
 	}
 
 	// Insert series into database
-	_, err := s.db.Exec(`
+	var id int32
+	err := s.db.QueryRow(`
         INSERT INTO car_series (name, brand_id)
         VALUES ($1, $2)
-        `, req.Name, req.BrandId)
+        `, req.Name, req.BrandId).Scan(id)
 	if err != nil {
 		return nil, serverError(fmt.Errorf("failed to insert series: %v", err))
 	}
 
-	return &utils.Empty{}, nil
+	return &car.CreateSeriesRes{Id: id}, nil
 }
 
 func (s *carSerivceServer) UpdateSeries(ctx context.Context, req *car.UpdateSeriesReq) (*utils.Empty, error) {
@@ -86,7 +87,7 @@ func (s *carSerivceServer) SearchForSeries(ctx context.Context, req *utils.Searc
 	go func() {
 		defer wg.Done()
 		var err error
-		res.Series, err = fetchSeriesDetails(s.db, req)
+		res.Series, err = fetchSeriesDetails(s.db, generateSearchSeriesQuery(req))
 		errCh <- err
 	}()
 
@@ -108,6 +109,14 @@ func (s *carSerivceServer) SearchForSeries(ctx context.Context, req *utils.Searc
 		}
 	}
 	return &res, nil
+}
+
+func (s *carSerivceServer) GetAllSeries(ctx context.Context, req *car.GetAllSeriesReq) (*car.GetAllSeriesRes, error) {
+	series, err := fetchSeries(s.db, generateGetAllSeriesQuery(req))
+	if err != nil {
+		return nil, serverError(err)
+	}
+	return &car.GetAllSeriesRes{Series: series}, nil
 }
 
 // check for series existence in database by its id
@@ -242,9 +251,30 @@ func generateSearchSeriesQuery(req *utils.SearchReq) string {
 	return query
 }
 
-// fetch series from database by SQL query
-func fetchSeriesDetails(db *sql.DB, req *utils.SearchReq) ([]*car.SeriesDetail, error) {
-	query := generateSearchSeriesQuery(req)
+// return SQL query string for get all series from requet
+func generateGetAllSeriesQuery(req *car.GetAllSeriesReq) string {
+	query := `
+    SELECT id, name, brand_id
+    FROM car_series
+    WHERE 1=1`
+
+	if req.Id != nil {
+		query += fmt.Sprintf(" AND id = %v", *req.Id)
+	}
+
+	if req.Name != nil {
+		query += fmt.Sprintf(" AND name = %v", *req.Name)
+	}
+
+	if req.BrandId != nil {
+		query += fmt.Sprintf(" AND brand_id = %v", *req.BrandId)
+	}
+
+	return query
+}
+
+// fetch series with brands from database by SQL query
+func fetchSeriesDetails(db *sql.DB, query string) ([]*car.SeriesDetail, error) {
 	brands := map[int]*car.Brand{}
 	brandIDs := []int{}
 	seriesList := []*car.Series{}
@@ -294,6 +324,34 @@ func fetchSeriesDetails(db *sql.DB, req *utils.SearchReq) ([]*car.SeriesDetail, 
 	}
 
 	return seriesDetails, nil
+}
+
+// fetch series from database by SQL query
+func fetchSeries(db *sql.DB, query string) ([]*car.Series, error) {
+	seriesList := []*car.Series{}
+
+	rows, err := db.Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return seriesList, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	// fetch list of series
+	for rows.Next() {
+		var series car.Series
+
+		err = rows.Scan(&series.Id, &series.Name, &series.BrandId)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get record: %v", err)
+		}
+
+		seriesList = append(seriesList, &series)
+	}
+
+	return seriesList, nil
 }
 
 // fetch numbser of series from database by SQL query

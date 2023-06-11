@@ -9,7 +9,7 @@ export default function Page({ params }: { params: { callbackUrl: string } }) {
 
   return (
     <div className="text-center">
-      <h2 className="text-xl font-bold text-neutral-800 p-14">SIGN UP</h2>
+      <h2 className="p-14 text-xl font-bold text-neutral-800">SIGN UP</h2>
       <LayoutWithCredential
         option="required"
         toBeDisplayed={false}
@@ -21,7 +21,7 @@ export default function Page({ params }: { params: { callbackUrl: string } }) {
       >
         <SignUpForm callbackUrl={decodeURIComponent(params.callbackUrl)} />
       </LayoutWithCredential>
-      <div className="px-6 py-14 text-sm sm:py-6 sm:border-neutral-200 sm:bg-neutral-100 sm:border-0 sm:border-t">
+      <div className="px-6 py-14 text-sm sm:border-0 sm:border-t sm:border-neutral-200 sm:bg-neutral-100 sm:py-6">
         already have an account?{' '}
         <Link
           className="text-teal-600"

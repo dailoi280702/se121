@@ -7,7 +7,7 @@ export default function DrawerCloseButton({
 }) {
   return (
     <button
-      className="h-10 w-10 flex items-center justify-center rounded-full font-bold
+      className="flex h-10 w-10 items-center justify-center rounded-full font-bold
         hover:bg-neutral-700 hover:bg-opacity-[0.08]"
       onClick={onClose}
     >

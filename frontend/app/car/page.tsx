@@ -70,7 +70,7 @@ export default async function Page({
   const cars = fetchCars(searchRequest)
 
   return (
-    <div className="mx-auto sm:max-w-6xl p-4">
+    <div className="mx-auto p-4 sm:max-w-6xl">
       <PageSearch filterOptions={filterOptions} defaultOption={'Year'} />
       <Cars promise={cars} />
     </div>
