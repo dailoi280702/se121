@@ -45,3 +45,19 @@ export function triggerFormUsingRef(ref?: RefObject<HTMLFormElement>) {
     }
   }
 }
+
+export function getDomainName(url: string) {
+  // Remove protocol (e.g., http:// or https://)
+  let domain = url.replace(/(^\w+:|^)\/\//, '')
+
+  // Remove path and query string
+  domain = domain.split('/')[0]
+
+  // Remove subdomains if present
+  const parts = domain.split('.')
+  if (parts.length > 2) {
+    domain = parts.slice(1).join('.')
+  }
+
+  return domain
+}

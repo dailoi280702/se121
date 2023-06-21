@@ -2,6 +2,8 @@
 
 import { notFound } from 'next/navigation'
 import BrandDetail from './brand-detail'
+import CreateSeriesWrapper from './create-seires-wrapper'
+import SeriesList from './series-list'
 
 async function fetchBrand(id: number) {
   try {
@@ -39,8 +41,8 @@ export default async function Page({
   params: { id: number }
 }) {
   const brand: Brand = await fetchBrand(id)
-  const series: Series[] = await fetchBrandSeries(id)
-  const cars: Car[] = await fetchBrandCars(id)
+  const { series }: { series: Series[] } = await fetchBrandSeries(id)
+  const { cars }: { cars: Car[] } = await fetchBrandCars(id)
 
   if (!brand) {
     notFound()
@@ -49,7 +51,14 @@ export default async function Page({
   return (
     <>
       <BrandDetail brand={brand} />
-      Series
+
+      {series && (
+        <>
+          Series
+          <CreateSeriesWrapper brand={brand} />
+          <SeriesList series={series} cars={cars} />
+        </>
+      )}
     </>
   )
 }
