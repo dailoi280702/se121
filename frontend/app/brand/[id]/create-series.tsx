@@ -1,5 +1,6 @@
 'use client'
 
+import AdminOnlyWrapper from '@/components/admin-only-wrapper'
 import DialogFormLayout from '@/components/dialogs/dialog-form-layout'
 import OutLineInput from '@/components/inputs/outline-input'
 import { triggerFormUsingRef } from '@/utils'
@@ -7,23 +8,35 @@ import { PlusIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 import useAddUpdateSeries from './use-add-update-series'
 
-export default function CreateSeries({ brand }: { brand: Brand }) {
+export default function AddUpdateSeries({
+  brand,
+  series,
+  type,
+  children,
+}: {
+  brand: Brand
+  series?: SeriesDetail
+  type?: 'update' | 'create'
+  children: React.ReactNode
+}) {
   const [isInteracting, setIsInteracting] = useState(false)
   const { name, resetState, errors, onSubmit, onChange, formRef } =
     useAddUpdateSeries({
-      initData: {
-        id: 0,
-        name: '',
-        brand: brand,
-      },
-      type: 'create',
+      initData: series
+        ? series
+        : {
+            id: 0,
+            name: '',
+            brand: brand,
+          },
+      type: type ? type : 'create',
       onSuccess: () => {
         setIsInteracting(false)
       },
     })
 
   return (
-    <>
+    <AdminOnlyWrapper>
       {isInteracting && (
         <div
           className="absolute inset-0 z-[2] flex h-screen items-center 
@@ -35,7 +48,7 @@ export default function CreateSeries({ brand }: { brand: Brand }) {
           }}
         >
           <DialogFormLayout
-            title="Add seires"
+            title={type === 'create' ? 'Add Series' : 'Update Series'}
             buttonLabel="Done"
             disabled={false}
             onClose={() => setIsInteracting(false)}
@@ -50,7 +63,7 @@ export default function CreateSeries({ brand }: { brand: Brand }) {
               }}
             >
               <OutLineInput
-                placeholder="Serreis name"
+                placeholder="Series name"
                 label="name"
                 name="name"
                 value={name}
@@ -73,17 +86,14 @@ export default function CreateSeries({ brand }: { brand: Brand }) {
                   focus:outline-none"
                   type="submit"
                 >
-                  Create Seires
+                  {type === 'create' ? 'Create Series' : 'Update'}
                 </button>
               </div>
             </form>
           </DialogFormLayout>
         </div>
       )}
-      <PlusIcon
-        className="h-6 w-6 stroke-2"
-        onClick={() => setIsInteracting(true)}
-      />
-    </>
+      <div onClick={() => setIsInteracting(true)}>{children}</div>
+    </AdminOnlyWrapper>
   )
 }

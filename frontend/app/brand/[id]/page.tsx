@@ -1,8 +1,9 @@
 'use server'
 
+import { PlusIcon } from '@heroicons/react/24/outline'
 import { notFound } from 'next/navigation'
 import BrandDetail from './brand-detail'
-import CreateSeriesWrapper from './create-seires-wrapper'
+import AddUpdateSeries from './create-series'
 import SeriesList from './series-list'
 
 async function fetchBrand(id: number) {
@@ -60,8 +61,22 @@ export default async function Page({
 
       {series && (
         <>
-          Series
-          <CreateSeriesWrapper brand={brand} />
+          <div
+            className="mt-6 flex items-center justify-between space-x-2
+            text-2xl"
+          >
+            {`${brand.name}'s Series`}
+            <AddUpdateSeries brand={brand} type="create">
+              <button
+                className="flex h-10 items-center rounded-full px-3 text-sm
+                font-medium text-teal-600 outline-none 
+                enabled:hover:bg-teal-600/10"
+              >
+                <PlusIcon className="mr-2 h-5 w-5 stroke-2" />
+                New Series
+              </button>
+            </AddUpdateSeries>
+          </div>
           <SeriesList series={series} cars={cars} />
         </>
       )}
