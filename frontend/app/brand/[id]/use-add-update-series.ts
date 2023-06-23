@@ -73,7 +73,7 @@ export default function useAddUpdateSeries({
         name: name.trim(),
       }
 
-      const response = await fetch('http.localhotst://series/', {
+      const response = await fetch('http://localhost:8000/v1/series', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
