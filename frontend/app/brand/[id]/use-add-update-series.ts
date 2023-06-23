@@ -60,8 +60,26 @@ export default function useAddUpdateSeries({
   }
 
   const update = async () => {
-    if (!validate()) return
-    // :Todo
+    if (!validate() && !initData) return
+
+    try {
+      const data = {
+        id: initData!.id,
+        name: name.trim(),
+      }
+
+      const response = await fetch('http://localhost:8000/v1/series', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      await handleResponse(response)
+    } catch (err) {
+      console.log(err)
+    }
   }
 
   const add = async () => {

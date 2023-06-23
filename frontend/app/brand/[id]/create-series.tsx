@@ -4,8 +4,7 @@ import AdminOnlyWrapper from '@/components/admin-only-wrapper'
 import DialogFormLayout from '@/components/dialogs/dialog-form-layout'
 import OutLineInput from '@/components/inputs/outline-input'
 import { triggerFormUsingRef } from '@/utils'
-import { PlusIcon } from '@heroicons/react/24/outline'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import useAddUpdateSeries from './use-add-update-series'
 
 export default function AddUpdateSeries({
@@ -89,7 +88,7 @@ export default function AddUpdateSeries({
                   type="button"
                   onClick={() => resetState()}
                 >
-                  Clear
+                  Reset
                 </button>
                 <button
                   className="mb-2 h-10 rounded-full bg-teal-600 px-5 py-2.5
