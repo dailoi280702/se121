@@ -1,12 +1,34 @@
+'use client'
+
+import AdminOnlyWrapper from '@/components/admin-only-wrapper'
+import { PencilIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
+import { useState } from 'react'
+import AddUpdateSeries from './create-series'
 
 export default function SeriesList({
   series,
   cars,
+  brand,
 }: {
   series: Series[]
   cars: Car[]
+  brand: Brand
 }) {
+  const [updateSeriesModalVisibility, setUpdateSeriesModalVisibility] =
+    useState(false)
+  const [seriesToBeUpdate, setseriesToBeUpdate] = useState<SeriesDetail | null>(
+    null
+  )
+
+  const updateSeries = (series: Series) => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+    setseriesToBeUpdate({ ...series, brand: brand })
+    setUpdateSeriesModalVisibility(true)
+  }
+
   const seriesMap: Map<number, Car[]> = cars
     ? cars.reduce((map, car) => {
         const seriesId = car.series!.id
@@ -17,59 +39,75 @@ export default function SeriesList({
     : new Map()
 
   return (
-    <div className="flex flex-col">
-      {series.length &&
-        series.map((s) => (
-          <div key={s.id}>
-            {s.name}
-            {seriesMap.get(s.id) &&
-              seriesMap.get(s.id)!.map((c) => <div key={c.id}>{c.name}</div>)}
-            <hr />
-          </div>
-        ))}
-    </div>
+    <>
+      <div className="flex flex-col">
+        {series.length &&
+          series.map((s) => (
+            <div key={s.id}>
+              <hr />
+              <div className="group my-2 flex h-10 w-full items-center">
+                <h3>{s.name}</h3>
+                <SeriesMenu onUpdateSeriesClick={() => updateSeries(s)} />
+              </div>
+              {seriesMap.get(s.id) &&
+                seriesMap.get(s.id)!.map((c) => <div key={c.id}>{c.name}</div>)}
+            </div>
+          ))}
+      </div>
+      {updateSeriesModalVisibility && seriesToBeUpdate && (
+        <AddUpdateSeries
+          type="update"
+          brand={brand}
+          series={seriesToBeUpdate}
+          isOpen={updateSeriesModalVisibility}
+          setIsOpen={setUpdateSeriesModalVisibility}
+        >
+          <div hidden />
+        </AddUpdateSeries>
+      )}
+    </>
   )
 }
 
-// <div>
-//   <button
-//     className="flex h-10 w-10 items-center justify-center rounded-full font-bold
-// hover:bg-neutral-700 hover:bg-opacity-[0.08]"
-//     onClick={() => {}}
-//   >
-//     <PencilIcon className="h-6 w-6" />
-//   </button>
-//   <div
-//     id="dropdown"
-//     className="z-10 w-44 divide-y divide-gray-100 rounded-lg bg-white shadow"
-//   >
-//     <ul
-//       className="py-2 text-sm text-gray-700"
-//       aria-labelledby="dropdownDefaultButton"
-//     >
-//       <li>
-//         <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-//           Dashboard
-//         </a>
-//       </li>
-//       <li>
-//         <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-//           Settings
-//         </a>
-//       </li>
-//       <li>
-//         <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-//           Earnings
-//         </a>
-//       </li>
-//       <li>
-//         <a href="#" className="block px-4 py-2 hover:bg-gray-100">
-//           Sign out
-//         </a>
-//       </li>
-//     </ul>
-//   </div>
-// </div>
+const SeriesMenu = ({
+  onUpdateSeriesClick,
+}: {
+  onUpdateSeriesClick: () => void
+}) => {
+  return (
+    <AdminOnlyWrapper>
+      <button
+        className="group relative ml-auto hidden focus-within:block
+        group-hover:block"
+      >
+        <div
+          className="ml-auto flex h-10 w-10 items-center 
+          justify-center rounded-full font-medium text-teal-600
+          hover:bg-teal-700 hover:bg-opacity-[0.08]"
+        >
+          <PencilIcon className="h-6 w-6" />
+        </div>
+        <div
+          className="absolute right-0 top-full z-10 hidden w-max divide-y
+          divide-gray-100 overflow-hidden rounded-lg bg-white text-left 
+          shadow group-focus:block"
+        >
+          <ul className="text-sm text-gray-700">
+            <li
+              className="border-b p-2 hover:bg-teal-600/10"
+              onClick={onUpdateSeriesClick}
+            >
+              Update series
+            </li>
+          </ul>
+          <ul className="text-sm text-gray-700">
+            <li className="border-b p-2 hover:bg-teal-600/10">Add car model</li>
+          </ul>
+        </div>
+      </button>
+    </AdminOnlyWrapper>
+  )
+}
 
 const CarCard = ({ car }: { car: Car }) => {
   const { name, brand, series, imageUrl } = car

@@ -5,7 +5,7 @@ import DialogFormLayout from '@/components/dialogs/dialog-form-layout'
 import OutLineInput from '@/components/inputs/outline-input'
 import { triggerFormUsingRef } from '@/utils'
 import { PlusIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useAddUpdateSeries from './use-add-update-series'
 
 export default function AddUpdateSeries({
@@ -13,11 +13,15 @@ export default function AddUpdateSeries({
   series,
   type,
   children,
+  isOpen,
+  setIsOpen,
 }: {
   brand: Brand
   series?: SeriesDetail
   type?: 'update' | 'create'
   children: React.ReactNode
+  isOpen?: boolean
+  setIsOpen?: (isOpen: boolean) => void
 }) {
   const [isInteracting, setIsInteracting] = useState(false)
   const { name, resetState, errors, onSubmit, onChange, formRef } =
@@ -31,19 +35,26 @@ export default function AddUpdateSeries({
           },
       type: type ? type : 'create',
       onSuccess: () => {
-        setIsInteracting(false)
+        close()
       },
     })
 
+  const close = () => {
+    setIsInteracting(false)
+    if (setIsOpen) {
+      setIsOpen(false)
+    }
+  }
+
   return (
     <AdminOnlyWrapper>
-      {isInteracting && (
-        <div
-          className="absolute inset-0 z-[2] flex h-screen items-center 
-          overflow-y-scroll bg-black/40"
+      {(isInteracting || isOpen) && (
+        <dialog
+          className="fixed inset-0 z-[2] flex h-screen w-full items-center 
+          overflow-y-scroll bg-black/40 p-0"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setIsInteracting(false)
+              close()
             }
           }}
         >
@@ -51,7 +62,7 @@ export default function AddUpdateSeries({
             title={type === 'create' ? 'Add Series' : 'Update Series'}
             buttonLabel="Done"
             disabled={false}
-            onClose={() => setIsInteracting(false)}
+            onClose={close}
             onDone={() => triggerFormUsingRef(formRef)}
           >
             <form
@@ -91,7 +102,7 @@ export default function AddUpdateSeries({
               </div>
             </form>
           </DialogFormLayout>
-        </div>
+        </dialog>
       )}
       <div onClick={() => setIsInteracting(true)}>{children}</div>
     </AdminOnlyWrapper>

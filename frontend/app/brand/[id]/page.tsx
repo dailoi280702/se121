@@ -77,7 +77,7 @@ export default async function Page({
               </button>
             </AddUpdateSeries>
           </div>
-          <SeriesList series={series} cars={cars} />
+          <SeriesList series={series} cars={cars} brand={brand} />
         </>
       )}
     </>
