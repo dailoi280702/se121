@@ -1,5 +1,11 @@
 import { usePathname, useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import {
+  ChangeEvent,
+  ChangeEventHandler,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { useForm } from './use-form'
 
 export default function useAddUpdateCar({
@@ -44,6 +50,57 @@ export default function useAddUpdateCar({
   const router = useRouter()
   const path = usePathname()
   const formRef = useRef<HTMLFormElement>(null)
+  const [fuelTypes, setFuelTypes] = useState<FuelType[]>([])
+  const [transmissions, setTransmissions] = useState<Transmission[]>([])
+
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const fetchURL = 'http://localhost:8000/v1/car/index'
+        const res = await fetch(fetchURL)
+        if (!res.ok) {
+          console.log(res.text())
+          return
+        }
+
+        const contentType = res.headers.get('content-type')
+        if (contentType && contentType.indexOf('application/json') !== -1) {
+          const data = await res.json()
+          if (data.fuelType) {
+            setFuelTypes(data.fuelType)
+          }
+          if (data.transmission) {
+            setTransmissions(data.transmission)
+          }
+          return
+        }
+      } catch (e) {
+        console.log(e)
+      }
+    }
+
+    fetchMetadata()
+  }, [])
+
+  const onFuelTypeChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    fuelTypes.forEach((f) => {
+      if (f.name === e.target.value) {
+        setValues((car) => {
+          return { ...car, fuelType: f }
+        })
+      }
+    })
+  }
+
+  const onTransmissionChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    transmissions.forEach((t) => {
+      if (t.name === e.target.value) {
+        setValues((car) => {
+          return { ...car, transmission: t }
+        })
+      }
+    })
+  }
 
   const resetState = () => {
     setValues(initData ? initData : _initData)
@@ -132,10 +189,14 @@ export default function useAddUpdateCar({
 
   return {
     car,
+    fuelTypes: fuelTypes.map((f) => f.name),
+    transmissions: transmissions.map((t) => t.name),
     errors,
     formRef,
     resetState,
     onChange,
+    onFuelTypeChange,
+    onTransmissionChange,
     onSubmit,
   }
 }

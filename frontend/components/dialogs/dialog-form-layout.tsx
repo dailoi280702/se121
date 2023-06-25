@@ -1,6 +1,7 @@
 import { XMarkIcon } from '@heroicons/react/24/outline'
 
 export default function DialogFormLayout({
+  className = '',
   children,
   disabled,
   title,
@@ -8,6 +9,7 @@ export default function DialogFormLayout({
   onClose,
   onDone,
 }: {
+  className?: string
   children: React.ReactNode
   disabled?: boolean
   title: string
@@ -21,6 +23,7 @@ export default function DialogFormLayout({
         'm-auto min-h-screen w-full pb-20',
         'bg-neutral-50 sm:min-h-max',
         'sm:my-6 sm:h-fit sm:max-w-sm sm:rounded-3xl sm:pb-0',
+        className,
       ].join(' ')}
     >
       <div className="flex h-14 items-center">
