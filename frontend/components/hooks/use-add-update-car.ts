@@ -52,6 +52,7 @@ export default function useAddUpdateCar({
   const formRef = useRef<HTMLFormElement>(null)
   const [fuelTypes, setFuelTypes] = useState<FuelType[]>([])
   const [transmissions, setTransmissions] = useState<Transmission[]>([])
+  const [isGenerateingReview, setIsGeneratingReview] = useState(false)
 
   useEffect(() => {
     const fetchMetadata = async () => {
@@ -100,6 +101,39 @@ export default function useAddUpdateCar({
         })
       }
     })
+  }
+
+  const generateReview = async () => {
+    if (!validate() && !initData) return
+
+    setIsGeneratingReview(true)
+
+    // message GenerateReviewReq {
+    //   string name = 1;
+    //   optional string brand = 2;
+    //   optional string series = 3;
+    //   optional int32 horsePower = 4;
+    //   optional int32 torque = 5;
+    //   optional string transmission = 6;
+    //   optional string fuelType = 7;
+    // }
+
+    try {
+      const data = {
+        name: car.name,
+        brand: car.brand?.name,
+        series: car.series?.name,
+        horsePower: car.horsePower,
+        torque: car.torque,
+        transmissions: car.transmission?.name,
+        fuelTypes: car.fuelType?.name,
+      }
+
+      // :TODO ??????
+    } catch (e) {
+      console.log(e)
+    }
+    setIsGeneratingReview(false)
   }
 
   const resetState = () => {
@@ -192,11 +226,13 @@ export default function useAddUpdateCar({
     fuelTypes: fuelTypes.map((f) => f.name),
     transmissions: transmissions.map((t) => t.name),
     errors,
+    isGenerateingReview,
     formRef,
     resetState,
     onChange,
     onFuelTypeChange,
     onTransmissionChange,
+    generateReview,
     onSubmit,
   }
 }
