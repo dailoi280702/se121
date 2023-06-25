@@ -60,8 +60,8 @@ export default async function Page({
       {series && (
         <>
           <div
-            className="mt-6 flex items-center justify-between space-x-2
-            text-2xl"
+            className="mb-4 mt-8 flex items-center justify-between
+            space-x-2 text-2xl"
           >
             {`${brand.name}'s Series`}
             <AddUpdateSeries brand={brand} type="create">

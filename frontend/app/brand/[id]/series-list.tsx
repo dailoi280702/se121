@@ -1,6 +1,7 @@
 'use client'
 
 import AdminOnlyWrapper from '@/components/admin-only-wrapper'
+import AddUpdateCar from '@/components/forms/add-update-car'
 import { PencilIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
 import { useState } from 'react'
@@ -15,18 +16,30 @@ export default function SeriesList({
   cars: Car[]
   brand: Brand
 }) {
-  const [updateSeriesModalVisibility, setUpdateSeriesModalVisibility] =
-    useState(false)
+  const [modalVisibility, setModalVisibility] = useState({
+    updateSeries: false,
+    createCarModel: false,
+  })
   const [seriesToBeUpdate, setseriesToBeUpdate] = useState<SeriesDetail | null>(
     null
   )
 
-  const updateSeries = (series: Series) => {
+  const openModal = (
+    series: Series,
+    type: 'updateSeries' | 'createCarModel'
+  ) => {
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur()
     }
     setseriesToBeUpdate({ ...series, brand: brand })
-    setUpdateSeriesModalVisibility(true)
+
+    setModalVisibility((prev) => {
+      if (type === 'updateSeries') {
+        return { ...prev, updateSeries: true }
+      } else {
+        return { ...prev, createCarModel: true }
+      }
+    })
   }
 
   const seriesMap: Map<number, Car[]> = cars
@@ -47,32 +60,56 @@ export default function SeriesList({
               <hr />
               <div className="group my-2 flex h-10 w-full items-center">
                 <h3>{s.name}</h3>
-                <SeriesMenu onUpdateSeriesClick={() => updateSeries(s)} />
+                <SeriesMenu
+                  onUpdateSeriesClick={() => openModal(s, 'updateSeries')}
+                  onCreateCarModelClick={() => openModal(s, 'createCarModel')}
+                />
               </div>
               {seriesMap.get(s.id) &&
                 seriesMap.get(s.id)!.map((c) => <div key={c.id}>{c.name}</div>)}
             </div>
           ))}
       </div>
-      {updateSeriesModalVisibility && seriesToBeUpdate && (
+      {modalVisibility.updateSeries && seriesToBeUpdate && (
         <AddUpdateSeries
           type="update"
           brand={brand}
           series={seriesToBeUpdate}
-          isOpen={updateSeriesModalVisibility}
-          setIsOpen={setUpdateSeriesModalVisibility}
+          isOpen={modalVisibility.updateSeries}
+          setIsOpen={(isOpen: boolean) =>
+            setModalVisibility((prev) => {
+              return { ...prev, updateSeries: isOpen }
+            })
+          }
         >
           <div hidden />
         </AddUpdateSeries>
       )}
+      <AddUpdateCar
+        type="create"
+        brand={brand}
+        series={
+          { ...seriesToBeUpdate, brandId: seriesToBeUpdate?.brand.id } as Series
+        }
+        isOpen={modalVisibility.createCarModel}
+        setIsOpen={(isOpen: boolean) =>
+          setModalVisibility((prev) => {
+            return { ...prev, createCarModel: isOpen }
+          })
+        }
+      >
+        <div hidden />
+      </AddUpdateCar>
     </>
   )
 }
 
 const SeriesMenu = ({
   onUpdateSeriesClick,
+  onCreateCarModelClick,
 }: {
   onUpdateSeriesClick: () => void
+  onCreateCarModelClick: () => void
 }) => {
   return (
     <AdminOnlyWrapper>
@@ -101,7 +138,12 @@ const SeriesMenu = ({
             </li>
           </ul>
           <ul className="text-sm text-gray-700">
-            <li className="border-b p-2 hover:bg-teal-600/10">Add car model</li>
+            <li
+              className="border-b p-2 hover:bg-teal-600/10"
+              onClick={onCreateCarModelClick}
+            >
+              Add car model
+            </li>
           </ul>
         </div>
       </button>
