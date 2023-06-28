@@ -20,7 +20,9 @@ async function fetchBrand(id: number) {
 
 async function fetchBrandSeries(id: number) {
   try {
-    const res = await fetch(`http://api-gateway:8000/v1/series?brandId=${id}`)
+    const res = await fetch(`http://api-gateway:8000/v1/series?brandId=${id}`, {
+      cache: 'no-cache',
+    })
     if (!res.ok) return undefined
     return res.json()
   } catch (err) {
