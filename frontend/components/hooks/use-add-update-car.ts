@@ -30,6 +30,7 @@ export default function useAddUpdateCar({
     fuelType: undefined,
     imageUrl: undefined,
     review: undefined,
+    ...initData,
   } as Car
 
   const initError = {
@@ -120,14 +121,14 @@ export default function useAddUpdateCar({
   }
 
   const generateReview = async () => {
-    if (!validate() && !initData) return
+    if (!validate() && !_initData) return
 
     setIsGeneratingReview(true)
 
     try {
       const data = {
         name: car.name,
-        brand: initData?.brand?.name,
+        brand: _initData?.brand?.name,
         series: series,
         horsePower: car.horsePower,
         torque: car.torque,
@@ -178,7 +179,7 @@ export default function useAddUpdateCar({
   }
 
   const resetState = () => {
-    setValues(initData ? initData : _initData)
+    setValues(_initData)
     setErrors(initError)
     setSelectedImage(null)
     setIsSubmitting(false)
@@ -236,7 +237,7 @@ export default function useAddUpdateCar({
     setIsSubmitting(true)
     try {
       const data = new Map<string, any>()
-      const iData = initData ? initData : _initData
+      const iData = _initData
 
       for (const key in ['year', 'torque', 'name', 'horsePower', 'review']) {
         if (iData[key] !== car[key]) {
@@ -244,10 +245,10 @@ export default function useAddUpdateCar({
         }
       }
 
-      if (car.fuelType?.id !== initData?.fuelType?.id) {
+      if (car.fuelType?.id !== _initData.fuelType?.id) {
         data.set('fuelType', car.fuelType?.id)
       }
-      if (car.transmission?.id !== initData?.transmission?.id) {
+      if (car.transmission?.id !== _initData.transmission?.id) {
         data.set('fuelType', car.transmission?.id)
       }
 
@@ -387,7 +388,7 @@ export default function useAddUpdateCar({
     onSubmit,
     values: car,
     setValues,
-  } = useForm(type === 'create' ? add : update, initData ? initData : _initData)
+  } = useForm(type === 'create' ? add : update, _initData)
 
   return {
     car,
