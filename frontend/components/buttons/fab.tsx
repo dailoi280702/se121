@@ -20,7 +20,7 @@ export default function Fab({
       {isFabOpen && (
         <div
           id="fab-shad"
-          className="absolute inset-0 z-[2] flex h-screen items-center overflow-y-scroll bg-black/40"
+          className="absolute inset-0 z-[2] flex h-screen flex-col overflow-y-auto bg-black/40"
           onClick={(e) => {
             if (e.currentTarget === e.target) {
               closeFab()

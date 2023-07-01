@@ -1,6 +1,6 @@
 // Car.ts
 
-type Car = {
+type CarObject = {
   id: number
   brand?: Brand
   series?: Series
@@ -13,6 +13,12 @@ type Car = {
   imageUrl?: string
   review?: string
 }
+
+interface CarIndex {
+  [key: string]: any
+}
+
+type Car = CarObject & CarIndex
 
 // Brand.ts
 

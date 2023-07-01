@@ -58,7 +58,6 @@ export default async function Page({
   return (
     <>
       <BrandDetail brand={brand} />
-
       {series && (
         <>
           <div

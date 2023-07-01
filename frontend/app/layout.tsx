@@ -18,7 +18,7 @@ export default function RootLayout({
       <body>
         <div className="flex h-screen overflow-auto bg-neutral-50 text-neutral-900">
           <NavDrawer />
-          <div className="grow overflow-y-scroll">
+          <div className="grow overflow-y-auto">
             <Header />
             <UserProvider>{children}</UserProvider>
           </div>

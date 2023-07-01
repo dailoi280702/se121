@@ -191,10 +191,10 @@ export default function useAddUpdateCar({
       name: car.name.trim() === '' ? 'Car name can not be empty' : '',
       review:
         !car.review || car.review.trim() === '' ? 'Please write a review' : '',
-      imageUrl: !selectedImage ? 'Please choose a thumbnail' : '',
+      imageUrl:
+        !selectedImage && !car.imageUrl ? 'Please choose a thumbnail' : '',
     }))
 
-    console.log('erors', Object.entries(errors))
     for (const [_, v] of Object.entries(errors)) {
       if (v) {
         return false
@@ -231,10 +231,28 @@ export default function useAddUpdateCar({
   }
 
   const update = async () => {
-    if (!validate() && !initData) return
+    if (!validate()) return
 
+    setIsSubmitting(true)
     try {
-      const data = {}
+      const data = new Map<string, any>()
+      const iData = initData ? initData : _initData
+
+      for (const key in ['year', 'torque', 'name', 'horsePower', 'review']) {
+        if (iData[key] !== car[key]) {
+          data.set(key, car[key])
+        }
+      }
+
+      if (car.fuelType?.id !== initData?.fuelType?.id) {
+        data.set('fuelType', car.fuelType?.id)
+      }
+      if (car.transmission?.id !== initData?.transmission?.id) {
+        data.set('fuelType', car.transmission?.id)
+      }
+
+      console.log(data)
+      setIsSubmitting(false)
       return
 
       const response = await fetch('http://localhost:8000/v1/car', {
@@ -245,10 +263,47 @@ export default function useAddUpdateCar({
         body: JSON.stringify(data),
       })
 
-      await handleResponse(response)
+      if (!response.ok) {
+        await handleFailure(response)
+        return
+      }
+
+      // Retrive id
+      const { id } = await response.json()
+      const imgID = v4()
+      const imageRef = ref(storage, `car/${imgID}/image`)
+
+      // Upload image
+      await uploadString(imageRef, selectedImage!.toString(), 'data_url')
+        .then(async (_) => {
+          // Retrive image URL
+          const imageUrl = await getDownloadURL(imageRef)
+
+          // Update image URL
+          const response = await fetch(`http://localhost:8000/v1/car/`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id: id as Number, imageUrl: imageUrl }),
+          })
+
+          if (!response.ok) {
+            await handleFailure(response)
+            return
+          }
+
+          if (onSuccess) {
+            onSuccess()
+          }
+          resetState()
+          router.replace(path)
+        })
+        .catch((err) => console.log('err while uploading car image: ', err))
     } catch (err) {
-      console.log(err)
+      console.log('err while adding car model: ', err)
     }
+    setIsSubmitting(false)
   }
 
   const add = async () => {
@@ -275,9 +330,6 @@ export default function useAddUpdateCar({
           : undefined,
         review: car.review,
       }
-
-      console.log('a', JSON.stringify(data))
-      console.log('b', car.review)
 
       const response = await fetch('http://localhost:8000/v1/car', {
         method: 'POST',
