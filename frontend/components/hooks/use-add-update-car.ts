@@ -212,18 +212,15 @@ export default function useAddUpdateCar({
         if (data.details) {
           setErrors(data.details)
         }
-        return
+      } else {
+        console.log(await response.text())
       }
     }
-    console.log(await response.text())
+    setIsSubmitting(false)
+    setIsGeneratingReview(false)
   }
 
-  const handleResponse = async (response: Response) => {
-    if (!response.ok) {
-      await handleFailure(response)
-      return
-    }
-
+  const handleSuccess = () => {
     if (onSuccess) {
       onSuccess()
     }
@@ -232,29 +229,38 @@ export default function useAddUpdateCar({
   }
 
   const update = async () => {
-    if (!validate()) return
+    if (!validate() || !initData) return
 
     setIsSubmitting(true)
     try {
-      const data = new Map<string, any>()
-      const iData = _initData
+      const data: { [key: string]: any } = {}
 
-      for (const key in ['year', 'torque', 'name', 'horsePower', 'review']) {
-        if (iData[key] !== car[key]) {
-          data.set(key, car[key])
+      for (const key of ['year', 'torque', 'horsePower']) {
+        const val = Number(car[key])
+        if (initData[key] !== Number(car[key]) && val > 0 && val % 1 === 0) {
+          data[key] = val
+        }
+      }
+      for (const key of ['name', 'review']) {
+        if (initData[key] !== car[key]) {
+          data[key] = car[key]
         }
       }
 
-      if (car.fuelType?.id !== _initData.fuelType?.id) {
-        data.set('fuelType', car.fuelType?.id)
+      if (car.fuelType?.id !== initData.fuelType?.id) {
+        data['fuelTypeId'] = car.fuelType?.id
       }
-      if (car.transmission?.id !== _initData.transmission?.id) {
-        data.set('fuelType', car.transmission?.id)
+      if (car.transmission?.id !== initData.transmission?.id) {
+        data['transmissionId'] = car.transmission?.id
       }
 
-      console.log(data)
-      setIsSubmitting(false)
-      return
+      if (Object.keys(data).length === 0) {
+        setIsSubmitting(false)
+        return
+      }
+
+      data['id'] = car.id
+      console.log(JSON.stringify(data))
 
       const response = await fetch('http://localhost:8000/v1/car', {
         method: 'PUT',
@@ -269,38 +275,37 @@ export default function useAddUpdateCar({
         return
       }
 
-      // Retrive id
-      const { id } = await response.json()
-      const imgID = v4()
-      const imageRef = ref(storage, `car/${imgID}/image`)
+      if (selectedImage) {
+        // Retrive id
+        const imgID = v4()
+        const imageRef = ref(storage, `car/${imgID}/image`)
 
-      // Upload image
-      await uploadString(imageRef, selectedImage!.toString(), 'data_url')
-        .then(async (_) => {
-          // Retrive image URL
-          const imageUrl = await getDownloadURL(imageRef)
+        // Upload image
+        await uploadString(imageRef, selectedImage!.toString(), 'data_url')
+          .then(async (_) => {
+            // Retrive image URL
+            const imageUrl = await getDownloadURL(imageRef)
 
-          // Update image URL
-          const response = await fetch(`http://localhost:8000/v1/car/`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id: id as Number, imageUrl: imageUrl }),
+            // Update image URL
+            const response = await fetch(`http://localhost:8000/v1/car/`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                id: car.id as Number,
+                imageUrl: imageUrl,
+              }),
+            })
+
+            if (!response.ok) {
+              await handleFailure(response)
+              return
+            }
           })
-
-          if (!response.ok) {
-            await handleFailure(response)
-            return
-          }
-
-          if (onSuccess) {
-            onSuccess()
-          }
-          resetState()
-          router.replace(path)
-        })
-        .catch((err) => console.log('err while uploading car image: ', err))
+          .catch((err) => console.log('err while uploading car image: ', err))
+      }
+      handleSuccess()
     } catch (err) {
       console.log('err while adding car model: ', err)
     }

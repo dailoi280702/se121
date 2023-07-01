@@ -59,7 +59,7 @@ export default function AddUpdateCar({
           imageUrl: undefined,
           review: undefined,
         },
-    type: type ? type : 'create',
+    type: type,
     series: series,
     onSuccess: () => {
       close()
