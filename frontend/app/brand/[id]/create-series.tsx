@@ -49,8 +49,8 @@ export default function AddUpdateSeries({
     <AdminOnlyWrapper>
       {(isInteracting || isOpen) && (
         <dialog
-          className="fixed inset-0 z-[2] flex h-screen w-full items-center 
-          overflow-y-scroll bg-black/40 p-0"
+          className="fixed inset-0 z-[2] flex h-screen w-full flex-col 
+          items-center overflow-y-scroll bg-black/40 p-0"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               close()
