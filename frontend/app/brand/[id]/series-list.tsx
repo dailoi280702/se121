@@ -1,9 +1,9 @@
 'use client'
 
 import AdminOnlyWrapper from '@/components/admin-only-wrapper'
+import CarCard from '@/components/cards/car-card'
 import AddUpdateCar from '@/components/forms/add-update-car'
 import { PencilIcon } from '@heroicons/react/24/outline'
-import Image from 'next/image'
 import { useState } from 'react'
 import AddUpdateSeries from './create-series'
 
@@ -53,23 +53,28 @@ export default function SeriesList({
 
   return (
     <>
-      <div className="flex flex-col">
+      <ul className="flex flex-col space-y-2">
         {series.length &&
           series.map((s) => (
             <div key={s.id}>
               <hr />
-              <div className="group my-2 flex h-10 w-full items-center">
+              <div className="group flex h-10 w-full items-center">
                 <h3>{s.name}</h3>
                 <SeriesMenu
                   onUpdateSeriesClick={() => openModal(s, 'updateSeries')}
                   onCreateCarModelClick={() => openModal(s, 'createCarModel')}
                 />
               </div>
-              {seriesMap.get(s.id) &&
-                seriesMap.get(s.id)!.map((c) => <div key={c.id}>{c.name}</div>)}
+              {seriesMap.get(s.id) && (
+                <ul className="mb-4 flex space-x-2 overflow-x-auto">
+                  {seriesMap.get(s.id)!.map((c) => {
+                    return <CarCard key={c.id} car={c} />
+                  })}
+                </ul>
+              )}
             </div>
           ))}
-      </div>
+      </ul>
       {modalVisibility.updateSeries && seriesToBeUpdate && (
         <AddUpdateSeries
           type="update"
@@ -148,22 +153,5 @@ const SeriesMenu = ({
         </div>
       </button>
     </AdminOnlyWrapper>
-  )
-}
-
-const CarCard = ({ car }: { car: Car }) => {
-  const { name, brand, series, imageUrl } = car
-  return (
-    <div className="relative rounded-md">
-      {imageUrl && (
-        <Image
-          className="absolute z-[1]"
-          src={imageUrl!}
-          fill
-          sizes=""
-          alt={name}
-        />
-      )}
-    </div>
   )
 }

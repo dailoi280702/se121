@@ -135,7 +135,6 @@ export default function useAddUpdateCar({
         fuelTypes: car.fuelType?.name,
       }
 
-      // :TODO ??????
       const res = await fetch(
         `http://localhost:8000/v1/text-generate/car-review?${objectToQuery(
           data
