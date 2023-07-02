@@ -13,6 +13,7 @@ service CarService {
   rpc UpdateCar(UpdateCarReq) returns (utils.Empty);
   rpc DeleteCar(DeleteCarReq) returns (utils.Empty);
   rpc SearchForCar(utils.SearchReq) returns (SearchForCarRes);
+  rpc GetRelatedCar(GetRelatedCarReq) returns (GetRelatedCarRes);
 
   rpc GetBrand(GetBrandReq) returns (Brand);
   rpc CreateBrand(CreateBrandReq) returns (CreateBrandRes);
@@ -204,4 +205,13 @@ message GetAllSeriesReq {
   optional int32 id = 1;
   optional string name = 2;
   optional int32 brandId = 3;
+}
+
+message GetRelatedCarReq {
+    int32 id = 1;
+    optional int32 limit = 2;
+}
+
+message GetRelatedCarRes {
+    repeated Car cars = 1;
 }
