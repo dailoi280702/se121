@@ -229,7 +229,7 @@ export default function useAddUpdateCar({
   }
 
   const update = async () => {
-    if (!validate() || !initData) return
+    if (isSubmitting || !validate() || !initData) return
 
     setIsSubmitting(true)
     try {
@@ -313,7 +313,7 @@ export default function useAddUpdateCar({
   }
 
   const add = async () => {
-    if (!validate()) return
+    if (isSubmitting || !validate()) return
 
     setIsSubmitting(true)
     try {

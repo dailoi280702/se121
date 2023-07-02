@@ -17,7 +17,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// const httpRegex = `/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/`
 const httpRegex = `/(((ftp|http|https):\/\/)|(\/)|(..\/))(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?`
 
 func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car.Car, error) {
@@ -244,8 +243,8 @@ func (s *carSerivceServer) GetRelatedCar(contexgt context.Context, req *car.GetR
 	query := fmt.Sprintf(`
         SELECT id 
         FROM car_models
-        WHERE brand_id = (SELECT brand_id from car_models WHERE id = %d)
-        OR series_id = (SELECT series_id from car_models WHERE id = %d)
+        WHERE (brand_id = (SELECT brand_id from car_models WHERE id = %d)
+        OR series_id = (SELECT series_id from car_models WHERE id = %d))
         AND id <> %d
     `, req.GetId(), req.GetId(), req.GetId())
 
