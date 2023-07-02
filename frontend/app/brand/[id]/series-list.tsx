@@ -58,20 +58,22 @@ export default function SeriesList({
           series.map((s) => (
             <div key={s.id}>
               <hr />
-              <div className="group flex h-10 w-full items-center">
-                <h3>{s.name}</h3>
-                <SeriesMenu
-                  onUpdateSeriesClick={() => openModal(s, 'updateSeries')}
-                  onCreateCarModelClick={() => openModal(s, 'createCarModel')}
-                />
+              <div className="px-4 lg:px-0">
+                <div className="group flex h-10 w-full items-center">
+                  <h3>{s.name}</h3>
+                  <SeriesMenu
+                    onUpdateSeriesClick={() => openModal(s, 'updateSeries')}
+                    onCreateCarModelClick={() => openModal(s, 'createCarModel')}
+                  />
+                </div>
+                {seriesMap.get(s.id) && (
+                  <ul className="mb-4 flex space-x-2 overflow-x-auto">
+                    {seriesMap.get(s.id)!.map((c) => {
+                      return <CarCard key={c.id} car={c} />
+                    })}
+                  </ul>
+                )}
               </div>
-              {seriesMap.get(s.id) && (
-                <ul className="mb-4 flex space-x-2 overflow-x-auto">
-                  {seriesMap.get(s.id)!.map((c) => {
-                    return <CarCard key={c.id} car={c} />
-                  })}
-                </ul>
-              )}
             </div>
           ))}
       </ul>

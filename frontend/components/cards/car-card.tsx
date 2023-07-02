@@ -33,7 +33,7 @@ const CarCard = ({ car }: { car: Car }) => {
       )}
       <div className="absolute inset-x-0 bottom-0 w-full bg-gradient-to-t from-black to-black/0 px-4 py-2 pt-6 text-white drop-shadow-md">
         <h3 className="text-lg font-medium">{name}</h3>
-        <p>
+        <p className="text-sm">
           {brand?.name} - {series?.name}
         </p>
       </div>

@@ -58,27 +58,29 @@ export default async function Page({
   return (
     <>
       <BrandDetail brand={brand} />
-      {series && (
-        <>
-          <div
-            className="mb-4 mt-8 flex items-center justify-between
-            space-x-2 text-2xl"
-          >
-            {`${brand.name}'s Series`}
-            <AddUpdateSeries brand={brand} type="create">
-              <button
-                className="flex h-10 items-center rounded-full px-3 text-sm
+      <>
+        <div
+          className="mb-4 mt-8 flex items-center justify-between
+          space-x-2 px-4 text-2xl sm:px-0"
+        >
+          {`${brand.name}'s Series`}
+          <AddUpdateSeries brand={brand} type="create">
+            <button
+              className="flex h-10 items-center rounded-full px-3 text-sm
                 font-medium text-teal-600 outline-none 
                 enabled:hover:bg-teal-600/10"
-              >
-                <PlusIcon className="mr-2 h-5 w-5 stroke-2" />
-                New Series
-              </button>
-            </AddUpdateSeries>
-          </div>
+            >
+              <PlusIcon className="mr-2 h-5 w-5 stroke-2" />
+              New Series
+            </button>
+          </AddUpdateSeries>
+        </div>
+        {series ? (
           <SeriesList series={series} cars={cars} brand={brand} />
-        </>
-      )}
+        ) : (
+          <div>No series data</div>
+        )}
+      </>
     </>
   )
 }

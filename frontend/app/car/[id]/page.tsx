@@ -36,8 +36,6 @@ async function fetchRelatedCars(id: number): Promise<{ cars: Car[] }> {
 }
 
 export default async function page({ params }: { params: { id: number } }) {
-  // const car: Car = await fetchCar(params.id)
-  // const { relatedCars }: { relatedCars: Car[] } = await fetchCar(params.id)
   const [car, { cars: relatedCars }] = await Promise.all([
     fetchCar(params.id),
     fetchRelatedCars(params.id),
@@ -65,15 +63,15 @@ const CarPage = ({ car, relatedCars }: { car: Car; relatedCars: Car[] }) => {
 
   return (
     <>
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto sm:py-8">
         <div className="flex flex-col md:flex-row">
           {imageUrl && (
-            <div className="relative w-full overflow-hidden md:w-1/2 md:rounded-md">
+            <div className="relative w-full overflow-hidden sm:rounded-md md:w-1/2">
               <Image
                 src={imageUrl}
                 alt={name}
-                width={900}
-                height={600}
+                width={640}
+                height={640}
                 className="w-full object-contain"
               />
             </div>
