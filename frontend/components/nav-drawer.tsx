@@ -5,6 +5,7 @@ import { Logo } from '@/components/Header'
 import useCloseShade from '@/components/hooks/use-close-shade'
 import { Shade } from '@/components/shade'
 import DrawerCloseButton from './buttons/drawer-close-button'
+import Link from 'next/link'
 
 export const navDrawerVisisibilyAtom = atom<boolean>(false)
 
@@ -17,17 +18,21 @@ const DrawerHeader = ({ onClose }: { onClose: () => void }) => {
   )
 }
 
-export const NavMenu = ({ label }: { label?: string }) => {
+export const NavMenuItem = ({
+  label,
+  link,
+}: {
+  label: string
+  link: string
+}) => {
   return (
-    <div className="min-h-min w-full space-y-2">
-      <nav className="flex w-full flex-col">
-        <a
-          href="#"
-          className="mb-2 rounded-md px-6 py-3 text-sm font-medium text-gray-600 hover:bg-gray-200"
-        >
-          {label ? label : 'required*'}
-        </a>
-      </nav>
+    <div className="flex w-full flex-col">
+      <Link
+        href={link}
+        className="px-6 py-3 text-sm font-medium hover:bg-neutral-200"
+      >
+        {label ? label : 'required*'}
+      </Link>
     </div>
   )
 }
@@ -35,10 +40,10 @@ export const NavMenu = ({ label }: { label?: string }) => {
 const DrawerBody = () => {
   return (
     <div className="flex h-screen flex-col">
-      <NavMenu label="Home" />
-      <NavMenu label="Blog" />
-      <NavMenu label="Car" />
-      <NavMenu label="Brand" />
+      <NavMenuItem label="Home" link="/" />
+      <NavMenuItem label="Blog" link="/blog" />
+      <NavMenuItem label="Car" link="/car" />
+      <NavMenuItem label="Brand" link="/brand" />
     </div>
   )
 }
@@ -58,7 +63,7 @@ export default function NavDrawer() {
             <DrawerHeader onClose={closeDrawer} />
             <DrawerBody />
             <span className="w-56 grow" />
-            <div>Nav footer</div>
+            <div></div>
           </nav>
           <Shade onClose={closeDrawer} className="md:hidden" />
         </>
