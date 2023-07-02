@@ -24,6 +24,7 @@ func NewCarRoutes(carService car.CarServiceClient) chi.Router {
 	r := chi.NewRouter()
 
 	r.Get("/{id}", handleGetCarById(carService))
+	r.Get("/{id}/related", handleGetRelatedCars(carService))
 	r.Get("/", handleGetCars(carService))
 	r.Delete("/", handleDeleteCarById(carService))
 	r.Put("/", handleUpdateCar(carService))
@@ -33,6 +34,29 @@ func NewCarRoutes(carService car.CarServiceClient) chi.Router {
 	r.Get("/search", handleSearchCar(carService))
 
 	return r
+}
+
+func handleGetRelatedCars(carService car.CarServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := car.GetRelatedCarReq{Id: int32(id)}
+		var res *car.GetRelatedCarRes
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				res, err = carService.GetRelatedCar(context.Background(), &req)
+				return err
+			},
+			convertWithUrlQuery(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}))
+	}
 }
 
 func handleUpdateCar(carService car.CarServiceClient) http.HandlerFunc {

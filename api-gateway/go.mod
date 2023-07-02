@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/dailoi280702/se121/blog-service v0.0.0-20230521140836-b781d226a231
-	github.com/dailoi280702/se121/car-service v0.0.0-20230610154115-68f1b103c15b
+	github.com/dailoi280702/se121/car-service v0.0.0-20230702031347-750e890bc6ca
 	github.com/dailoi280702/se121/comment-service v0.0.0-20230521140836-b781d226a231
 	github.com/dailoi280702/se121/pkg/go v0.0.0-20230526030650-0b24f51c7692
 	github.com/dailoi280702/se121/search-service v0.0.0-20230521145934-db0160fae8d9
