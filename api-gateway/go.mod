@@ -3,7 +3,7 @@ module github.com/dailoi280702/se121/api-gateway
 go 1.20
 
 require (
-	github.com/dailoi280702/se121/blog-service v0.0.0-20230521140836-b781d226a231
+	github.com/dailoi280702/se121/blog-service v0.0.0-20230703173430-d612974fbf23
 	github.com/dailoi280702/se121/car-service v0.0.0-20230702031347-750e890bc6ca
 	github.com/dailoi280702/se121/comment-service v0.0.0-20230521140836-b781d226a231
 	github.com/dailoi280702/se121/pkg/go v0.0.0-20230526030650-0b24f51c7692

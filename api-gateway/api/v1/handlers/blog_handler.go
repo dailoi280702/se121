@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -40,12 +41,18 @@ func handleGetBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 func handleCreateBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req blog.CreateBlogReq
+		var res *blog.CreateBlogRes
 		convertJsonApiToGrpc(w, r,
 			func() error {
-				_, err := blogService.CreateBlog(context.Background(), &req)
+				var err error
+				res, err = blogService.CreateBlog(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req))
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}),
+		)
 	}
 }
 
@@ -75,7 +82,7 @@ func handleDeleteBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 
 func handleSearchBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req blog.SearchReq
+		var req utils.SearchReq
 		var res *blog.SearchBlogsRes
 		convertJsonApiToGrpc(w, r,
 			func() error {
