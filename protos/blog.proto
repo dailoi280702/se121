@@ -35,7 +35,7 @@ message Tag {
 }
 
 service BlogService {
-  rpc CreateBlog(CreateBlogReq) returns (utils.Empty);
+  rpc CreateBlog(CreateBlogReq) returns (CreateBlogRes);
   rpc GetBlog(GetBlogReq) returns (Blog);
   rpc UpdateBlog(UpdateBlogReq) returns (utils.Empty);
   rpc DeleteBlog(DeleteBlogReq) returns (utils.Empty);
@@ -80,6 +80,10 @@ message CreateBlogReq {
   string author = 4;
   optional string tldr = 5;
   repeated Tag tags = 6;
+}
+
+message CreateBlogRes {
+    int32 id = 1; 
 }
 
 message GetBlogReq {

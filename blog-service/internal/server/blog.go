@@ -34,7 +34,7 @@ func (s *server) GetBlog(ctx context.Context, req *blog.GetBlogReq) (*blog.Blog,
 	return blog, nil
 }
 
-func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*utils.Empty, error) {
+func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog.CreateBlogRes, error) {
 	// Validate and verify inputs
 	err := validateBLog(s.db, &req.Title, &req.Body, req.Tldr, &req.Author, req.ImageUrl, req.Tags)
 	if err != nil {
@@ -48,7 +48,8 @@ func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*util
 	}
 
 	// Insert blog into database
-	if err := createBlogWithTags(tx, req); err != nil {
+	id, err := createBlogWithTags(tx, req)
+	if err != nil {
 		if err != nil {
 			log.Println("Insert blog failed, rooling back...")
 			_ = tx.Rollback()
@@ -62,7 +63,7 @@ func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*util
 		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
 	}
 
-	return &utils.Empty{}, nil
+	return &blog.CreateBlogRes{Id: int32(id)}, nil
 }
 
 func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*utils.Empty, error) {
@@ -260,24 +261,24 @@ func validateBLog(db *sql.DB, title, body, tldr, author, imageUrl *string, tags 
 }
 
 // creates a blog record with associated tags in the database.
-func createBlogWithTags(tx *sql.Tx, req *blog.CreateBlogReq) error {
+func createBlogWithTags(tx *sql.Tx, req *blog.CreateBlogReq) (int, error) {
 	// Insert blog record
 	blogId, err := insertBlog(tx, req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if len(req.Tags) == 0 {
-		return nil
+		return blogId, nil
 	}
 
 	tagIds, err := insertTagsIfNotExists(tx, req.Tags)
 	if err != nil {
-		return err
+		return blogId, err
 	}
 
 	// Create blog and tags references
 	err = createBlogTags(tx, blogId, tagIds)
-	return err
+	return blogId, err
 }
 
 // genreate sql query for searching blogs from grpc request as string

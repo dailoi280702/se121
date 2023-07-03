@@ -108,6 +108,7 @@ export default async function Page({
 
   return (
     <div className="mx-auto p-4 sm:max-w-6xl">
+      <h1 className="mx-4 mb-4 text-xl font-medium">All Car Models</h1>
       <PageSearch filterOptions={filterOptions} defaultOption={'Year'} />
       <Cars promise={cars} />
     </div>

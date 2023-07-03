@@ -103,6 +103,7 @@ export default async function Page({
 
   return (
     <>
+      <h1 className="m-4 text-xl font-medium">All Brands</h1>
       <PageSearch filterOptions={filterOptions} defaultOption={'Year'} />
       <Brands promise={brands} />
       <AddBrandFromWithFab />

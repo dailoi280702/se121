@@ -3,6 +3,8 @@
 import PageProgressBar from '@/components/page-progress-bar'
 import PageSearch from '@/components/page-search'
 import { objectToQuery } from '@/utils'
+import { PlusIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link'
 
 const SEARCH_LIMIT = 20
 
@@ -67,6 +69,19 @@ export default async function Page({
 
   return (
     <div className="mx-auto p-4 sm:max-w-6xl">
+      <div className="mb-4 flex w-full items-center justify-between px-2">
+        <h1 className=" text-xl font-medium">All Blogs</h1>
+        <Link href="/blog/new">
+          <button
+            className="flex h-10 items-center rounded-full px-3 text-sm
+          font-medium text-teal-600 outline-none 
+          enabled:hover:bg-teal-600/10"
+          >
+            <PlusIcon className="mr-2 h-5 w-5 stroke-2" />
+            New Blog
+          </button>
+        </Link>
+      </div>
       <PageSearch filterOptions={filterOptions} defaultOption={'Date'} />
       <Blogs promise={blogs} />
     </div>

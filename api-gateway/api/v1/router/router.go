@@ -59,6 +59,7 @@ func InitRouter(
 	router.Mount("/brand", handlers.NewBrandRoutes(carService))
 	router.Mount("/series", handlers.NewSeriesRoutes(carService))
 	router.Mount("/blog", handlers.NewBlogRoutes(blogService))
+	router.Mount("/tag", handlers.NewTagRoutes(blogService))
 	router.Mount("/comment", handlers.NewCommentRoutes(commentService))
 	router.Mount("/search", handlers.NewSearchRoutes(searchService))
 	router.Mount("/text-generate", handlers.NewTextGenerateRoutes(textGenerateService))
