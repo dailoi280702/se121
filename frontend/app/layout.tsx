@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-y-hidden">
       <body>
         <div className="flex h-screen overflow-auto bg-neutral-50 text-neutral-900">
           <NavDrawer />

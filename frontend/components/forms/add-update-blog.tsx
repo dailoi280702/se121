@@ -149,7 +149,7 @@ export default function AddUpdateBlog({
                 ? values.selectedImage.toString()
                 : values.blog.imageUrl
             }
-            alt=""
+            alt="thumbnail"
             onClick={() => imageUpLoadRef!.current?.click()}
           />
         </div>

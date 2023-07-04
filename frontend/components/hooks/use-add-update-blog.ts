@@ -250,7 +250,7 @@ export default function useAddUpdateBlog({
               },
               body: JSON.stringify({
                 id: blog.id as Number,
-                imageUrl: imageUrl,
+                image_url: imageUrl,
               }),
             })
 
@@ -282,10 +282,6 @@ export default function useAddUpdateBlog({
         author: user.id,
       }
 
-      console.log(JSON.stringify(data))
-      setIsSubmitting(true)
-      return
-
       const response = await fetch('http://localhost:8000/v1/blog', {
         method: 'POST',
         headers: {
@@ -316,7 +312,7 @@ export default function useAddUpdateBlog({
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ id: id as Number, imageUrl: imageUrl }),
+            body: JSON.stringify({ id: id as Number, image_url: imageUrl }),
           })
 
           if (!response.ok) {

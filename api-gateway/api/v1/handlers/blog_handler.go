@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
@@ -12,7 +13,7 @@ import (
 func NewBlogRoutes(blogService blog.BlogServiceClient) chi.Router {
 	c := chi.NewRouter()
 
-	c.Get("/", handleGetBlog(blogService))
+	c.Get("/{id}", handleGetBlog(blogService))
 	c.Put("/", handleUpdateBlog(blogService))
 	c.Post("/", handleCreateBlog(blogService))
 	c.Delete("/", handleDeleteBlog(blogService))
@@ -23,7 +24,13 @@ func NewBlogRoutes(blogService blog.BlogServiceClient) chi.Router {
 
 func handleGetBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req blog.GetBlogReq
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := blog.GetBlogReq{Id: int32(id)}
 		var res *blog.Blog
 		convertJsonApiToGrpc(w, r,
 			func() error {
@@ -31,7 +38,6 @@ func handleGetBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 				res, err = blogService.GetBlog(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))
