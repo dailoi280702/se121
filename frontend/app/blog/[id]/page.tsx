@@ -19,8 +19,26 @@ export async function fetchBlog(id: number): Promise<Blog | undefined> {
   }
 }
 
+export async function fetchComments(
+  id: number
+): Promise<{ comments: CommentDetail[] }> {
+  try {
+    const res = await fetch(`http://api-gateway:8000/v1/comment/blog/${id}`, {
+      cache: 'no-cache',
+    })
+    if (!res.ok) return { comments: [] }
+    return res.json()
+  } catch (err) {
+    console.log(err)
+  }
+  return { comments: [] }
+}
+
 export default async function page({ params }: { params: { id: number } }) {
-  const [blog] = await Promise.all([fetchBlog(params.id)])
+  const [blog, { comments }] = await Promise.all([
+    fetchBlog(params.id),
+    fetchComments(params.id),
+  ])
 
   if (!blog) {
     notFound()
@@ -60,7 +78,7 @@ export default async function page({ params }: { params: { id: number } }) {
           </>
         )}
       </section>
-      <CommentSession blogId={blog.id} />
+      <CommentSession blogId={blog.id} comments={comments ? comments : []} />
       <UpdateBlogfab id={blog.id} />
     </>
   )

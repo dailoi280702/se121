@@ -60,7 +60,7 @@ export default function useAddComment({ blogId }: { blogId: Number }) {
     setIsSubmitting(true)
     try {
       const data = {
-        comment: comment.comment,
+        comment: comment.comment.trim(),
         blogId: Number(blogId),
         userId: user.id,
       }
