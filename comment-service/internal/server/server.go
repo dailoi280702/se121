@@ -10,12 +10,14 @@ import (
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"github.com/dailoi280702/se121/pkg/go/sqlutils"
 	"github.com/dailoi280702/se121/pkg/go/utils"
+	user "github.com/dailoi280702/se121/user-service/userpb"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
 type server struct {
-	db *sql.DB
+	db          *sql.DB
+	userService user.UserServiceClient
 	comment.UnimplementedCommentServiceServer
 }
 
@@ -28,8 +30,8 @@ func serverErr(err error) error {
 	return fmt.Errorf("Comment server error: %v", err)
 }
 
-func NewServer(db *sql.DB) *server {
-	return &server{db: db}
+func NewServer(db *sql.DB, userService user.UserServiceClient) *server {
+	return &server{db: db, userService: userService}
 }
 
 func (s *server) CreateComment(ctx context.Context, req *comment.CreateCommentReq) (*comment.Empty, error) {
@@ -137,13 +139,16 @@ func (s *server) GetBlogComments(ctx context.Context, req *comment.GetBlogCommen
 		return nil, serverErr(fmt.Errorf("failed to get comments by blog %v: %v", req.BlogId, err))
 	}
 
+	userIds := []string{}
+	commentUser := map[int32]string{}
 	for rows.Next() {
-		c := comment.Comment{
+		c := comment.CommentDetail{
 			UpdatedAt: nil,
 		}
+		var userId string
 		var createdAt time.Time
 		var updatedAt *time.Time
-		if err := rows.Scan(&c.Id, &c.Comment, &c.UserId, &c.BlogId, &createdAt, &updatedAt); err != nil {
+		if err := rows.Scan(&c.Id, &c.Comment, &userId, &c.BlogId, &createdAt, &updatedAt); err != nil {
 			return nil, serverErr(err)
 		}
 		c.CreatedAt = createdAt.UnixMilli()
@@ -152,6 +157,24 @@ func (s *server) GetBlogComments(ctx context.Context, req *comment.GetBlogCommen
 			c.UpdatedAt = &t
 		}
 		res.Comments = append(res.Comments, &c)
+		commentUser[c.Id] = userId
+		userIds = append(userIds, userId)
+	}
+
+	profiles, err := s.userService.GetUserProfilesByIds(ctx, &user.GetUserProfilesByIdsReq{Ids: userIds})
+	if err != nil {
+		return nil, serverErr(err)
+	}
+
+	profilesMap := map[string]*comment.CommentDetail_UserProfile{}
+	for _, u := range profiles.Users {
+		profilesMap[u.Id] = &comment.CommentDetail_UserProfile{Id: u.Id, Name: u.Name, ImageUrl: u.ImageUrl}
+	}
+
+	for _, c := range res.Comments {
+		userId := commentUser[c.Id]
+		user := profilesMap[userId]
+		c.User = user
 	}
 
 	return &res, nil

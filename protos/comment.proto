@@ -61,5 +61,5 @@ message GetBlogCommentsReq {
 }
 
 message GetBlogCommentsRes {
-  repeated Comment comments = 1;
+  repeated CommentDetail comments = 1;
 }
