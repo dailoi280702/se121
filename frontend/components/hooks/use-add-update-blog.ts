@@ -250,7 +250,7 @@ export default function useAddUpdateBlog({
               },
               body: JSON.stringify({
                 id: blog.id as Number,
-                image_url: imageUrl,
+                imageUrl: imageUrl,
               }),
             })
 
@@ -312,7 +312,7 @@ export default function useAddUpdateBlog({
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ id: id as Number, image_url: imageUrl }),
+            body: JSON.stringify({ id: id as Number, imageUrl: imageUrl }),
           })
 
           if (!response.ok) {

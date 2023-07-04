@@ -5,6 +5,7 @@ import OutLineInput from '../inputs/outline-input'
 import { useState, useRef } from 'react'
 import Tag from '../tag'
 import { CameraIcon } from '@heroicons/react/24/outline'
+import Image from 'next/image'
 
 const defaultBlog = {
   id: 0,
@@ -142,21 +143,32 @@ export default function AddUpdateBlog({
             Thumbnail
           </label>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className="w-full cursor-pointer rounded-md object-contain"
-            src={
-              values.selectedImage
-                ? values.selectedImage.toString()
-                : values.blog.imageUrl
-            }
-            alt="thumbnail"
-            onClick={() => imageUpLoadRef!.current?.click()}
-          />
+          {values.selectedImage ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              className="w-full cursor-pointer rounded-md object-contain"
+              src={
+                values.selectedImage
+                  ? values.selectedImage.toString()
+                  : values.blog.imageUrl
+              }
+              alt="thumbnail"
+              onClick={() => imageUpLoadRef!.current?.click()}
+            />
+          ) : (
+            <Image
+              src={values.blog.imageUrl!}
+              width={1024}
+              height={1024}
+              alt="thumbnail"
+              className="w-full"
+            />
+          )}
         </div>
       ) : (
         <button
           className="mx-auto flex h-10 items-center rounded-full p-3 text-sm outline-none hover:bg-neutral-600/10"
-          onClick={() => imageUpLoadRef!.current?.click()}
+          onClick={() => window.alert(JSON.stringify(blog))}
           type="button"
         >
           <CameraIcon className="mr-1 h-6 w-6" />
