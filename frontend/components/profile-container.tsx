@@ -57,7 +57,8 @@ const ProfileMenu = () => {
       name: 'Sign In',
       icon: <ArrowLeftOnRectangleIcon />,
       url: '/auth/signin/',
-      onClick: () => router.push('auth/signin/' + encodeURIComponent(pathName)),
+      onClick: () =>
+        router.push('/auth/signin/' + encodeURIComponent(pathName)),
       className: ' hover:bg-teal-600 hover:text-teal-50',
       displayCondition: { authenticated: false },
     },
@@ -65,7 +66,8 @@ const ProfileMenu = () => {
       name: 'Sign Up',
       icon: <ArrowLeftOnRectangleIcon />,
       url: '/auth/singup/%2f',
-      onClick: () => router.push('auth/signup/' + encodeURIComponent(pathName)),
+      onClick: () =>
+        router.push('/auth/signup/' + encodeURIComponent(pathName)),
       displayCondition: { authenticated: false },
     },
     {

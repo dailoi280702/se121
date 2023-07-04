@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Tag from '@/components/tag'
 import UpdateBlogfab from './update-blog-fab'
+import Link from 'next/link'
+import CommentSession from './comment-session'
 
 export async function fetchBlog(id: number): Promise<Blog | undefined> {
   try {
@@ -34,14 +36,16 @@ export default async function page({ params }: { params: { id: number } }) {
           alt="thumbnail"
         />
       )}
-      <div className="my-4 px-4 md:px-0">
+      <section className="my-4 px-4 md:px-0">
         <h1 className="text-2xl font-medium">{blog.title}</h1>
         <p className="text-xs">{new Date(blog.createdAt).toLocaleString()}</p>
         {blog.tags && (
           <ul className="flex flex-row-reverse flex-wrap items-center">
             {blog.tags.map((tag, index) => (
-              <div className="py-1 pr-2" key={index}>
-                <Tag className="bg-white" name={tag.name} />
+              <div className="cursor-pointer py-1 pr-2" key={index}>
+                <Link href={`/blog?search=${tag.name}`}>
+                  <Tag className="bg-white" name={tag.name} />
+                </Link>
               </div>
             ))}
           </ul>
@@ -55,7 +59,8 @@ export default async function page({ params }: { params: { id: number } }) {
             <p className="text-base">{blog.tldr}</p>
           </>
         )}
-      </div>
+      </section>
+      <CommentSession blogId={blog.id} />
       <UpdateBlogfab id={blog.id} />
     </>
   )
