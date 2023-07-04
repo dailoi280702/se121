@@ -13,10 +13,7 @@ async function fetchCars(req: SearchReq) {
   try {
     const fetchURL =
       'http://api-gateway:8000/v1/car/search?' + objectToQuery(req)
-    const res = await fetch(
-      fetchURL
-      // { cache: 'no-store' }
-    )
+    const res = await fetch(fetchURL, { cache: 'no-store' })
     if (!res.ok) {
       console.log(res.text())
       return

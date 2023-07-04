@@ -1,3 +1,5 @@
+'use client'
+
 import AdminOnlyWrapper from '@/components/admin-only-wrapper'
 import DialogFormLayout from '@/components/dialogs/dialog-form-layout'
 import OutLineInput from '@/components/inputs/outline-input'
