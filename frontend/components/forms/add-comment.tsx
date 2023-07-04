@@ -18,8 +18,9 @@ export default function AddComment({ blogId }: { blogId: Number }) {
           Your comment
         </label>
         <textarea
-          className="my-2 block w-full resize-none rounded 
-          border border-neutral-200 p-2 outline-none focus:outline-none"
+          className="my-2 block w-full resize-none rounded border 
+          border-neutral-200 p-2 outline-none placeholder:text-neutral-500
+          focus:outline-none"
           rows={3}
           placeholder="Type here..."
           name="comment"

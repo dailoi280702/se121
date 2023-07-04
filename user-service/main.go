@@ -54,6 +54,14 @@ func (s *userServer) GetUser(c context.Context, req *user.GetUserReq) (*user.Get
 	}}, nil
 }
 
+func (s *userServer) GetUserProfilesByIds(c context.Context, req *user.GetUserProfilesByIdsReq) (*user.GetUserProfilesByIdsRes, error) {
+	userProfiles, err := s.service.GetUserProfilesByIds(req.Ids)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "user service error while fetching users by ids: %v", err)
+	}
+	return &user.GetUserProfilesByIdsRes{Users: userProfiles}, nil
+}
+
 func (s *userServer) VerifyUser(ctx context.Context, req *user.VerifyUserReq) (*user.User, error) {
 	name := strings.TrimSpace(req.GetNameOrEmail())
 	password := strings.TrimSpace(req.GetPassord())
