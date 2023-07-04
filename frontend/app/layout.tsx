@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="overflow-y-hidden">
       <body>
-        <div className="flex h-screen overflow-auto bg-neutral-50 text-neutral-900">
+        <div className="flex h-screen overflow-auto bg-white text-neutral-900">
           <NavDrawer />
           <div className="grow overflow-y-auto">
             <Header />

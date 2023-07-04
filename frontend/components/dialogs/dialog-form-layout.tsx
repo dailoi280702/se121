@@ -29,7 +29,7 @@ export default function DialogFormLayout({
       <div
         className={[
           'm-auto min-h-screen w-full',
-          'bg-neutral-50 sm:min-h-max',
+          'bg-white sm:min-h-max',
           'sm:my-6 sm:h-fit sm:max-w-sm sm:rounded-3xl sm:pb-0',
           className,
         ].join(' ')}

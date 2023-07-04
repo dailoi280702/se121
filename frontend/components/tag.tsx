@@ -2,15 +2,20 @@ import { XMarkIcon } from '@heroicons/react/24/outline'
 
 export default function Tag({
   name,
+  className = '',
   onIconClick,
 }: {
   name: string
+  className?: string
   onIconClick?: () => void
 }) {
   return (
     <div
-      className="flex h-8 items-center rounded-lg border border-neutral-200 
-      px-3 text-center text-sm text-gray-900 focus:outline-none"
+      className={[
+        `flex h-8 items-center rounded-lg border border-neutral-200 
+        px-3 text-center text-sm text-gray-900 focus:outline-none`,
+        className,
+      ].join(' ')}
     >
       {name}
       {onIconClick && (

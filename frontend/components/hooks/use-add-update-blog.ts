@@ -62,7 +62,9 @@ export default function useAddUpdateBlog({
         setSuggestedTags(
           tags
             .filter(
-              (tag) => tag.name.includes(name) && !blog.tags.includes(tag)
+              (tag) =>
+                tag.name.includes(name) &&
+                (!blog.tags || !blog.tags.includes(tag))
             )
             .slice(0, 10)
         )
@@ -77,7 +79,7 @@ export default function useAddUpdateBlog({
     if (!tag) {
       const name = tagInput.trim()
       if (name !== '') {
-        const isDuplicated = blog.tags.some((tags) => tags.name === name)
+        const isDuplicated = blog.tags && blog.tags.some((tags) => tags.name === name)
         if (!isDuplicated) {
           blog.tags.push({ id: 0, name: name })
           setValues((prev) => ({ ...prev, tags: blog.tags }))

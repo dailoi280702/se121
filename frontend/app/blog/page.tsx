@@ -2,6 +2,7 @@
 
 import PageProgressBar from '@/components/page-progress-bar'
 import PageSearch from '@/components/page-search'
+import Tag from '@/components/tag'
 import { objectToQuery } from '@/utils'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
@@ -12,7 +13,7 @@ async function fetchBlogs(req: SearchReq) {
   try {
     const fetchURL =
       'http://api-gateway:8000/v1/blog/search?' + objectToQuery(req)
-    const res = await fetch(fetchURL)
+    const res = await fetch(fetchURL, { cache: 'no-cache' })
     if (!res.ok) {
       console.log(res.text())
       return
@@ -28,11 +29,35 @@ async function Blogs({ promise }: { promise: Promise<SearchBlogRes> }) {
 
   return (
     <>
-      <ul className="flex flex-col items-center space-y-4">
+      <ul className="my-4 flex flex-col items-center space-y-2 px-4">
         {blogs && blogs.blogs ? (
           <>
-            {blogs.blogs.map((blog) => (
-              <div key={blog.id}>{JSON.stringify(blog)}</div>
+            {blogs.blogs.map((blog, index) => (
+              <Link
+                href={`/blog/${blog.id}`}
+                className={`w-full cursor-pointer rounded-md p-2 ${
+                  index % 2 === 1 ? 'border bg-neutral-100' : ''
+                }`}
+                key={blog.id}
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-medium">{blog.title}</h2>
+                  <p className="text-sm">
+                    {new Date(blog.createdAt).toLocaleString()}
+                  </p>
+                </div>
+                <p>{blog.tldr ? blog.tldr : blog.body}</p>
+
+                {blog.tags && (
+                  <ul className="flex flex-row-reverse flex-wrap items-center">
+                    {blog.tags.map((tag, index) => (
+                      <div className="py-1 pr-2" key={index}>
+                        <Tag className="bg-white" name={tag.name} />
+                      </div>
+                    ))}
+                  </ul>
+                )}
+              </Link>
             ))}
           </>
         ) : (

@@ -117,7 +117,7 @@ export default function AddUpdateBlog({
   const { values, states, events } = useAddUpdateBlog({
     type: type,
     tags: tags,
-    initData: blog,
+    initData: { ...blog, tags: blog.tags ? blog.tags : [] },
   })
   const imageUpLoadRef = useRef<HTMLInputElement>(null)
 
@@ -162,13 +162,14 @@ export default function AddUpdateBlog({
               height={1024}
               alt="thumbnail"
               className="w-full"
+              onClick={() => imageUpLoadRef!.current?.click()}
             />
           )}
         </div>
       ) : (
         <button
           className="mx-auto flex h-10 items-center rounded-full p-3 text-sm outline-none hover:bg-neutral-600/10"
-          onClick={() => window.alert(JSON.stringify(blog))}
+          onClick={() => imageUpLoadRef!.current?.click()}
           type="button"
         >
           <CameraIcon className="mr-1 h-6 w-6" />

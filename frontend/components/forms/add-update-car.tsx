@@ -86,7 +86,7 @@ export default function AddUpdateCar({
       {(_isOpen || isOpen) && (
         <dialog
           className="fixed inset-0 z-[2] flex h-screen w-full flex-col
-          overflow-y-auto bg-neutral-50 p-0 sm:bg-black/40"
+          overflow-y-auto bg-white p-0 sm:bg-black/40"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
               close()
