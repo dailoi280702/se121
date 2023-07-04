@@ -34,7 +34,7 @@ export default async function Page({ params }: { params: { id: number } }) {
   return (
     <AdminOnlyPage>
       <div className="mx-auto h-full px-4 sm:max-w-3xl md:px-0">
-        <h1 className="my-4 text-xl font-medium">Write New Blog</h1>
+        <h1 className="my-4 text-xl font-medium">Edit Blog</h1>
         <AddUpdateBlog type="update" tags={tags} blog={blog} />
       </div>
     </AdminOnlyPage>

@@ -79,7 +79,8 @@ export default function useAddUpdateBlog({
     if (!tag) {
       const name = tagInput.trim()
       if (name !== '') {
-        const isDuplicated = blog.tags && blog.tags.some((tags) => tags.name === name)
+        const isDuplicated =
+          blog.tags && blog.tags.some((tags) => tags.name === name)
         if (!isDuplicated) {
           blog.tags.push({ id: 0, name: name })
           setValues((prev) => ({ ...prev, tags: blog.tags }))
@@ -253,6 +254,7 @@ export default function useAddUpdateBlog({
               body: JSON.stringify({
                 id: blog.id as Number,
                 imageUrl: imageUrl,
+                tags: blog.tags,
               }),
             })
 
@@ -298,7 +300,6 @@ export default function useAddUpdateBlog({
       }
 
       // Retrive id
-      console.log('fugg', await response.clone().text())
       const { id } = await response.json()
       const imageRef = ref(storage, `blog/${id}/image`)
 
@@ -314,7 +315,11 @@ export default function useAddUpdateBlog({
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ id: id as Number, imageUrl: imageUrl }),
+            body: JSON.stringify({
+              id: id as Number,
+              imageUrl: imageUrl,
+              tags: blog.tags,
+            }),
           })
 
           if (!response.ok) {

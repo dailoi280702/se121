@@ -50,18 +50,17 @@ func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog
 	// Insert blog into database
 	id, err := createBlogWithTags(tx, req)
 	if err != nil {
-		if err != nil {
-			log.Println("Insert blog failed, rooling back...")
-			_ = tx.Rollback()
-			return nil, serverError(err)
-		}
+		log.Printf("Insert blog failed, rooling back... : %v", err)
+		_ = tx.Rollback()
+		return nil, serverError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Println("Insert blog failed, rooling back...")
+		log.Printf("Insert blog failed, rooling back... : %v", err)
 		_ = tx.Rollback()
 		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
 	}
+	log.Println("New blog inserted")
 
 	return &blog.CreateBlogRes{Id: int32(id)}, nil
 }
