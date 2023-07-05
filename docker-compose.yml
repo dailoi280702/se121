@@ -77,6 +77,16 @@ services:
     depends_on:
       - blog-db
 
+  recommendation-service:
+    container_name: recoomendation-service
+    build: ./recommendation-service/
+    environment:
+      DATABASE_URL: "host=blog-db user=postgres password=postgres dbname=postgres sslmode=disable"
+    networks:
+      - grpc
+    volumes:
+      - ./recommendation-service/:/app
+
   search-service:
     container_name: search-service
     build: ./search-service/
