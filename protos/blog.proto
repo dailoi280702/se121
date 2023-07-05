@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package blog;
 
-option go_package = "github.com/dailoi280702/se121/blog-service/pkg/blog";
-
 import "utils.proto";
+
+option go_package = "github.com/dailoi280702/se121/blog-service/pkg/blog";
 
 message Blog {
   int32 id = 1;
@@ -41,6 +41,9 @@ service BlogService {
   rpc DeleteBlog(DeleteBlogReq) returns (utils.Empty);
   rpc SearchForBlogs(utils.SearchReq) returns (SearchBlogsRes);
   rpc GetNumberOfBlogs(utils.Empty) returns (GetNumberOfBlogsRes);
+  rpc GetBlogsFromIds(BlogIds) returns (Blogs);
+  rpc GetTagsFromBlogIds(BlogIds) returns (GetTagsFromBlogIdsRes);
+  rpc GetLatestBlogTags(GetLatestBlogTagsReq) returns (GetLatestBlogTagsRes);
 
   // :TODO add method for tags
   rpc CreateTag(CreateTagReq) returns (utils.Empty);
@@ -83,7 +86,7 @@ message CreateBlogReq {
 }
 
 message CreateBlogRes {
-    int32 id = 1; 
+  int32 id = 1;
 }
 
 message GetBlogReq {
@@ -110,4 +113,29 @@ message SearchBlogsRes {
 
 message GetNumberOfBlogsRes {
   int32 GetNumberOfBlogs = 1;
+}
+
+message BlogIds {
+  repeated int32 ids = 1;
+}
+
+message Blogs {
+  repeated Blog blogs = 1;
+}
+
+message BlogTags {
+  int32 blogId = 1;
+  repeated Tag tags = 2;
+}
+
+message GetTagsFromBlogIdsRes {
+  repeated BlogTags blogTags = 1;
+}
+
+message GetLatestBlogTagsReq {
+  int32 GetNumberOfBlogs = 1;
+}
+
+message GetLatestBlogTagsRes {
+  repeated BlogTags blogTags = 1;
 }
