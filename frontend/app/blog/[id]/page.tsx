@@ -63,6 +63,14 @@ export default async function page({ params }: { params: { id: number } }) {
   if (!blog) {
     notFound()
   }
+
+  if (relatedBlogs) {
+    relatedBlogs.splice(
+      relatedBlogs.findIndex((b) => b.id === blog.id),
+      1
+    )
+  }
+
   return (
     <>
       {blog.imageUrl && (
