@@ -517,7 +517,7 @@ func getBlogTagsFromBlogIds(db *sql.DB, blogIds []int32) (map[int32][]*blog.Tag,
 
 	// Prepare the SQL statement to fetch blog tags by blog IDs
 	query := `
-		SELECT blog_id, id, name, description
+		SELECT blog_tags.blog_id, tags.id, tags.name, tags.description
 		FROM blog_tags
 		INNER JOIN tags ON blog_tags.tag_id = tags.id
 		WHERE blog_id = ANY($1)

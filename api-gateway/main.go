@@ -16,6 +16,7 @@ import (
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/text_generate"
+	"github.com/dailoi280702/se121/recommendation-service/pkg/recommendation"
 	"github.com/dailoi280702/se121/search-service/pkg/search"
 	"github.com/go-chi/chi/v5"
 	"github.com/golang-migrate/migrate/v4"
@@ -28,14 +29,15 @@ import (
 )
 
 var (
-	textGenerateServicePort = flag.String("textGenerateServicePort", "text-generate-service:50051", "the address to connect to text generate service")
-	userServicePort         = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
-	authServicePort         = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
-	carServicePort          = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
-	blogServicePort         = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
-	commentServicePort      = flag.String("commentServicePort", "comment-service:50051", "the address to connect to comment service")
-	searchServicePort       = flag.String("searchServicePort", "search-service:50051", "the address to connect to search service")
-	redisAddr               = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
+	textGenerateServicePort   = flag.String("textGenerateServicePort", "text-generate-service:50051", "the address to connect to text generate service")
+	userServicePort           = flag.String("userServicePort", "user-service:50051", "the address to connect to user service")
+	authServicePort           = flag.String("authServicePort", "auth-service:50051", "the address to connect to auth service")
+	carServicePort            = flag.String("carServicePort", "car-service:50051", "the address to connect to car service")
+	blogServicePort           = flag.String("blogServicePort", "blog-service:50051", "the address to connect to blog service")
+	commentServicePort        = flag.String("commentServicePort", "comment-service:50051", "the address to connect to comment service")
+	searchServicePort         = flag.String("searchServicePort", "search-service:50051", "the address to connect to search service")
+	recommendationServicePort = flag.String("recommendationServicePort", "recoomendation-service:50051", "the address to connect to recommendation service")
+	redisAddr                 = flag.String("redisAddr", "redis:6379", "the address to connect to redis")
 )
 
 func NewUserService(ctx context.Context) (*grpc.ClientConn, user.UserServiceClient) {
@@ -101,6 +103,15 @@ func NewSearchService(ctx context.Context) (*grpc.ClientConn, search.SearchServi
 	return conn, search.NewSearchServiceClient(conn)
 }
 
+func NewRecommendationService(ctx context.Context) (*grpc.ClientConn, recommendation.RecommendationServiceClient) {
+	conn, err := grpc.DialContext(ctx, *recommendationServicePort, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("failed to connect search service: %v", err)
+	}
+
+	return conn, recommendation.NewRecommendationServiceClient(conn)
+}
+
 func main() {
 	// grpc
 	ctx := context.Background()
@@ -112,6 +123,7 @@ func main() {
 	commentServiceConn, commentService := NewCommentService(ctx)
 	searchServiceConn, searchService := NewSearchService(ctx)
 	textGenerateServiceConn, textGenerateService := NewTextGenerateService(ctx)
+	recommendationServiceConn, recommendationService := NewRecommendationService(ctx)
 
 	// redis
 	redisClient := redis.NewClient(&redis.Options{
@@ -134,6 +146,7 @@ func main() {
 		commentServiceConn.Close()
 		searchServiceConn.Close()
 		textGenerateServiceConn.Close()
+		recommendationServiceConn.Close()
 	}()
 
 	// database migratetion
@@ -164,6 +177,7 @@ func main() {
 		commentService,
 		searchService,
 		textGenerateService,
+		recommendationService,
 	))
 	log.Fatalf("Error serving api: %v", http.ListenAndServe(":8000", router))
 }

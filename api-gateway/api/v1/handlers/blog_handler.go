@@ -7,13 +7,15 @@ import (
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
+	"github.com/dailoi280702/se121/recommendation-service/pkg/recommendation"
 	"github.com/go-chi/chi/v5"
 )
 
-func NewBlogRoutes(blogService blog.BlogServiceClient) chi.Router {
+func NewBlogRoutes(blogService blog.BlogServiceClient, recommendationService recommendation.RecommendationServiceClient) chi.Router {
 	c := chi.NewRouter()
 
 	c.Get("/{id}", handleGetBlog(blogService))
+	c.Get("/{id}/related", handleGetRelatedBlog(recommendationService))
 	c.Put("/", handleUpdateBlog(blogService))
 	c.Post("/", handleCreateBlog(blogService))
 	c.Delete("/", handleDeleteBlog(blogService))
@@ -38,6 +40,29 @@ func handleGetBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 				res, err = blogService.GetBlog(context.Background(), &req)
 				return err
 			},
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}))
+	}
+}
+
+func handleGetRelatedBlog(recommendationService recommendation.RecommendationServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := recommendation.GetRelatedBlogReq{BlogId: int32(id)}
+		var res *recommendation.GetRelatedBlogRes
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				res, err = recommendationService.GetRelatedBlog(context.Background(), &req)
+				return err
+			},
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))

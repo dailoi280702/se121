@@ -12,6 +12,7 @@ import (
 	"github.com/dailoi280702/se121/car-service/pkg/car"
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/text_generate"
+	"github.com/dailoi280702/se121/recommendation-service/pkg/recommendation"
 	"github.com/dailoi280702/se121/search-service/pkg/search"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -29,6 +30,7 @@ func InitRouter(
 	commentService comment.CommentServiceClient,
 	searchService search.SearchServiceClient,
 	textGenerateService text_generate.TextGenerateServiceClient,
+	recommendationService recommendation.RecommendationServiceClient,
 ) *chi.Mux {
 	router := chi.NewRouter()
 	router.Use(cors.Handler(cors.Options{
@@ -58,7 +60,7 @@ func InitRouter(
 	router.Mount("/car", handlers.NewCarRoutes(carService))
 	router.Mount("/brand", handlers.NewBrandRoutes(carService))
 	router.Mount("/series", handlers.NewSeriesRoutes(carService))
-	router.Mount("/blog", handlers.NewBlogRoutes(blogService))
+	router.Mount("/blog", handlers.NewBlogRoutes(blogService, recommendationService))
 	router.Mount("/tag", handlers.NewTagRoutes(blogService))
 	router.Mount("/comment", handlers.NewCommentRoutes(commentService))
 	router.Mount("/search", handlers.NewSearchRoutes(searchService))

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"sort"
 	"sync"
 
@@ -26,7 +27,7 @@ func serverError(err error) error {
 }
 
 func (s *server) GetRelatedBlog(ctx context.Context, req *recommendation.GetRelatedBlogReq) (*recommendation.GetRelatedBlogRes, error) {
-	// return nil, status.Errorf(codes.Unimplemented, "method GetRelatedBlog not implemented")
+	log.Println("Get related blog request recived")
 	sourceItems := []Item{}
 	destItems := []Item{}
 
@@ -102,20 +103,20 @@ func (a ByTags) Len() int           { return len(a) }
 func (a ByTags) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByTags) Less(i, j int) bool { return len(a[i].Tags) > len(a[j].Tags) }
 
-func calculateSimilarity(clickedItem Item, item Item) float64 {
+func calculateSimilarity(item Item, other Item) float64 {
 	// Calculate similarity between clickedItem and item based on their tags
 	// This can be your custom similarity calculation logic
 	// Here, we assume a simple similarity score based on the number of common tags
 	commonTags := 0
-	for _, tag := range clickedItem.Tags {
-		for _, itemTag := range item.Tags {
+	for _, tag := range item.Tags {
+		for _, itemTag := range other.Tags {
 			if tag == itemTag {
 				commonTags++
 				break
 			}
 		}
 	}
-	totalTags := len(clickedItem.Tags) + len(item.Tags) - commonTags
+	totalTags := len(item.Tags) + len(other.Tags) - commonTags
 	return float64(commonTags) / float64(totalTags)
 }
 

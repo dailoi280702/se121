@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/dailoi280702/se121/blog-service v0.0.0-20230705003227-2a6d903af3e3
+	github.com/lib/pq v1.10.0
 	google.golang.org/grpc v1.56.1
 	google.golang.org/protobuf v1.31.0
 )

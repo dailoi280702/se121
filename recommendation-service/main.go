@@ -11,6 +11,7 @@ import (
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/recommendation-service/internal/server"
 	"github.com/dailoi280702/se121/recommendation-service/pkg/recommendation"
+	_ "github.com/lib/pq"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
