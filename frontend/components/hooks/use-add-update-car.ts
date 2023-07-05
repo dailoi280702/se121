@@ -243,7 +243,7 @@ export default function useAddUpdateCar({
       }
       for (const key of ['name', 'review']) {
         if (initData[key] !== car[key]) {
-          data[key] = car[key]
+          data[key] = car[key].trim()
         }
       }
 

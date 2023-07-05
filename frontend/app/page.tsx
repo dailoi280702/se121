@@ -15,7 +15,7 @@ export default async function Home() {
   ])
 
   return (
-    <div className="mx-auto mb-24 h-full py-4 sm:max-w-5xl">
+    <div className="mx-auto mb-24 h-full p-4 sm:max-w-5xl md:px-0">
       <p className="text-lg">Hi, what are you interested in?</p>
       <section className="my-8">
         <div className="flex items-center">
