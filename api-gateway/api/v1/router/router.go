@@ -65,7 +65,7 @@ func InitRouter(
 	router.Mount("/comment", handlers.NewCommentRoutes(commentService))
 	router.Mount("/search", handlers.NewSearchRoutes(searchService))
 	router.Mount("/text-generate", handlers.NewTextGenerateRoutes(textGenerateService))
-	router.Mount("/user", handlers.NewUserHanlder(userService))
+	router.Mount("/user", handlers.NewUserHanlder(userService, recommendationService))
 
 	return router
 }
