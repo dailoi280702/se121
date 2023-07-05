@@ -11,7 +11,7 @@ import (
 func NewUserHanlder(userService user.UserServiceClient) chi.Router {
 	c := chi.NewRouter()
 
-	c.Post("/readed-post", handleMarkBlogAsReaded(userService))
+	c.Post("/readed-blog", handleMarkBlogAsReaded(userService))
 
 	return c
 }
