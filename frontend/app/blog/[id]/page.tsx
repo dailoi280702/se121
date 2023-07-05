@@ -6,6 +6,7 @@ import Tag from '@/components/tag'
 import UpdateBlogfab from './update-blog-fab'
 import Link from 'next/link'
 import CommentSession from './comment-session'
+import RecommendedBlogs from '@/components/recommended-blogs'
 
 export async function fetchBlog(id: number): Promise<Blog | undefined> {
   try {
@@ -34,10 +35,29 @@ export async function fetchComments(
   return { comments: [] }
 }
 
+export async function fetchRelatedBlogs(
+  id: number
+): Promise<{ blogs: Blog[] }> {
+  try {
+    const res = await fetch(
+      `http://api-gateway:8000/v1/blog/${id}/related?numberOfBlog=10`,
+      {
+        cache: 'no-cache',
+      }
+    )
+    if (!res.ok) return { blogs: [] }
+    return res.json()
+  } catch (err) {
+    console.log(err)
+  }
+  return { blogs: [] }
+}
+
 export default async function page({ params }: { params: { id: number } }) {
-  const [blog, { comments }] = await Promise.all([
+  const [blog, { comments }, { blogs: relatedBlogs }] = await Promise.all([
     fetchBlog(params.id),
     fetchComments(params.id),
+    fetchRelatedBlogs(params.id),
   ])
 
   if (!blog) {
@@ -80,6 +100,15 @@ export default async function page({ params }: { params: { id: number } }) {
       </section>
       <CommentSession blogId={blog.id} comments={comments ? comments : []} />
       <UpdateBlogfab id={blog.id} />
+      {relatedBlogs && (
+        <section className="my-16 px-4 md:px-0">
+          <div className="mb-4 flex items-center">
+            <h3 className="text-xl font-medium">You may interested in</h3>
+            <hr className="ml-4 grow" />
+          </div>
+          <RecommendedBlogs blogs={relatedBlogs} />
+        </section>
+      )}
     </>
   )
 }
