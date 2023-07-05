@@ -8,6 +8,7 @@ package user
 
 import (
 	context "context"
+	utils "github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -28,6 +29,8 @@ type UserServiceClient interface {
 	CreateUser(ctx context.Context, in *CreateUserReq, opts ...grpc.CallOption) (UserService_CreateUserClient, error)
 	UpdateUser(ctx context.Context, in *User, opts ...grpc.CallOption) (*UpdateUserRes, error)
 	GetUserProfilesByIds(ctx context.Context, in *GetUserProfilesByIdsReq, opts ...grpc.CallOption) (*GetUserProfilesByIdsRes, error)
+	MarkBlogAsReaded(ctx context.Context, in *MarkBlogAsReadedReq, opts ...grpc.CallOption) (*utils.Empty, error)
+	GetRecentlyReadedBlogsIds(ctx context.Context, in *GetRecentlyReadedBlogsIdsReq, opts ...grpc.CallOption) (*GetRecentlyReadedBlogsIdsRes, error)
 }
 
 type userServiceClient struct {
@@ -138,6 +141,24 @@ func (c *userServiceClient) GetUserProfilesByIds(ctx context.Context, in *GetUse
 	return out, nil
 }
 
+func (c *userServiceClient) MarkBlogAsReaded(ctx context.Context, in *MarkBlogAsReadedReq, opts ...grpc.CallOption) (*utils.Empty, error) {
+	out := new(utils.Empty)
+	err := c.cc.Invoke(ctx, "/user.UserService/MarkBlogAsReaded", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetRecentlyReadedBlogsIds(ctx context.Context, in *GetRecentlyReadedBlogsIdsReq, opts ...grpc.CallOption) (*GetRecentlyReadedBlogsIdsRes, error) {
+	out := new(GetRecentlyReadedBlogsIdsRes)
+	err := c.cc.Invoke(ctx, "/user.UserService/GetRecentlyReadedBlogsIds", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility
@@ -148,6 +169,8 @@ type UserServiceServer interface {
 	CreateUser(*CreateUserReq, UserService_CreateUserServer) error
 	UpdateUser(context.Context, *User) (*UpdateUserRes, error)
 	GetUserProfilesByIds(context.Context, *GetUserProfilesByIdsReq) (*GetUserProfilesByIdsRes, error)
+	MarkBlogAsReaded(context.Context, *MarkBlogAsReadedReq) (*utils.Empty, error)
+	GetRecentlyReadedBlogsIds(context.Context, *GetRecentlyReadedBlogsIdsReq) (*GetRecentlyReadedBlogsIdsRes, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -172,6 +195,12 @@ func (UnimplementedUserServiceServer) UpdateUser(context.Context, *User) (*Updat
 }
 func (UnimplementedUserServiceServer) GetUserProfilesByIds(context.Context, *GetUserProfilesByIdsReq) (*GetUserProfilesByIdsRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserProfilesByIds not implemented")
+}
+func (UnimplementedUserServiceServer) MarkBlogAsReaded(context.Context, *MarkBlogAsReadedReq) (*utils.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MarkBlogAsReaded not implemented")
+}
+func (UnimplementedUserServiceServer) GetRecentlyReadedBlogsIds(context.Context, *GetRecentlyReadedBlogsIdsReq) (*GetRecentlyReadedBlogsIdsRes, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRecentlyReadedBlogsIds not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 
@@ -300,6 +329,42 @@ func _UserService_GetUserProfilesByIds_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_MarkBlogAsReaded_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MarkBlogAsReadedReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).MarkBlogAsReaded(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/user.UserService/MarkBlogAsReaded",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).MarkBlogAsReaded(ctx, req.(*MarkBlogAsReadedReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetRecentlyReadedBlogsIds_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRecentlyReadedBlogsIdsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetRecentlyReadedBlogsIds(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/user.UserService/GetRecentlyReadedBlogsIds",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetRecentlyReadedBlogsIds(ctx, req.(*GetRecentlyReadedBlogsIdsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -322,6 +387,14 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUserProfilesByIds",
 			Handler:    _UserService_GetUserProfilesByIds_Handler,
+		},
+		{
+			MethodName: "MarkBlogAsReaded",
+			Handler:    _UserService_MarkBlogAsReaded_Handler,
+		},
+		{
+			MethodName: "GetRecentlyReadedBlogsIds",
+			Handler:    _UserService_GetRecentlyReadedBlogsIds_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

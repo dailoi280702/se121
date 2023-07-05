@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/dailoi280702/se121/user-service/internal/service"
 	"github.com/dailoi280702/se121/user-service/userpb"
 	_ "github.com/lib/pq"
@@ -122,6 +123,69 @@ func (s *userServer) CreateUser(req *user.CreateUserReq, stream user.UserService
 
 func (s *userServer) UpdateUser(context.Context, *user.User) (*user.UpdateUserRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUser not implemented")
+}
+
+func (s *userServer) MarkBlogAsReaded(ctx context.Context, req *user.MarkBlogAsReadedReq) (*utils.Empty, error) {
+	query := `
+		INSERT INTO readed_blogs (user_id, blog_id, at)
+		VALUES ($1, $2, NOW())
+		ON CONFLICT (user_id, blog_id) DO UPDATE SET at = NOW()
+	`
+
+	// Execute the SQL statement
+	_, err := s.service.DB.ExecContext(ctx, query, req.UserId, req.BlogId)
+	if err != nil {
+		// if pgErr, ok := err.(*pq.Error); ok && pgErr.Code == "23503" {
+		// Handle foreign key violation error (if needed)
+		// You can return a specific gRPC error or handle it based on your requirements
+		// }
+		return nil, err
+	}
+
+	return &utils.Empty{}, nil
+}
+
+func (s *userServer) GetRecentlyReadedBlogsIds(ctx context.Context, req *user.GetRecentlyReadedBlogsIdsReq) (*user.GetRecentlyReadedBlogsIdsRes, error) {
+	// Prepare the SQL statement to select the most recently read blog IDs for the given user
+	query := `
+		SELECT blog_id
+		FROM read_user
+		WHERE user_id = $1
+		ORDER BY at DESC
+		LIMIT $2
+	`
+
+	// Execute the SQL statement
+	rows, err := s.service.DB.QueryContext(ctx, query, req.UserId, req.Limit)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			defer rows.Close()
+			return nil, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Collect the blog IDs from the query result
+	var blogIds []int32
+	for rows.Next() {
+		var blogID int32
+		err := rows.Scan(&blogID)
+		if err != nil {
+			return nil, err
+		}
+		blogIds = append(blogIds, blogID)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Create the response message with the retrieved blog IDs
+	res := &user.GetRecentlyReadedBlogsIdsRes{
+		BlogIds: blogIds,
+	}
+
+	return res, nil
 }
 
 func newServer(service *service.Service) *userServer {

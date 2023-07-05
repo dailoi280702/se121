@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package user;
 
+import "utils.proto";
+
 option go_package = "github.com/dailoi280702/se121/user-service/user";
 
 service UserService {
@@ -11,6 +13,8 @@ service UserService {
   rpc CreateUser(CreateUserReq) returns (stream CreateUserRes);
   rpc UpdateUser(User) returns (UpdateUserRes);
   rpc GetUserProfilesByIds(GetUserProfilesByIdsReq) returns (GetUserProfilesByIdsRes);
+  rpc MarkBlogAsReaded(MarkBlogAsReadedReq) returns (utils.Empty);
+  rpc GetRecentlyReadedBlogsIds(GetRecentlyReadedBlogsIdsReq) returns (GetRecentlyReadedBlogsIdsRes);
 }
 
 message Error {
@@ -76,4 +80,18 @@ message GetUserProfilesByIdsReq {
 
 message GetUserProfilesByIdsRes {
   repeated UserProfile users = 1;
+}
+
+message MarkBlogAsReadedReq {
+  string userId = 1;
+  int32 blogId = 2;
+}
+
+message GetRecentlyReadedBlogsIdsReq {
+  string userId = 1;
+  int32 limit = 2;
+}
+
+message GetRecentlyReadedBlogsIdsRes {
+  repeated int32 blogIds = 1;
 }
