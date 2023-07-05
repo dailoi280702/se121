@@ -12,6 +12,7 @@ import (
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
 	"github.com/dailoi280702/se121/pkg/go/sqlutils"
 	u "github.com/dailoi280702/se121/pkg/go/utils"
+	"github.com/lib/pq"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -34,7 +35,7 @@ func (s *server) GetBlog(ctx context.Context, req *blog.GetBlogReq) (*blog.Blog,
 	return blog, nil
 }
 
-func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*utils.Empty, error) {
+func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*blog.CreateBlogRes, error) {
 	// Validate and verify inputs
 	err := validateBLog(s.db, &req.Title, &req.Body, req.Tldr, &req.Author, req.ImageUrl, req.Tags)
 	if err != nil {
@@ -48,21 +49,21 @@ func (s *server) CreateBlog(ctx context.Context, req *blog.CreateBlogReq) (*util
 	}
 
 	// Insert blog into database
-	if err := createBlogWithTags(tx, req); err != nil {
-		if err != nil {
-			log.Println("Insert blog failed, rooling back...")
-			_ = tx.Rollback()
-			return nil, serverError(err)
-		}
+	id, err := createBlogWithTags(tx, req)
+	if err != nil {
+		log.Printf("Insert blog failed, rooling back... : %v", err)
+		_ = tx.Rollback()
+		return nil, serverError(err)
 	}
 
 	if err := tx.Commit(); err != nil {
-		log.Println("Insert blog failed, rooling back...")
+		log.Printf("Insert blog failed, rooling back... : %v", err)
 		_ = tx.Rollback()
 		return nil, serverError(fmt.Errorf("failed to commit transaction: %v", err))
 	}
+	log.Println("New blog inserted")
 
-	return &utils.Empty{}, nil
+	return &blog.CreateBlogRes{Id: int32(id)}, nil
 }
 
 func (s *server) UpdateBlog(ctx context.Context, req *blog.UpdateBlogReq) (*utils.Empty, error) {
@@ -210,6 +211,69 @@ func (s *server) GetNumberOfBlogs(context.Context, *utils.Empty) (*blog.GetNumbe
 	return nil, status.Errorf(codes.Unimplemented, "method GetNumberOfBlogs not implemented")
 }
 
+func (s *server) GetBlogsFromIds(ctx context.Context, req *blog.BlogIds) (*blog.Blogs, error) {
+	ids := []int{}
+	for _, id := range req.Ids {
+		ids = append(ids, int(id))
+	}
+	blogs, err := getBlogsByIds(s.db, ids)
+	if err != nil {
+		return nil, serverError(err)
+	}
+	return &blog.Blogs{Blogs: blogs}, nil
+}
+
+func (s *server) GetTagsFromBlogIds(context context.Context, req *blog.BlogIds) (*blog.GetTagsFromBlogIdsRes, error) {
+	// Initialize the response struct
+	response := &blog.GetTagsFromBlogIdsRes{
+		BlogTags: []*blog.BlogTags{},
+	}
+
+	blogTagMap, err := getBlogTagsFromBlogIds(s.db, req.Ids)
+	if err != nil {
+		return nil, serverError(err)
+	}
+
+	// Build the final response using the blogTagMap
+	for _, id := range req.Ids {
+		tags := blogTagMap[id]
+		response.BlogTags = append(response.BlogTags, &blog.BlogTags{
+			BlogId: id,
+			Tags:   tags,
+		})
+	}
+
+	return response, nil
+}
+
+func (s *server) GetLatestBlogTags(context context.Context, req *blog.GetLatestBlogTagsReq) (*blog.GetLatestBlogTagsRes, error) {
+	// Initialize the response struct
+	response := &blog.GetLatestBlogTagsRes{
+		BlogTags: []*blog.BlogTags{},
+	}
+
+	ids, err := getLatestBlogIDs(s.db, req.GetNumberOfBlogs)
+	if err != nil {
+		return nil, serverError(err)
+	}
+
+	blogTagMap, err := getBlogTagsFromBlogIds(s.db, ids)
+	if err != nil {
+		return nil, serverError(err)
+	}
+
+	// Build the final response using the blogTagMap
+	for _, id := range ids {
+		tags := blogTagMap[id]
+		response.BlogTags = append(response.BlogTags, &blog.BlogTags{
+			BlogId: id,
+			Tags:   tags,
+		})
+	}
+
+	return response, nil
+}
+
 func checkBlogExistence(db *sql.DB, id int32) error {
 	exists, err := sqlutils.IdExists(db, "blogs", id)
 	if err != nil {
@@ -260,24 +324,24 @@ func validateBLog(db *sql.DB, title, body, tldr, author, imageUrl *string, tags 
 }
 
 // creates a blog record with associated tags in the database.
-func createBlogWithTags(tx *sql.Tx, req *blog.CreateBlogReq) error {
+func createBlogWithTags(tx *sql.Tx, req *blog.CreateBlogReq) (int, error) {
 	// Insert blog record
 	blogId, err := insertBlog(tx, req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if len(req.Tags) == 0 {
-		return nil
+		return blogId, nil
 	}
 
 	tagIds, err := insertTagsIfNotExists(tx, req.Tags)
 	if err != nil {
-		return err
+		return blogId, err
 	}
 
 	// Create blog and tags references
 	err = createBlogTags(tx, blogId, tagIds)
-	return err
+	return blogId, err
 }
 
 // genreate sql query for searching blogs from grpc request as string
@@ -402,4 +466,92 @@ func removeDuplicates(slice []int) []int {
 	}
 
 	return result
+}
+
+func getLatestBlogIDs(db *sql.DB, n int32) ([]int32, error) {
+	// Prepare the SQL statement to fetch the IDs of the N latest blogs
+	query := `
+		SELECT id
+		FROM blogs
+		ORDER BY created_at DESC
+		LIMIT $1
+	`
+
+	// Execute the SQL statement to retrieve the IDs of the N latest blogs
+	rows, err := db.Query(query, n)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return []int32{}, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Initialize the list of blog IDs
+	ids := []int32{}
+
+	// Iterate over the result rows
+	for rows.Next() {
+		var blogID int32
+
+		// Scan the blog ID from the row into a variable
+		err := rows.Scan(&blogID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the blog ID to the list
+		ids = append(ids, blogID)
+	}
+
+	// Check for any errors occurred during rows iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
+
+func getBlogTagsFromBlogIds(db *sql.DB, blogIds []int32) (map[int32][]*blog.Tag, error) {
+	blogTagMap := make(map[int32][]*blog.Tag)
+
+	// Prepare the SQL statement to fetch blog tags by blog IDs
+	query := `
+		SELECT blog_tags.blog_id, tags.id, tags.name, tags.description
+		FROM blog_tags
+		INNER JOIN tags ON blog_tags.tag_id = tags.id
+		WHERE blog_id = ANY($1)
+	`
+
+	// Execute the SQL statement with the provided blog IDs
+	rows, err := db.Query(query, pq.Array(blogIds))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return blogTagMap, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate over the result rows
+	for rows.Next() {
+		var blogID int32
+		var tag blog.Tag
+
+		// Scan the values from the row into variables
+		err := rows.Scan(&blogID, &tag.Id, &tag.Name, &tag.Description)
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the tag to the corresponding blog ID entry in the map
+		blogTagMap[blogID] = append(blogTagMap[blogID], &tag)
+	}
+
+	// Check for any errors occurred during rows iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return blogTagMap, nil
 }

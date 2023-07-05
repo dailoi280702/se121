@@ -1,6 +1,6 @@
 // Car.ts
 
-interface Car {
+type CarObject = {
   id: number
   brand?: Brand
   series?: Series
@@ -13,6 +13,12 @@ interface Car {
   imageUrl?: string
   review?: string
 }
+
+interface CarIndex {
+  [key: string]: any
+}
+
+type Car = CarObject & CarIndex
 
 // Brand.ts
 
@@ -27,7 +33,7 @@ interface Brand {
 
 // Series.ts
 
-interface Series {
+type Series = {
   id: number
   name: string
   brandId: number
@@ -35,7 +41,7 @@ interface Series {
 
 // SeriesDetail.ts
 
-interface SeriesDetail {
+type SeriesDetail = {
   id: number
   name: string
   brand: Brand

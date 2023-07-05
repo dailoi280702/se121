@@ -17,7 +17,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// const httpRegex = `/^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)$/`
 const httpRegex = `/(((ftp|http|https):\/\/)|(\/)|(..\/))(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?`
 
 func (s *carSerivceServer) GetCar(ctx context.Context, req *car.GetCarReq) (*car.Car, error) {
@@ -238,6 +237,47 @@ func (s *carSerivceServer) GetCars(context context.Context, req *car.GetCarsReq)
 	}
 
 	return &car.GetCarsRes{Cars: cars}, nil
+}
+
+func (s *carSerivceServer) GetRelatedCar(contexgt context.Context, req *car.GetRelatedCarReq) (*car.GetRelatedCarRes, error) {
+	query := fmt.Sprintf(`
+        SELECT id 
+        FROM car_models
+        WHERE (brand_id = (SELECT brand_id from car_models WHERE id = %d)
+        OR series_id = (SELECT series_id from car_models WHERE id = %d))
+        AND id <> %d
+    `, req.GetId(), req.GetId(), req.GetId())
+
+	if req.Limit != nil {
+		query += fmt.Sprintf(`LIMIT %d`, *req.Limit)
+	}
+
+	idList := []int{}
+
+	rows, err := s.db.Query(query)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &car.GetRelatedCarRes{Cars: []*car.Car{}}, nil
+		}
+		return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int
+		err := rows.Scan(&id)
+		idList = append(idList, id)
+		if err != nil {
+			return nil, status.Errorf(codes.Internal, "car service error: %v", err)
+		}
+	}
+
+	cars, err := getCarsFromIds(s.db, int(math.Ceil(math.Sqrt(float64(len(idList))))), idList...)
+	if err != nil {
+		return nil, serverError(err)
+	}
+
+	return &car.GetRelatedCarRes{Cars: cars}, nil
 }
 
 func checkForCarExistence(db *sql.DB, id int) error {

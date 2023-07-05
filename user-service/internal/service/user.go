@@ -1,8 +1,12 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
 	"time"
+
+	user "github.com/dailoi280702/se121/user-service/userpb"
+	"github.com/lib/pq"
 )
 
 var (
@@ -90,6 +94,52 @@ func (s *Service) VerifyUser(nameOrEmail string, password string) (*User, error)
 		return nil, ErrIncorrectNameEmailOrPassword
 	}
 	return user, nil
+}
+
+func (s *Service) GetUserProfilesByIds(ids []string) ([]*user.UserProfile, error) {
+	// Initialize an empty slice to store the user profiles
+	profiles := []*user.UserProfile{}
+
+	// Guard condition
+	if len(ids) == 0 {
+		return profiles, nil
+	}
+
+	// Prepare the SQL statement to fetch user profiles by IDs
+	query := `SELECT id, name, image_url FROM users WHERE id = ANY($1)`
+
+	// Execute the SQL statement with the provided IDs
+	rows, err := s.DB.Query(query, pq.Array(ids))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return profiles, nil
+		}
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Iterate over the result rows
+	for rows.Next() {
+		// Create a new UserProfile struct to store the retrieved data
+		userProfile := &user.UserProfile{}
+
+		// Scan the values from the row into the UserProfile struct
+		err := rows.Scan(&userProfile.Id, &userProfile.Name, &userProfile.ImageUrl)
+		if err != nil {
+			return nil, err
+		}
+
+		// Append the retrieved user profile to the profiles slice
+		profiles = append(profiles, userProfile)
+	}
+
+	// Check for any errors occurred during rows iteration
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Return the list of user profiles
+	return profiles, nil
 }
 
 const addUserSql = `

@@ -1,11 +1,16 @@
 'use server'
 
+import { PlusIcon } from '@heroicons/react/24/outline'
 import { notFound } from 'next/navigation'
 import BrandDetail from './brand-detail'
+import AddUpdateSeries from './create-series'
+import SeriesList from './series-list'
 
 async function fetchBrand(id: number) {
   try {
-    const res = await fetch(`http://api-gateway:8000/v1/brand/${id}`)
+    const res = await fetch(`http://api-gateway:8000/v1/brand/${id}`, {
+      cache: 'no-cache',
+    })
     if (!res.ok) return undefined
     return res.json()
   } catch (err) {
@@ -15,7 +20,9 @@ async function fetchBrand(id: number) {
 
 async function fetchBrandSeries(id: number) {
   try {
-    const res = await fetch(`http://api-gateway:8000/v1/series?brandId=${id}`)
+    const res = await fetch(`http://api-gateway:8000/v1/series?brandId=${id}`, {
+      cache: 'no-cache',
+    })
     if (!res.ok) return undefined
     return res.json()
   } catch (err) {
@@ -25,7 +32,9 @@ async function fetchBrandSeries(id: number) {
 
 async function fetchBrandCars(id: number) {
   try {
-    const res = await fetch(`http://api-gateway:8000/v1/car?brandID=${id}`)
+    const res = await fetch(`http://api-gateway:8000/v1/car?brandID=${id}`, {
+      cache: 'no-cache',
+    })
     if (!res.ok) return undefined
     return res.json()
   } catch (err) {
@@ -39,8 +48,8 @@ export default async function Page({
   params: { id: number }
 }) {
   const brand: Brand = await fetchBrand(id)
-  const series: Series[] = await fetchBrandSeries(id)
-  const cars: Car[] = await fetchBrandCars(id)
+  const { series }: { series: Series[] } = await fetchBrandSeries(id)
+  const { cars }: { cars: Car[] } = await fetchBrandCars(id)
 
   if (!brand) {
     notFound()
@@ -49,7 +58,29 @@ export default async function Page({
   return (
     <>
       <BrandDetail brand={brand} />
-      Series
+      <>
+        <div
+          className="mb-4 mt-8 flex items-center justify-between
+          space-x-2 px-4 text-2xl sm:px-0"
+        >
+          {`${brand.name}'s Series`}
+          <AddUpdateSeries brand={brand} type="create">
+            <button
+              className="flex h-10 items-center rounded-full px-3 text-sm
+                font-medium text-teal-600 outline-none 
+                enabled:hover:bg-teal-600/10"
+            >
+              <PlusIcon className="mr-2 h-5 w-5 stroke-2" />
+              New Series
+            </button>
+          </AddUpdateSeries>
+        </div>
+        {series ? (
+          <SeriesList series={series} cars={cars} brand={brand} />
+        ) : (
+          <div>No series data</div>
+        )}
+      </>
     </>
   )
 }

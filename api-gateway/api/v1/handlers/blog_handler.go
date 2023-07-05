@@ -3,15 +3,19 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
+	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
+	"github.com/dailoi280702/se121/recommendation-service/pkg/recommendation"
 	"github.com/go-chi/chi/v5"
 )
 
-func NewBlogRoutes(blogService blog.BlogServiceClient) chi.Router {
+func NewBlogRoutes(blogService blog.BlogServiceClient, recommendationService recommendation.RecommendationServiceClient) chi.Router {
 	c := chi.NewRouter()
 
-	c.Get("/", handleGetBlog(blogService))
+	c.Get("/{id}", handleGetBlog(blogService))
+	c.Get("/{id}/related", handleGetRelatedBlog(recommendationService))
 	c.Put("/", handleUpdateBlog(blogService))
 	c.Post("/", handleCreateBlog(blogService))
 	c.Delete("/", handleDeleteBlog(blogService))
@@ -22,7 +26,13 @@ func NewBlogRoutes(blogService blog.BlogServiceClient) chi.Router {
 
 func handleGetBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req blog.GetBlogReq
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := blog.GetBlogReq{Id: int32(id)}
 		var res *blog.Blog
 		convertJsonApiToGrpc(w, r,
 			func() error {
@@ -30,7 +40,29 @@ func handleGetBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 				res, err = blogService.GetBlog(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}))
+	}
+}
+
+func handleGetRelatedBlog(recommendationService recommendation.RecommendationServiceClient) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.Atoi(chi.URLParam(r, "id"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := recommendation.GetRelatedBlogReq{BlogId: int32(id)}
+		var res *recommendation.GetRelatedBlogRes
+		convertJsonApiToGrpc(w, r,
+			func() error {
+				var err error
+				res, err = recommendationService.GetRelatedBlog(context.Background(), &req)
+				return err
+			},
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))
@@ -40,12 +72,18 @@ func handleGetBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 func handleCreateBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req blog.CreateBlogReq
+		var res *blog.CreateBlogRes
 		convertJsonApiToGrpc(w, r,
 			func() error {
-				_, err := blogService.CreateBlog(context.Background(), &req)
+				var err error
+				res, err = blogService.CreateBlog(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req))
+			convertWithJsonReqData(&req),
+			convertWithPostFunc(func() {
+				SendJson(w, res)
+			}),
+		)
 	}
 }
 
@@ -75,7 +113,7 @@ func handleDeleteBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 
 func handleSearchBlog(blogService blog.BlogServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req blog.SearchReq
+		var req utils.SearchReq
 		var res *blog.SearchBlogsRes
 		convertJsonApiToGrpc(w, r,
 			func() error {

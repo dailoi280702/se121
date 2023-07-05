@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package blog;
+
+option go_package = "github.com/dailoi280702/se121/recommendation-service/pkg/recommendation";
+
+import "blog.proto";
+
+service RecommendationService {
+  rpc GetRelatedBlog(GetRelatedBlogReq) returns (GetRelatedBlogRes);
+}
+
+message GetRelatedBlogReq {
+    int32 blogId = 1;
+    int32 numberOfBlog = 2;
+}
+
+message GetRelatedBlogRes {
+  repeated Blog blogs = 1;
+}

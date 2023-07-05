@@ -41,7 +41,8 @@ func (s *carSerivceServer) CreateSeries(ctx context.Context, req *car.CreateSeri
 	err := s.db.QueryRow(`
         INSERT INTO car_series (name, brand_id)
         VALUES ($1, $2)
-        `, req.Name, req.BrandId).Scan(id)
+        RETURNING id
+        `, req.Name, req.BrandId).Scan(&id)
 	if err != nil {
 		return nil, serverError(fmt.Errorf("failed to insert series: %v", err))
 	}

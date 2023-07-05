@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/dailoi280702/se121/comment-service/pkg/comment"
 	"github.com/go-chi/chi/v5"
@@ -13,7 +14,7 @@ func NewCommentRoutes(commentService comment.CommentServiceClient) chi.Router {
 	r.Post("/", handleCreateComment(commentService))
 	r.Put("/", handleUpdateComment(commentService))
 	r.Get("/", handleGetCommentById(commentService))
-	r.Get("/blog/", handleGetCommentByBlogId(commentService))
+	r.Get("/blog/{blogId}", handleGetCommentByBlogId(commentService))
 	r.Delete("/", handleDeleteCommentById(commentService))
 	return r
 }
@@ -63,7 +64,13 @@ func handleGetCommentById(commentService comment.CommentServiceClient) http.Hand
 
 func handleGetCommentByBlogId(commentService comment.CommentServiceClient) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req comment.GetBlogCommentsReq
+		blogId, err := strconv.Atoi(chi.URLParam(r, "blogId"))
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		req := comment.GetBlogCommentsReq{BlogId: int32(blogId)}
 		var res *comment.GetBlogCommentsRes
 		convertJsonApiToGrpc(w, r,
 			func() error {
@@ -71,7 +78,6 @@ func handleGetCommentByBlogId(commentService comment.CommentServiceClient) http.
 				res, err = commentService.GetBlogComments(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}))

@@ -35,7 +35,7 @@ export default function PageProgressBar({ total: t }: { total: number }) {
   }
 
   return (
-    <ul className="flex items-center justify-center space-x-2 overflow-x-scroll">
+    <ul className="flex items-center justify-center space-x-2 overflow-x-auto">
       <ProgressButton
         disabled={query ? query.page === 1 : false}
         onClick={() => {

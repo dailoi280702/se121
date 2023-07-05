@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
 	"github.com/dailoi280702/se121/pkg/go/grpc/generated/utils"
@@ -26,5 +28,28 @@ func (s *server) GetTag(context.Context, *blog.GetTagReq) (*blog.Tag, error) {
 }
 
 func (s *server) GetAllTag(context.Context, *utils.Empty) (*blog.GetAllTagsRes, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllTag not implemented")
+	tags := []*blog.Tag{}
+
+	rows, err := s.db.Query(`
+        SELECT id, name, description from tags
+        `)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return &blog.GetAllTagsRes{Tags: tags}, nil
+		}
+		return nil, serverError(fmt.Errorf("error while getting tags from db: %v", err))
+	}
+
+	for rows.Next() {
+		var tag blog.Tag
+		err := rows.Scan(&tag.Id, &tag.Name, &tag.Description)
+		if err != nil {
+			return nil, err
+		}
+		tags = append(tags, &tag)
+	}
+
+	defer rows.Close()
+
+	return &blog.GetAllTagsRes{Tags: tags}, nil
 }

@@ -9,7 +9,7 @@ import BrandCardOverlay from './brand-card-overlay'
 
 const SEARCH_LIMIT = 16
 
-async function fetchBrands(req: SearchReq) {
+export async function fetchBrands(req: SearchReq) {
   try {
     const fetchURL =
       'http://api-gateway:8000/v1/brand/search?' + objectToQuery(req)
@@ -103,6 +103,7 @@ export default async function Page({
 
   return (
     <>
+      <h1 className="m-4 text-xl font-medium">All Brands</h1>
       <PageSearch filterOptions={filterOptions} defaultOption={'Year'} />
       <Brands promise={brands} />
       <AddBrandFromWithFab />

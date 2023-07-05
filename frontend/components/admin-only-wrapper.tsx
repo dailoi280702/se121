@@ -12,7 +12,7 @@ const AdminOnlyWrapper = ({ children }: { children: React.ReactNode }) => {
     setIsAdmin(!!(user && user.isAdmin))
   }, [user])
 
-  return <div>{isAdmin && children}</div>
+  return <>{isAdmin && children}</>
 }
 
 export default AdminOnlyWrapper

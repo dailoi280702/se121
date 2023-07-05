@@ -28,7 +28,7 @@ func handleGetCarReview(tgc tg.TextGenerateServiceClient) http.HandlerFunc {
 				res, err = tgc.GenerateCarReview(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}),
@@ -47,7 +47,7 @@ func handleSummarizeBlog(tgc tg.TextGenerateServiceClient) http.HandlerFunc {
 				res, err = tgc.GenerateBlogSummarization(context.Background(), &req)
 				return err
 			},
-			convertWithJsonReqData(&req),
+			convertWithUrlQuery(&req),
 			convertWithPostFunc(func() {
 				SendJson(w, res)
 			}),

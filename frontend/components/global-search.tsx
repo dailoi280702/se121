@@ -1,5 +1,6 @@
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 import { atom, useAtom } from 'jotai'
+import Link from 'next/link'
 import { HTMLProps, ReactNode } from 'react'
 import useCloseShade from './hooks/use-close-shade'
 import useGlobalSearch from './hooks/use-global-search'
@@ -13,9 +14,20 @@ interface SearchULProps extends HTMLProps<HTMLUListElement> {
 
 const SearchUL = ({ children, ...props }: SearchULProps) => {
   return (
-    <ul className="space-y-1 px-4" {...props}>
+    <ul className="space-y-1" {...props}>
       {children}
     </ul>
+  )
+}
+
+const SearchLink = ({ text, path, id }: { path: any; text: any; id: any }) => {
+  return (
+    <Link
+      className="block w-full px-4 py-1 text-left hover:bg-neutral-200"
+      href={`${path}/${id}`}
+    >
+      {text}
+    </Link>
   )
 }
 
@@ -28,7 +40,6 @@ export default function GlobalSearch() {
       setGlobalSearch(true)
     }
   }
-
   return (
     <>
       {showGlobalSearch && <Shade onClose={closeSearch} className="z-[7]" />}
@@ -59,35 +70,50 @@ export default function GlobalSearch() {
         />
         {data && showGlobalSearch && (
           <div
-            className="absolute  inset-x-0 top-12 space-y-4 rounded-md
-            bg-neutral-100 p-4"
+            className="absolute inset-x-0 top-12 rounded-md
+            bg-neutral-100 py-4"
           >
             {data.blogs && data.blogs.blogs && (
               <section>
-                Blogs
+                <p className="ml-4 text-lg font-medium">Blogs</p>
                 <SearchUL>
                   {data.blogs.blogs.map((blog) => (
-                    <div key={blog.id}>{blog.title}</div>
+                    <SearchLink
+                      key={blog.id}
+                      id={blog.id}
+                      text={blog.title}
+                      path={'/blog'}
+                    />
                   ))}
                 </SearchUL>
               </section>
             )}
             {data?.cars && data.cars.cars && (
               <section>
-                Cars
+                <p className="ml-4 text-lg font-medium">Cars</p>
                 <SearchUL>
-                  {data.cars.cars.map((cars) => (
-                    <div key={cars.id}>{cars.name}</div>
+                  {data.cars.cars.map((car) => (
+                    <SearchLink
+                      key={car.id}
+                      id={car.id}
+                      text={car.name}
+                      path={'/car'}
+                    />
                   ))}
                 </SearchUL>
               </section>
             )}
             {data?.brands && data.brands.brands && (
               <section>
-                Brands
+                <p className="ml-4 text-lg font-medium">Brands</p>
                 <SearchUL>
-                  {data.brands.brands.map((blog) => (
-                    <div key={blog.id}>{blog.name}</div>
+                  {data.brands.brands.map((brand) => (
+                    <SearchLink
+                      key={brand.id}
+                      id={brand.id}
+                      text={brand.name}
+                      path={'/brand'}
+                    />
                   ))}
                 </SearchUL>
               </section>

@@ -58,7 +58,7 @@ export default function PageSearch({
   return (
     <form
       className="mx-2 flex h-10
-        items-center overflow-hidden rounded-md bg-neutral-100 px-2 transition-colors focus-within:bg-neutral-200"
+        items-center overflow-hidden rounded-md border bg-neutral-100 px-2 transition-colors focus-within:bg-neutral-200"
       onSubmit={(e) => {
         if (query) {
           e.preventDefault()

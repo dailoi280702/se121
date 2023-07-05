@@ -1,5 +1,3 @@
-'use client'
-
 import { usePathname, useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { useForm } from './use-form'
@@ -44,6 +42,7 @@ export default function useAddEditBrand({
 
   const resetState = () => {
     setValues(initData ? initData : emptyInitData)
+    setErrors(initErrors)
     setSelectedImage(null)
   }
 
