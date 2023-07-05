@@ -21,11 +21,12 @@ const DialogFormLayout = dynamic(
 )
 const AddBrandForm = dynamic(() => import('./add-brand-forms'))
 
-const AddBrandFromWithFab = () => {
+const AddBrandFromWithFab = ({ brand }: { brand?: Brand }) => {
   const [isFabOpen, setIsFabOpen] = useState(false)
   const hook = useAddEditBrand({
-    type: 'update',
+    type: brand ? 'update' : 'create',
     onSuccess: () => setIsFabOpen(false),
+    initData: brand,
   })
 
   return (
@@ -36,7 +37,7 @@ const AddBrandFromWithFab = () => {
         setIsFabOpen={setIsFabOpen}
       >
         <DialogFormLayout
-          title="Add brand"
+          title={brand ? 'Update Brand' : 'Add Brand'}
           buttonLabel="Done"
           disabled={false}
           onDone={() => triggerFormUsingRef(hook.formRef)}

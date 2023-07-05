@@ -7,6 +7,7 @@ import UpdateBlogfab from './update-blog-fab'
 import Link from 'next/link'
 import CommentSession from './comment-session'
 import RecommendedBlogs from '@/components/recommended-blogs'
+import MarkAsReaded from './mark-as-readed'
 
 export async function fetchBlog(id: number): Promise<Blog | undefined> {
   try {
@@ -117,6 +118,7 @@ export default async function page({ params }: { params: { id: number } }) {
           <RecommendedBlogs blogs={relatedBlogs} />
         </section>
       )}
+      <MarkAsReaded blogId={blog.id} />
     </>
   )
 }

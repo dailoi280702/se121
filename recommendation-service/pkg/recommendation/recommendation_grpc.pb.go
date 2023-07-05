@@ -8,6 +8,7 @@ package recommendation
 
 import (
 	context "context"
+	blog "github.com/dailoi280702/se121/blog-service/pkg/blog"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -23,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RecommendationServiceClient interface {
 	GetRelatedBlog(ctx context.Context, in *GetRelatedBlogReq, opts ...grpc.CallOption) (*GetRelatedBlogRes, error)
+	GetUserRecommendedBlogs(ctx context.Context, in *GetUserRecommendedBlogsReq, opts ...grpc.CallOption) (*blog.Blogs, error)
 }
 
 type recommendationServiceClient struct {
@@ -42,11 +44,21 @@ func (c *recommendationServiceClient) GetRelatedBlog(ctx context.Context, in *Ge
 	return out, nil
 }
 
+func (c *recommendationServiceClient) GetUserRecommendedBlogs(ctx context.Context, in *GetUserRecommendedBlogsReq, opts ...grpc.CallOption) (*blog.Blogs, error) {
+	out := new(blog.Blogs)
+	err := c.cc.Invoke(ctx, "/blog.RecommendationService/GetUserRecommendedBlogs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RecommendationServiceServer is the server API for RecommendationService service.
 // All implementations must embed UnimplementedRecommendationServiceServer
 // for forward compatibility
 type RecommendationServiceServer interface {
 	GetRelatedBlog(context.Context, *GetRelatedBlogReq) (*GetRelatedBlogRes, error)
+	GetUserRecommendedBlogs(context.Context, *GetUserRecommendedBlogsReq) (*blog.Blogs, error)
 	mustEmbedUnimplementedRecommendationServiceServer()
 }
 
@@ -56,6 +68,9 @@ type UnimplementedRecommendationServiceServer struct {
 
 func (UnimplementedRecommendationServiceServer) GetRelatedBlog(context.Context, *GetRelatedBlogReq) (*GetRelatedBlogRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRelatedBlog not implemented")
+}
+func (UnimplementedRecommendationServiceServer) GetUserRecommendedBlogs(context.Context, *GetUserRecommendedBlogsReq) (*blog.Blogs, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserRecommendedBlogs not implemented")
 }
 func (UnimplementedRecommendationServiceServer) mustEmbedUnimplementedRecommendationServiceServer() {}
 
@@ -88,6 +103,24 @@ func _RecommendationService_GetRelatedBlog_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RecommendationService_GetUserRecommendedBlogs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserRecommendedBlogsReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RecommendationServiceServer).GetUserRecommendedBlogs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/blog.RecommendationService/GetUserRecommendedBlogs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RecommendationServiceServer).GetUserRecommendedBlogs(ctx, req.(*GetUserRecommendedBlogsReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RecommendationService_ServiceDesc is the grpc.ServiceDesc for RecommendationService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -98,6 +131,10 @@ var RecommendationService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetRelatedBlog",
 			Handler:    _RecommendationService_GetRelatedBlog_Handler,
+		},
+		{
+			MethodName: "GetUserRecommendedBlogs",
+			Handler:    _RecommendationService_GetUserRecommendedBlogs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

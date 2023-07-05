@@ -126,20 +126,39 @@ func (s *userServer) UpdateUser(context.Context, *user.User) (*user.UpdateUserRe
 }
 
 func (s *userServer) MarkBlogAsReaded(ctx context.Context, req *user.MarkBlogAsReadedReq) (*utils.Empty, error) {
-	query := `
-		INSERT INTO readed_blogs (user_id, blog_id, at)
-		VALUES ($1, $2, NOW())
-		ON CONFLICT (user_id, blog_id) DO UPDATE SET at = NOW()
+	// Check if the user_id and blog_id combination already exists
+	existsQuery := `
+		SELECT EXISTS(
+			SELECT 1 FROM readed_blogs WHERE user_id = $1 AND blog_id = $2
+		)
 	`
 
-	// Execute the SQL statement
-	_, err := s.service.DB.ExecContext(ctx, query, req.UserId, req.BlogId)
+	var exists bool
+	err := s.service.DB.QueryRowContext(ctx, existsQuery, req.UserId, req.BlogId).Scan(&exists)
 	if err != nil {
-		// if pgErr, ok := err.(*pq.Error); ok && pgErr.Code == "23503" {
-		// Handle foreign key violation error (if needed)
-		// You can return a specific gRPC error or handle it based on your requirements
-		// }
 		return nil, err
+	}
+
+	if exists {
+		// Update the existing row with the current time
+		updateQuery := `
+			UPDATE readed_blogs SET at = now() WHERE user_id = $1 AND blog_id = $2
+		`
+
+		_, err = s.service.DB.ExecContext(ctx, updateQuery, req.UserId, req.BlogId)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Insert a new row with the current time
+		insertQuery := `
+			INSERT INTO readed_blogs (user_id, blog_id, at) VALUES ($1, $2, now())
+		`
+
+		_, err = s.service.DB.ExecContext(ctx, insertQuery, req.UserId, req.BlogId)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &utils.Empty{}, nil
@@ -149,7 +168,7 @@ func (s *userServer) GetRecentlyReadedBlogsIds(ctx context.Context, req *user.Ge
 	// Prepare the SQL statement to select the most recently read blog IDs for the given user
 	query := `
 		SELECT blog_id
-		FROM read_user
+		FROM readed_blogs
 		WHERE user_id = $1
 		ORDER BY at DESC
 		LIMIT $2
