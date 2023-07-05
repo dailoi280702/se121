@@ -9,7 +9,7 @@ import Link from 'next/link'
 
 const SEARCH_LIMIT = 20
 
-async function fetchCars(req: SearchReq) {
+export async function fetchCars(req: SearchReq) {
   try {
     const fetchURL =
       'http://api-gateway:8000/v1/car/search?' + objectToQuery(req)

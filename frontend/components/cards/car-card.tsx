@@ -1,25 +1,14 @@
-'use client'
-
-import {
-  ArrowTopRightOnSquareIcon,
-  ExclamationCircleIcon,
-} from '@heroicons/react/24/outline'
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 const CarCard = ({ car }: { car: Car }) => {
   const { id, brand, series, name, imageUrl } = car
 
-  const router = useRouter()
-
-  const handleClick = () => {
-    router.push(`/car/${id}`)
-  }
-
   return (
-    <div
+    <Link
+      href={`/car/${id}`}
       className="relative flex h-40 min-w-max cursor-pointer overflow-hidden rounded-lg bg-white shadow-lg"
-      onClick={handleClick}
     >
       {imageUrl && (
         <Image
@@ -37,7 +26,7 @@ const CarCard = ({ car }: { car: Car }) => {
           {brand?.name} - {series?.name}
         </p>
       </div>
-    </div>
+    </Link>
   )
 }
 
@@ -50,19 +39,13 @@ export const SmallCarCard = ({
 }) => {
   const { id, name, imageUrl } = car
 
-  const router = useRouter()
-
-  const handleClick = () => {
-    router.push(`/car/${id}`)
-  }
-
   return (
-    <div
+    <Link
       className={[
         'relative flex h-32 min-w-max cursor-pointer overflow-hidden rounded-lg bg-white shadow-lg',
         className,
       ].join(' ')}
-      onClick={handleClick}
+      href={`/car/${id}`}
     >
       {imageUrl ? (
         <Image
@@ -81,7 +64,7 @@ export const SmallCarCard = ({
       <div className="absolute inset-x-0 bottom-0 w-full bg-gradient-to-t from-black to-black/0 px-4 py-2 pt-6 text-white drop-shadow-md">
         <h3 className="text-sm font-medium">{name}</h3>
       </div>
-    </div>
+    </Link>
   )
 }
 

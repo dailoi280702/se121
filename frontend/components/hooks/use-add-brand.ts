@@ -66,7 +66,7 @@ export default function useAddEditBrand({
         brand.countryOfOrigin!.trim() === '' ? 'Country can not be empty' : '',
       websiteUrl:
         brand.websiteUrl!.trim() === '' ? 'Website URL can not be empty' : '',
-      logoUrl: !selectedImage ? 'Please chose a logo' : '',
+      logoUrl: !selectedImage && !brand.logoUrl ? 'Please chose a logo' : '',
     }))
 
     for (const [_, v] of Object.entries(initErrors)) {
@@ -150,9 +150,60 @@ export default function useAddEditBrand({
   }
 
   const update = async () => {
-    // Update brand
-    if (onSuccess) {
-      onSuccess()
+    if (validate()) {
+      const data = {
+        id: brand.id,
+        name: brand.name.trim(),
+        countryOfOrigin: brand.countryOfOrigin?.trim(),
+        foundedYear: Number(brand.foundedYear!),
+        websiteUrl: brand.websiteUrl?.trim(),
+      }
+
+      // Post data
+      const response = await fetch('http://localhost:8000/v1/brand', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        await handleFailure(response)
+        return
+      }
+
+      if (selectedImage) {
+        const imageRef = ref(storage, `brand/${brand.id}/image`)
+
+        // Upload image
+        await uploadString(imageRef, selectedImage!.toString(), 'data_url')
+          .then(async (_) => {
+            // Retrive image URL
+            const imageUrl = await getDownloadURL(imageRef)
+
+            // Update image URL
+            const response = await fetch(`http://localhost:8000/v1/brand/`, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ id: Number(brand.id), logoUrl: imageUrl }),
+            })
+
+            if (!response.ok) {
+              await handleFailure(response)
+              return
+            }
+          })
+          .catch((err) => console.log(err))
+      }
+
+      if (onSuccess) {
+        onSuccess()
+      }
+      resetState()
+      router.replace(path)
     }
   }
 

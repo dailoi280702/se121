@@ -77,7 +77,7 @@ const AddBrandForm = ({
         hidden
         onChange={addImage}
       />
-      {selectedImage ? (
+      {selectedImage || brand.logoUrl ? (
         <div className="space-y-2">
           <label className="bg-inherit text-xs font-medium focus-within:text-teal-50">
             Logo
@@ -85,7 +85,7 @@ const AddBrandForm = ({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="w-full cursor-pointer rounded-md object-contain"
-            src={selectedImage.toString()}
+            src={selectedImage ? selectedImage.toString() : brand.logoUrl}
             alt=""
             onClick={() => imageUpLoadRef!.current?.click()}
           />
@@ -97,7 +97,7 @@ const AddBrandForm = ({
           type="button"
         >
           <CameraIcon className="mr-1 h-6 w-6" />
-          Chose a logo
+          Choose a logo
         </button>
       )}
       <div
@@ -120,7 +120,7 @@ const AddBrandForm = ({
           text-sm font-medium text-white outline-none hover:bg-teal-700 focus:outline-none"
           type="submit"
         >
-          Create Brand
+          Submit
         </button>
       </div>
     </form>

@@ -1,104 +1,63 @@
-import {
-  ArrowDownCircleIcon,
-  ArrowUpRightIcon,
-} from '@heroicons/react/24/outline'
-import Image from 'next/image'
+'use server'
 
-const FetchHello = async () => {
-  try {
-    const response = await fetch('http://go-backend:8000/v1/say-hello')
-    const data = await response.text()
-
-    if (!response.ok) return '???/'
-
-    return data
-  } catch {
-    return 'error'
-  }
-}
+import { ArrowRightIcon } from '@heroicons/react/24/outline'
+import Link from 'next/link'
+import { fetchCars } from './car/page'
+import { fetchBlogs } from './blog/page'
+import RecommendedBlogs from '@/components/recommended-blogs'
+import CarCard from '@/components/cards/car-card'
+import RecommendedBlogsSesssion from './blog/recommeded-blogs-session'
 
 export default async function Home() {
-  const helloString = await FetchHello()
+  const [{ cars }, { blogs }] = await Promise.all([
+    fetchCars({ orderby: 'date', limit: 10 }) as Promise<SearchCarRes>,
+    fetchBlogs({ orderby: 'date', limit: 10 }) as Promise<SearchBlogRes>,
+  ])
 
-  return <div>main</div>
-  // return (
-  //   <>
-  //     <div>
-  //       <hr className="border-[#F7AB0A] mb-10" />
-  //       <div className="grid grid-cols-1 md:grid-cols-2 px-10 gap-10 gap-y-16 pb-24">
-  //         <div>
-  //           <div className="flex flex-col group cursor-pointer">
-  //             <div className="relative w-full h-80 drop-shadow-xl group-hover:scale-105 transition-transform duration-200 ease-out">
-  //               <Image
-  //                 className="object-cover object-left lg:object-center"
-  //                 src="https://imageio.forbes.com/specials-images/imageserve/5d35eacaf1176b0008974b54/2020-Chevrolet-Corvette-Stingray/0x0.jpg?format=jpg&crop=4560,2565,x790,y784,safe&width=960"
-  //                 alt="Image"
-  //                 fill
-  //               />
-  //               <div className="absolute bottom-0 w-full bg-opacity-20 bg-black backdrop-blur-lg rounded drop-shadow-lg text-white p-5 flex justify-between">
-  //                 <div>
-  //                   <p className="font-bold">Title</p>
-  //                   <p>Post time</p>
-  //                 </div>
-  //                 <div className="flex flex-col md:flex-row gap-y-2 md:gap-x-2 items-center">
-  //                   <div className="bg-[#F7AB0A] text-center text-black px-3 py-1 rounded-full text-sm font-semibold">
-  //                     <p className="font-bold text-center flex items-center">
-  //                       Read paper
-  //                       <ArrowUpRightIcon className="ml-1 h-2.5 w-2.5" />
-  //                     </p>
-  //                   </div>
-  //                   <div className="bg-[#F7AB0A] text-center text-black px-3 py-1 rounded-full text-sm font-semibold">
-  //                     <p className="font-bold flex justify-center items-center">
-  //                       Report paper
-  //                     </p>
-  //                   </div>
-  //                 </div>
-  //               </div>
-  //             </div>
-  //             <div className="mt-5 flex-1">
-  //               <p className="underline text-lg font-bold">Tilte</p>
-  //               <p className="text-gray-500">Short description</p>
-  //             </div>
-  //           </div>
-  //         </div>
-  //
-  //         <div>
-  //           <div className="flex flex-col group cursor-pointer">
-  //             <div className="relative w-full h-80 drop-shadow-xl group-hover:scale-105 transition-transform duration-200 ease-out">
-  //               <Image
-  //                 className="object-cover object-left lg:object-center"
-  //                 src="https://imageio.forbes.com/specials-images/imageserve/5d35eacaf1176b0008974b54/2020-Chevrolet-Corvette-Stingray/0x0.jpg?format=jpg&crop=4560,2565,x790,y784,safe&width=960"
-  //                 alt="Image"
-  //                 fill
-  //               />
-  //               <div className="absolute bottom-0 w-full bg-opacity-20 bg-black backdrop-blur-lg rounded drop-shadow-lg text-white p-5 flex justify-between">
-  //                 <div>
-  //                   <p className="font-bold">Title</p>
-  //                   <p>Post time</p>
-  //                 </div>
-  //                 <div className="flex flex-col md:flex-row gap-y-2 md:gap-x-2 items-center">
-  //                   <div className="bg-[#F7AB0A] text-center text-black px-3 py-1 rounded-full text-sm font-semibold">
-  //                     <p className="font-bold text-center flex items-center">
-  //                       Read paper
-  //                       <ArrowUpRightIcon className="ml-1 h-2.5 w-2.5" />
-  //                     </p>
-  //                   </div>
-  //                   <div className="bg-[#F7AB0A] text-center text-black px-3 py-1 rounded-full text-sm font-semibold">
-  //                     <p className="font-bold flex justify-center items-center">
-  //                       Report paper
-  //                     </p>
-  //                   </div>
-  //                 </div>
-  //               </div>
-  //             </div>
-  //             <div className="mt-5 flex-1">
-  //               <p className="underline text-lg font-bold">Tilte</p>
-  //               <p className="text-gray-500">Short description</p>
-  //             </div>
-  //           </div>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   </>
-  // )
+  return (
+    <div className="mx-auto mb-24 h-full py-4 sm:max-w-5xl">
+      <p className="text-lg">Hi, what are you interested in?</p>
+      <section className="my-8">
+        <div className="flex items-center">
+          <h3 className="my-2 text-xl font-medium">
+            Recently Added Car Models
+          </h3>
+          <p className="ml-auto mr-2 text-sm font-normal">See more</p>
+          <Link href={'/car'}>
+            <button
+              className="flex h-10 w-10 items-center justify-center rounded-full font-bold
+        hover:bg-neutral-700 hover:bg-opacity-[0.08]"
+            >
+              <ArrowRightIcon className="h-6 w-6 stroke-2" />
+            </button>
+          </Link>
+        </div>
+        {cars && (
+          <ul className="flex overflow-x-auto">
+            {cars.map((car) => (
+              <div className="pr-2" key={car.id}>
+                <CarCard car={car} />
+              </div>
+            ))}
+          </ul>
+        )}
+      </section>
+      <RecommendedBlogsSesssion />
+      <section className="my-8">
+        <div className="flex items-center">
+          <h3 className="my-2 text-xl font-medium">Recently Added Blogs</h3>
+          <p className="ml-auto mr-2 text-sm font-normal">See more</p>
+          <Link href={'/blog'}>
+            <button
+              className="flex h-10 w-10 items-center justify-center rounded-full font-bold
+        hover:bg-neutral-700 hover:bg-opacity-[0.08]"
+            >
+              <ArrowRightIcon className="h-6 w-6 stroke-2" />
+            </button>
+          </Link>
+        </div>
+        <RecommendedBlogs blogs={blogs} />
+      </section>
+    </div>
+  )
 }
