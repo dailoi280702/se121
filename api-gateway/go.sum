@@ -355,6 +355,8 @@ github.com/dailoi280702/se121/blog-service v0.0.0-20230704120911-b2ee6c05f779 h1
 github.com/dailoi280702/se121/blog-service v0.0.0-20230704120911-b2ee6c05f779/go.mod h1:WbUpL9WRrLzkr5JkY50LxgeKxqVfmz2SgeQu0BgngnE=
 github.com/dailoi280702/se121/blog-service v0.0.0-20230705003227-2a6d903af3e3 h1:DOmtyOHunUyTFRQRzrja0uGXYHzo8M/B98slyonHBww=
 github.com/dailoi280702/se121/blog-service v0.0.0-20230705003227-2a6d903af3e3/go.mod h1:WbUpL9WRrLzkr5JkY50LxgeKxqVfmz2SgeQu0BgngnE=
+github.com/dailoi280702/se121/blog-service v0.0.0-20230705070519-b7f3f91cde70 h1:sCu10Yl6ZmslTw5Pi0GKfQoH3Y8MWa2ZOz1f4ujTYDA=
+github.com/dailoi280702/se121/blog-service v0.0.0-20230705070519-b7f3f91cde70/go.mod h1:WbUpL9WRrLzkr5JkY50LxgeKxqVfmz2SgeQu0BgngnE=
 github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231 h1:RXqNIJZ2YtO4SqkF3/wMtIvRB4zqOEDjEv1chTPosXM=
 github.com/dailoi280702/se121/car-service v0.0.0-20230521140836-b781d226a231/go.mod h1:z60SWtuBxagYyZFnb0C1CFUBn/gztne2VmwveTxNg6I=
 github.com/dailoi280702/se121/car-service v0.0.0-20230609092232-af0341bd6ff2 h1:y5+jWZUE3sjDZJ9tzdddlCPLnO0zvCCu84bQHak1Fpk=

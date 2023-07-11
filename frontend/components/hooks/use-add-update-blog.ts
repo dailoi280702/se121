@@ -137,7 +137,7 @@ export default function useAddUpdateBlog({
           setValues((prev) => {
             return {
               ...prev,
-              review: data.text,
+              tldr: data.text,
             }
           })
         }
