@@ -48,7 +48,7 @@ export default function RecommendedBlogsSesssion() {
               Blogs Recommended For You
             </h3>
             <p className="ml-auto mr-2 text-sm font-normal">See more</p>
-            <Link href={'/car'}>
+            <Link href={'/blog'}>
               <button
                 className="flex h-10 w-10 items-center justify-center rounded-full font-bold
         hover:bg-neutral-700 hover:bg-opacity-[0.08]"
