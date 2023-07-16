@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -89,6 +90,8 @@ func handleCreateComment(commentService comment.CommentServiceClient) http.Handl
 		var req comment.CreateCommentReq
 		convertJsonApiToGrpc(w, r, func() error {
 			var err error
+			log.Println("fine")
+			log.Println(req.String())
 			_, err = commentService.CreateComment(context.Background(), &req)
 			return err
 		}, convertWithJsonReqData(&req))

@@ -72,6 +72,7 @@ export default function useAddComment({ blogId }: { blogId: Number }) {
         },
         body: JSON.stringify(data),
       })
+      console.log(await response.clone().text())
 
       if (!response.ok) {
         await handleFailure(response)

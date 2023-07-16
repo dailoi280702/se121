@@ -2,6 +2,7 @@ import grpc
 import logging
 import asyncio
 import openai
+import threading
 import os
 import random
 from protos import text_generate_pb2
@@ -32,6 +33,33 @@ def generate_tldr(blog_title, blog_content):
         .strip()
     )
     return tldr
+
+
+def chunk_and_call_tldr(blog_content, blog_title):
+    chunks = []
+    tokens = blog_content.split(" ")
+    chunk_size = 4000
+    for i in range(0, len(tokens), chunk_size):
+        chunk = tokens[i:i + chunk_size]
+        chunk = " ".join(chunk)
+        chunks.append(chunk)
+
+    tldrs = []
+    threads = []
+    for chunk in chunks:
+        thread = threading.Thread(target=generate_tldr, args=(blog_title, chunk))
+        threads.append(thread)
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
+    combined_tldr = " ".join(tldrs)
+    if len(tldrs) > 1:
+        tldr = generate_tldr(blog_title, combined_tldr)
+        return tldr
+    else:
+        return combined_tldr
 
 
 class TextGenerateServicer:
@@ -81,7 +109,7 @@ class TextGenerateServicer:
         request: text_generate_pb2.GenerateBlogSummarizationReq,
         context: grpc.aio.ServicerContext,
     ) -> text_generate_pb2.ResString:
-        generated_tldr = generate_tldr(request.title, request.body)
+        generated_tldr = chunk_and_call_tldr(request.title, request.body)
         return text_generate_pb2.ResString(text=generated_tldr)
         # context.set_code(grpc.StatusCode.INTERNAL)
         # context.set_details("Text generate server error")

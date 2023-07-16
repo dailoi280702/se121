@@ -371,6 +371,8 @@ github.com/dailoi280702/se121/comment-service v0.0.0-20230521140836-b781d226a231
 github.com/dailoi280702/se121/comment-service v0.0.0-20230521140836-b781d226a231/go.mod h1:Ck6vbxtDiKMQvBc7Jac/GSzC7rpoGVk7xiUWB4ljosQ=
 github.com/dailoi280702/se121/comment-service v0.0.0-20230704185612-fabcccba56ea h1:nMAxmucR4zwSjE2a3cLdDhiq8bpf1kYTV+RgmbRC/rA=
 github.com/dailoi280702/se121/comment-service v0.0.0-20230704185612-fabcccba56ea/go.mod h1:7kcJ/cDWnfXMCk7mIWnZdVLOPo9tiXClBG2qmdAw6Qs=
+github.com/dailoi280702/se121/comment-service v0.0.0-20230705070519-b7f3f91cde70 h1:U/vXqWJXgG4DPw79lD6OIRr9U+ToWKvXQ4ehNyfg/LI=
+github.com/dailoi280702/se121/comment-service v0.0.0-20230705070519-b7f3f91cde70/go.mod h1:7kcJ/cDWnfXMCk7mIWnZdVLOPo9tiXClBG2qmdAw6Qs=
 github.com/dailoi280702/se121/pkg/go v0.0.0-20230521135721-a682645da4cd h1:pAUc47hfwHwIXvBH+CvzHx60vSOOxKE+wk1IiiDzFW0=
 github.com/dailoi280702/se121/pkg/go v0.0.0-20230521135721-a682645da4cd/go.mod h1:oxqNpTiyBhvZrJNrPC7kTfenjVdVw/ZwHat7WTBFrOs=
 github.com/dailoi280702/se121/pkg/go v0.0.0-20230521140836-b781d226a231 h1:I79WZF57HM6byTMjhbNFqynodi1VTR688ngeJdyxbmw=
