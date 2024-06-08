@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
-	"github.com/dailoi280702/se121/recommendation-service/internal/dao"
+	"github.com/dailoi280702/se121/recommendation-service/internal/repo"
 )
 
 type BlogRecommender interface {
@@ -20,17 +20,17 @@ type BlogRecommender interface {
 var _ BlogRecommender = (*DefaultBlogRecommender)(nil)
 
 type DefaultBlogRecommender struct {
-	blogDao dao.BlogDao
-	tagDao  dao.TagDao
+	blogRepo repo.BlogRepository
+	tagRepo  repo.TagRepository
 	BlogRecommender
 }
 
 func (r *DefaultBlogRecommender) GetLatestBlogTags(ctx context.Context) ([]*blog.BlogTags, error) {
-	return r.tagDao.GetLatestTags(ctx)
+	return r.tagRepo.GetLatestTags(ctx)
 }
 
 func (r *DefaultBlogRecommender) GetBlogsFromIds(ctx context.Context, ids []int32) ([]*blog.Blog, error) {
-	return r.blogDao.GetBlogFromIds(ctx, ids)
+	return r.blogRepo.GetBlogFromIds(ctx, ids)
 }
 
 func (r *DefaultBlogRecommender) GetRecommendation(ctx context.Context, id string, limit int32) ([]*blog.Blog, error) {

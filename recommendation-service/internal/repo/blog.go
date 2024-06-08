@@ -1,4 +1,4 @@
-package dao
+package repo
 
 import (
 	"context"
@@ -7,15 +7,15 @@ import (
 	"github.com/dailoi280702/se121/recommendation-service/client/blogservice"
 )
 
-type BlogDao interface {
+type BlogRepository interface {
 	GetBlogFromIds(ctx context.Context, ids []int32) ([]*blog.Blog, error)
 }
 
-type BlogRepository struct {
+type blogRepository struct {
 	blogService blog.BlogServiceClient
 }
 
-func (r *BlogRepository) GetBlogFromIds(ctx context.Context, ids []int32) ([]*blog.Blog, error) {
+func (r *blogRepository) GetBlogFromIds(ctx context.Context, ids []int32) ([]*blog.Blog, error) {
 	res, err := r.blogService.GetBlogsFromIds(ctx, &blog.BlogIds{
 		Ids: ids,
 	})
@@ -26,8 +26,8 @@ func (r *BlogRepository) GetBlogFromIds(ctx context.Context, ids []int32) ([]*bl
 	return res.Blogs, nil
 }
 
-func NewBlogRepository() BlogDao {
-	return &BlogRepository{
+func NewBlogRepository() BlogRepository {
+	return &blogRepository{
 		blogService: blogservice.GetInstance(),
 	}
 }

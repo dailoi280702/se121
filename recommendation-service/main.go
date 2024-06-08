@@ -8,8 +8,8 @@ import (
 	"github.com/dailoi280702/se121/recommendation-service/cache"
 	"github.com/dailoi280702/se121/recommendation-service/client/blogservice"
 	"github.com/dailoi280702/se121/recommendation-service/client/userservice"
-	"github.com/dailoi280702/se121/recommendation-service/internal/dao"
-	proxyserver "github.com/dailoi280702/se121/recommendation-service/internal/proxy_server"
+	"github.com/dailoi280702/se121/recommendation-service/internal/proxy_server"
+	"github.com/dailoi280702/se121/recommendation-service/internal/repo"
 	"github.com/dailoi280702/se121/recommendation-service/internal/server"
 	"github.com/dailoi280702/se121/recommendation-service/pkg/recommendation"
 	_ "github.com/lib/pq"
@@ -33,8 +33,8 @@ func main() {
 		userService.Close()
 	}()
 
-	blogRepo := dao.NewBlogRepository()
-	tagRepo := dao.NewTagRepository()
+	blogRepo := repo.NewBlogRepository()
+	tagRepo := repo.NewTagRepository()
 
 	grpcServer := grpc.NewServer()
 	server := server.NewServer(blogRepo, tagRepo)

@@ -1,4 +1,4 @@
-package dao
+package repo
 
 import (
 	"context"
@@ -13,19 +13,19 @@ import (
 
 const defaultRecentBlogsLimitSize = 25
 
-type TagDao interface {
+type TagRepository interface {
 	GetTagsFromBlogId(ctx context.Context, blogId int32) ([]*blog.BlogTags, error)
 	GetUserTagsFromRecentActivity(ctx context.Context, userId string, limit int32) ([]*blog.BlogTags, error)
 	GetLatestTags(ctx context.Context) ([]*blog.BlogTags, error)
 }
 
-type TagRepository struct {
+type tagRepository struct {
 	blogService blog.BlogServiceClient
 	userService user.UserServiceClient
 	cache       *cache.DualCache
 }
 
-func (r *TagRepository) GetTagsFromBlogId(ctx context.Context, blogId int32) ([]*blog.BlogTags, error) {
+func (r *tagRepository) GetTagsFromBlogId(ctx context.Context, blogId int32) ([]*blog.BlogTags, error) {
 	res, err := r.blogService.GetTagsFromBlogIds(ctx, &blog.BlogIds{
 		Ids: []int32{blogId},
 	})
@@ -36,7 +36,7 @@ func (r *TagRepository) GetTagsFromBlogId(ctx context.Context, blogId int32) ([]
 	return res.BlogTags, nil
 }
 
-func (r *TagRepository) GetUserTagsFromRecentActivity(ctx context.Context, userId string, limit int32) ([]*blog.BlogTags, error) {
+func (r *tagRepository) GetUserTagsFromRecentActivity(ctx context.Context, userId string, limit int32) ([]*blog.BlogTags, error) {
 	blogsRes, err := r.userService.GetRecentlyReadedBlogsIds(ctx, &user.GetRecentlyReadedBlogsIdsReq{
 		UserId: userId,
 		Limit:  limit,
@@ -53,7 +53,7 @@ func (r *TagRepository) GetUserTagsFromRecentActivity(ctx context.Context, userI
 	return tagsRes.BlogTags, nil
 }
 
-func (r *TagRepository) GetLatestTags(ctx context.Context) ([]*blog.BlogTags, error) {
+func (r *tagRepository) GetLatestTags(ctx context.Context) ([]*blog.BlogTags, error) {
 	res := &blog.GetLatestBlogTagsRes{}
 	key := "blogs:latest"
 
@@ -84,8 +84,8 @@ func (r *TagRepository) GetLatestTags(ctx context.Context) ([]*blog.BlogTags, er
 	return res.BlogTags, nil
 }
 
-func NewTagRepository() TagDao {
-	return &TagRepository{
+func NewTagRepository() TagRepository {
+	return &tagRepository{
 		blogService: blogservice.GetInstance(),
 		userService: userservice.GetInstance(),
 		cache:       cache.GetInstance(),

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
-	"github.com/dailoi280702/se121/recommendation-service/internal/dao"
+	"github.com/dailoi280702/se121/recommendation-service/internal/repo"
 )
 
 type UserBlogsRecommender struct {
@@ -12,13 +12,13 @@ type UserBlogsRecommender struct {
 }
 
 func (r *UserBlogsRecommender) GetInteractedBlogTags(ctx context.Context, id string, limit int32) ([]*blog.BlogTags, error) {
-	return r.tagDao.GetUserTagsFromRecentActivity(ctx, id, limit)
+	return r.tagRepo.GetUserTagsFromRecentActivity(ctx, id, limit)
 }
 
-func NewUserBlogsRecommender(blogDao dao.BlogDao, tagDao dao.TagDao) BlogRecommender {
+func NewUserBlogsRecommender(blogRepo repo.BlogRepository, tagRepo repo.TagRepository) BlogRecommender {
 	defaultRecommender := &DefaultBlogRecommender{
-		blogDao: blogDao,
-		tagDao:  tagDao,
+		blogRepo: blogRepo,
+		tagRepo:  tagRepo,
 	}
 
 	recommender := &UserBlogsRecommender{
