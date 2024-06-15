@@ -2,38 +2,29 @@ package recommender
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sort"
 	"sync"
 
 	"github.com/dailoi280702/se121/blog-service/pkg/blog"
-	"github.com/dailoi280702/se121/recommendation-service/internal/repo"
 )
 
-type BlogRecommender interface {
-	GetInteractedBlogTags(ctx context.Context, id string, limit int32) ([]*blog.BlogTags, error)
+type RecommenderDataSource interface {
+	GetRelatedBlogTags(ctx context.Context, id string, limit int32) ([]*blog.BlogTags, error)
 	GetLatestBlogTags(ctx context.Context) ([]*blog.BlogTags, error)
 	GetBlogsFromIds(ctx context.Context, ids []int32) ([]*blog.Blog, error)
-	GetRecommendation(ctx context.Context, id string, limit int32) ([]*blog.Blog, error)
 }
 
-var _ BlogRecommender = (*DefaultBlogRecommender)(nil)
-
-type DefaultBlogRecommender struct {
-	blogRepo repo.BlogRepository
-	tagRepo  repo.TagRepository
-	BlogRecommender
+type BlogRecommender struct {
+	DataSource RecommenderDataSource
 }
 
-func (r *DefaultBlogRecommender) GetLatestBlogTags(ctx context.Context) ([]*blog.BlogTags, error) {
-	return r.tagRepo.GetLatestTags(ctx)
-}
+func (r BlogRecommender) GetRecommendation(ctx context.Context, id string, limit int32) ([]*blog.Blog, error) {
+	if r.DataSource == nil {
+		return nil, errors.New("No data source found")
+	}
 
-func (r *DefaultBlogRecommender) GetBlogsFromIds(ctx context.Context, ids []int32) ([]*blog.Blog, error) {
-	return r.blogRepo.GetBlogFromIds(ctx, ids)
-}
-
-func (r *DefaultBlogRecommender) GetRecommendation(ctx context.Context, id string, limit int32) ([]*blog.Blog, error) {
 	sourceItems := []Item{}
 	destItems := []Item{}
 
@@ -42,7 +33,7 @@ func (r *DefaultBlogRecommender) GetRecommendation(ctx context.Context, id strin
 	wg.Add(2)
 
 	go func() {
-		res, err := r.GetInteractedBlogTags(context.Background(), id, limit)
+		res, err := r.DataSource.GetRelatedBlogTags(context.Background(), id, limit)
 		errCh <- err
 		for _, value := range res {
 			tags := []int32{}
@@ -55,7 +46,7 @@ func (r *DefaultBlogRecommender) GetRecommendation(ctx context.Context, id strin
 	}()
 
 	go func() {
-		res, err := r.GetLatestBlogTags(context.Background())
+		res, err := r.DataSource.GetLatestBlogTags(context.Background())
 		errCh <- err
 		for _, value := range res {
 			tags := []int32{}
@@ -85,7 +76,7 @@ func (r *DefaultBlogRecommender) GetRecommendation(ctx context.Context, id strin
 		recommendedBlogIds = append(recommendedBlogIds, int32(r.ItemID))
 	}
 
-	blogs, err := r.GetBlogsFromIds(ctx, recommendedBlogIds)
+	blogs, err := r.DataSource.GetBlogsFromIds(ctx, recommendedBlogIds)
 	if err != nil {
 		return nil, fmt.Errorf("Recommendation service error while fetch recommendedBlogs: %v", err)
 	}

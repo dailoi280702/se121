@@ -7,25 +7,26 @@ import (
 	"github.com/dailoi280702/se121/recommendation-service/internal/repo"
 )
 
-type UserBlogsRecommender struct {
-	DefaultBlogRecommender
+type UserBlogsDataSource struct {
+	blogRepo repo.BlogRepository
+	tagRepo  repo.TagRepository
 }
 
-func (r *UserBlogsRecommender) GetInteractedBlogTags(ctx context.Context, id string, limit int32) ([]*blog.BlogTags, error) {
+func (r *UserBlogsDataSource) GetRelatedBlogTags(ctx context.Context, id string, limit int32) ([]*blog.BlogTags, error) {
 	return r.tagRepo.GetUserTagsFromRecentActivity(ctx, id, limit)
 }
 
-func NewUserBlogsRecommender(blogRepo repo.BlogRepository, tagRepo repo.TagRepository) BlogRecommender {
-	defaultRecommender := &DefaultBlogRecommender{
+func (r *UserBlogsDataSource) GetLatestBlogTags(ctx context.Context) ([]*blog.BlogTags, error) {
+	return r.tagRepo.GetLatestTags(ctx)
+}
+
+func (r *UserBlogsDataSource) GetBlogsFromIds(ctx context.Context, ids []int32) ([]*blog.Blog, error) {
+	return r.blogRepo.GetBlogFromIds(ctx, ids)
+}
+
+func NewUserBlogsRecommender(blogRepo repo.BlogRepository, tagRepo repo.TagRepository) RecommenderDataSource {
+	return &UserBlogsDataSource{
 		blogRepo: blogRepo,
 		tagRepo:  tagRepo,
 	}
-
-	recommender := &UserBlogsRecommender{
-		DefaultBlogRecommender: *defaultRecommender,
-	}
-
-	defaultRecommender.BlogRecommender = recommender
-
-	return defaultRecommender
 }
